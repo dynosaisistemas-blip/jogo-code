@@ -1,0 +1,1045 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Os 11 do Bairro 🐾</title>
+<style>
+  :root {
+    --papel: #fdf6e3;
+    --tinta: #3a2e26;
+    --terracota: #c1572e;
+    --terracota-escuro: #9c4423;
+    --verde: #5c7d54;
+    --azul: #4a7a96;
+    --amarelo: #e8b94a;
+    --caixa: #fffdf5;
+    --sombra: rgba(58, 46, 38, 0.15);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: Georgia, "Times New Roman", serif;
+    background: linear-gradient(180deg, #f5e9d0 0%, var(--papel) 30%);
+    color: var(--tinta);
+    min-height: 100vh;
+    padding: 16px;
+  }
+  #app { max-width: 720px; margin: 0 auto; }
+  header { text-align: center; padding: 18px 0 10px; }
+  header h1 {
+    font-size: 2rem;
+    color: var(--terracota-escuro);
+    letter-spacing: 1px;
+  }
+  header p.sub { font-style: italic; color: #7a6a5b; margin-top: 4px; }
+  .cartao {
+    background: var(--caixa);
+    border: 2px solid #e6d9bd;
+    border-radius: 14px;
+    box-shadow: 0 4px 14px var(--sombra);
+    padding: 22px;
+    margin: 14px 0;
+    line-height: 1.65;
+    font-size: 1.05rem;
+  }
+  .cartao p { margin-bottom: 12px; }
+  .cartao p:last-child { margin-bottom: 0; }
+  .cartao em { color: var(--terracota-escuro); }
+  .fala { color: var(--azul); }
+  .escolhas { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+  button.escolha {
+    font-family: inherit;
+    font-size: 1rem;
+    text-align: left;
+    background: #fff;
+    color: var(--tinta);
+    border: 2px solid var(--terracota);
+    border-radius: 10px;
+    padding: 12px 16px;
+    cursor: pointer;
+    transition: background 0.15s, transform 0.05s;
+    line-height: 1.4;
+  }
+  button.escolha:hover { background: #fbe9dc; }
+  button.escolha:active { transform: scale(0.99); }
+  button.escolha .num {
+    display: inline-block;
+    background: var(--terracota);
+    color: #fff;
+    border-radius: 6px;
+    padding: 0 8px;
+    margin-right: 8px;
+    font-weight: bold;
+  }
+  #livre { display: flex; gap: 8px; margin-top: 12px; }
+  #livre input {
+    flex: 1;
+    font-family: inherit;
+    font-size: 1rem;
+    padding: 10px 14px;
+    border: 2px dashed #bda98a;
+    border-radius: 10px;
+    background: #fffef9;
+    color: var(--tinta);
+  }
+  #livre input:focus { outline: none; border-color: var(--verde); }
+  #livre button {
+    font-family: inherit;
+    font-size: 1rem;
+    background: var(--verde);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 10px 18px;
+    cursor: pointer;
+  }
+  #livre button:hover { background: #4a6844; }
+  .grade-gatos {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+    margin-top: 14px;
+  }
+  .carta-gato {
+    background: #fff;
+    border: 2px solid #e0cfa8;
+    border-radius: 12px;
+    padding: 12px 14px;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    font-family: inherit;
+    text-align: left;
+  }
+  .carta-gato:hover { border-color: var(--terracota); background: #fdf0e6; }
+  .carta-gato .emoji { font-size: 1.6rem; }
+  .carta-gato .nome { font-weight: bold; color: var(--terracota-escuro); display: block; margin: 2px 0; }
+  .carta-gato .desc { font-size: 0.85rem; color: #6d5f51; line-height: 1.35; }
+  .humanas { border-color: #b5c6d1; }
+  .humanas:hover { border-color: var(--azul); background: #ebf2f6; }
+  .humanas .nome { color: var(--azul); }
+  .evento {
+    border-left: 6px solid var(--amarelo);
+    background: #fdf8e6;
+  }
+  .rodape { text-align: center; color: #9a8a76; font-size: 0.85rem; padding: 20px 0; }
+  .separador { text-align: center; color: var(--terracota); letter-spacing: 6px; margin: 4px 0 10px; }
+  .fim h2 { color: var(--terracota-escuro); margin-bottom: 10px; text-align: center; }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <h1>🐾 Os 11 do Bairro</h1>
+    <p class="sub">Uma aventura de gatos, café passado e paralelepípedos</p>
+  </header>
+  <div class="separador">🐈 · 🐈 · 🐈 · 🐈 · 🐈 · 🐈 · 🐈 · 🐈 · 🐈 · 🐈 · 🐈</div>
+  <div id="palco"></div>
+  <div class="rodape">Regra de ouro: nenhum gato se machuca nesta história. Todos os 11 sempre voltam para casa. ❤️</div>
+</div>
+
+<script>
+"use strict";
+
+/* ============================================================
+   OS 11 DO BAIRRO — motor do jogo
+   ============================================================ */
+
+const PERSONAGENS = {
+  lilica:    { nome: "Lilica",     emoji: "👑", humana: false, desc: "A matriarca. Foi a mais braba da casa; hoje, mansa pela doença renal, carrega a sabedoria de anos de reinado." },
+  lourinho:  { nome: "Lourinho",   emoji: "🧸", humana: false, desc: "Gordinho, urso de pelúcia, pai de quase todos. Doce e medroso — menos com o Zé, seu rival de brigas lendárias." },
+  popoia:    { nome: "Pomporita (Popoia)", emoji: "🌀", humana: false, desc: "Magrinha, elétrica e completamente doida. Manhosa em excesso. Nem ela sabe o que vai fazer em seguida." },
+  jaime:     { nome: "Jaime",      emoji: "🌙", humana: false, desc: "Magro, avoado, mundo da lua. PÂNICO do Zé. Único que passa pela brecha da janela para a garagem." },
+  ze:        { nome: "Zé",         emoji: "😾", humana: false, desc: "O valentão da casa. Vigia a rua com a cabeça pra fora da janela e a bunda balançando. Rival do Lourinho." },
+  sebastiao: { nome: "Sebastião",  emoji: "😴", humana: false, desc: "Trigêmeo branco de pelo longo. A vida dele é a cama. Acordá-lo é uma missão por si só." },
+  marrie:    { nome: "Marrie",     emoji: "💅", humana: false, desc: "Trigêmea branca, uma lady elegante… com um único defeito escandaloso: só faz cocô FORA da caixa." },
+  mimi:      { nome: "Mimi",       emoji: "🔎", humana: false, desc: "Enorme, branquinho, olhos azuis. O mais inteligente: fala com o olhar. Ama a frente da casa. Dorme EM CIMA da Ana." },
+  branquinho:{ nome: "Branquinho", emoji: "💛", humana: false, desc: "Amarelo claro (ninguém explica o nome), olhos azuis. Melhor amigo do Mimi. Demonstra amor lambendo a Ana sem parar." },
+  tiqueno:   { nome: "Tiqueno",    emoji: "⚡", humana: false, desc: "Aleijado das patas da frente, mas o mais sapeca de todos. Só come sachê e acorda os humanos sem piedade." },
+  tiquena:   { nome: "Tiquena",    emoji: "🧠", humana: false, desc: "Mãe do Tiqueno. Não anda, se arrasta — e vai aonde quer. Sabidinha: observa tudo, entende tudo." },
+  flavia:    { nome: "Flávia",     emoji: "☕", humana: true,  desc: "Humana. Divide o quarto com Sebastião, Popoia e agora a Lilica, que ela cuida de perto." },
+  ana:       { nome: "Ana",        emoji: "🫖", humana: true,  desc: "Humana. Dorme (tenta dormir) sob todos os quilos do Mimi, com o Branquinho lambendo ela de amor." },
+};
+
+let S = null; // estado do jogo
+
+function novoEstado(pc) {
+  return {
+    pc,
+    flags: {},
+    consultas: 0,
+    interludiosVistos: [],
+    cena: "manha",
+  };
+}
+
+const $ = (sel) => document.querySelector(sel);
+function ehHumana() { return PERSONAGENS[S.pc].humana; }
+function eu() { return PERSONAGENS[S.pc].nome; }
+function pc(id) { return S.pc === id; }
+
+/* ---------- aberturas por personagem ---------- */
+const ABERTURAS = {
+  lilica: "Você acorda devagar na cama da Flávia, no lugar mais quentinho do cobertor. Antigamente você acordava rosnando; hoje acorda pensando. A casa inteira ainda respeita cada passo seu — e você sabe de tudo o que acontece nela, mesmo sem sair do quarto.",
+  lourinho: "Você acorda no seu canto da sala, gordinho e enrolado como um pão de padaria. Primeiro pensamento do dia: comida. Segundo pensamento: será que o Zé já acordou? Você não tem medo dele. De todo o resto, sim. Dele, não.",
+  popoia: "Você acorda já correndo. Por quê? Ninguém sabe. Nem você. Você atravessa a sala em disparada, sobe na cortina, desce, deita de barriga pra cima no meio do corredor e decide que agora quer colo. AGORA.",
+  jaime: "Você acorda no mundo da lua, como sempre. Estava sonhando com… você já esqueceu. Você olha para a janela da sala e para a sua brecha secreta, aquela que só o seu corpo magrelo atravessa. A garagem te chama. Mas primeiro: onde está o Zé? Informação vital.",
+  ze: "Você acorda e a primeira coisa que faz é bufar. A casa é SUA. A janela é SUA. Você assume seu posto oficial: cabeça pra fora da janela, bunda balançando para dentro, vigiando a rua como o rei do pedaço que você é.",
+  sebastiao: "Você não acorda. Você está na cama da Flávia, esparramado na sua pose mais fotogênica, o pelo longo espalhado como um tapete de nuvem. O mundo lá fora que espere.",
+  marrie: "Você acorda e se alonga com a elegância de uma rainha. Passa a língua no pelo majestoso, uma lambida de cada lado, perfeitamente simétrica. Uma lady não se apressa. Você nota, com desdém, que limparam a caixa de areia. Como se isso fosse mudar alguma coisa.",
+  mimi: "Você acorda em cima da Ana, todos os seus quilos confortavelmente distribuídos sobre a humana, que geme baixinho no sono. O Branquinho dorme colado em vocês dois. Pela fresta da cortina, você vê a rua. A frente da casa. Seu lugar favorito no mundo inteiro.",
+  branquinho: "Você acorda e faz a única coisa sensata a se fazer de manhã: lamber a Ana. Na testa, no braço, no cabelo. Ela resmunga 'Branquinho, para', o que na sua língua significa 'continue, por favor'. Do seu lado, a montanha branca do Mimi ainda dorme.",
+  tiqueno: "Você acorda com fome. Fome de SACHÊ. Você se levanta nas suas patinhas do seu jeito e parte em missão, atravessando a casa como um foguetinho torto, direto para o quarto das humanas. Alguém vai acordar. Alguém VAI abrir um sachê.",
+  tiquena: "Você acorda no seu cantinho da sala e fica um tempo só observando, com seu tremorzinho de cabeça, do jeito que você gosta: antes de se arrastar para qualquer lugar, você já sabe onde todo mundo está e o que cada um vai fazer. Quase tudo. Hoje tem uma coisa que você ainda não entendeu.",
+  flavia: "Você acorda com a Popoia pisando na sua cara, o Sebastião ocupando dois terços da cama e a Lilica enroladinha junto ao seu braço — você confere, com carinho, se ela está bem. Está. Do corredor vem o grito inconfundível do Tiqueno: hora do sachê.",
+  ana: "Você acorda esmagada. Não é novidade: o Mimi dorme EM CIMA de você, todos os quilos dele, sem cerimônia. O Branquinho lambe seu cotovelo com devoção. Você precisa de café. Mas primeiro precisa sobreviver à operação 'sair de baixo do Mimi'.",
+};
+
+/* ---------- interlúdios aleatórios do bairro ---------- */
+const INTERLUDIOS = [
+  {
+    id: "popoia_doida",
+    cond: () => !pc("popoia"),
+    texto: () => `<p>De repente — POF! — a <em>Popoia</em> atravessa a sala em disparada, sem motivo nenhum, ricocheteia no sofá, derruba o porta-retrato (que a Flávia já colou três vezes) e freia de lado, olhando para uma parede vazia como se tivesse visto um fantasma.</p><p>Depois senta e começa a se lamber, como se nada tivesse acontecido. Ninguém comenta. Já é rotina.</p>`,
+  },
+  {
+    id: "marrie_vergonha",
+    cond: () => !pc("marrie"),
+    texto: () => `<p>Um silêncio constrangedor toma o corredor. A <em>Marrie</em> passa por você com o queixo erguido, elegante como sempre… vindo da área de serviço. Onde a caixa de areia está impecavelmente limpa.</p><p>E onde, a dez centímetros da caixa, está a nova obra dela. <span class="fala">"Marrie, PELO AMOR!"</span> — a voz da ${pc("flavia") ? "Ana" : "Flávia"} ecoa pela casa. A lady não se abala. Uma dama não dá explicações.</p>`,
+  },
+  {
+    id: "carro_sache",
+    texto: () => `<p>Da rua vem uma musiquinha eletrônica conhecida: o carro do sachê! O vendedor passa devagar pelos paralelepípedos, buzinando para as casas.</p><p>Em 0,5 segundos o <em>Tiqueno</em> está na janela, gritando na frequência que ele reserva para emergências alimentares. O <em>Zé</em> é obrigado a dividir a janela e odeia cada segundo disso.</p>`,
+  },
+  {
+    id: "ze_janela",
+    cond: () => !pc("ze"),
+    texto: () => `<p>Na janela da sala, o <em>Zé</em> assume sua pose clássica: cabeça pra fora, vigiando a rua com cara de dono do bairro, e a bunda balançando pra dentro da casa, num ritmo hipnótico.</p><p>A <em>Tiquena</em> observa a bunda balançante com seus olhos sabidos. Se gato revirasse os olhos, ela revirava.</p>`,
+  },
+  {
+    id: "vizinha_vassoura",
+    texto: () => `<p>Do lado de fora, o <em>chuac-chuac</em> ritmado da vassoura: dona Cida varre a calçada e conversa com o próprio cachorro, o Bilú, que late para uma folha. O cheiro de bolo de fubá escapa da janela dela e atravessa o muro.</p><p>Por um instante, a casa inteira para e fareja na mesma direção.</p>`,
+  },
+];
+
+function talvezInterludio(proximaCena) {
+  const disponiveis = INTERLUDIOS.filter(
+    (i) => !S.interludiosVistos.includes(i.id) && (!i.cond || i.cond())
+  );
+  if (disponiveis.length && Math.random() < 0.55) {
+    const ev = disponiveis[Math.floor(Math.random() * disponiveis.length)];
+    S.interludiosVistos.push(ev.id);
+    renderizar({
+      evento: true,
+      texto: `<p><em>— Enquanto isso, na casa dos 11 gatos —</em></p>` + ev.texto(),
+      escolhas: [{ t: "Continuar", f: () => irPara(proximaCena) }],
+      semLivre: true,
+    });
+    return true;
+  }
+  irPara(proximaCena);
+  return false;
+}
+
+/* ---------- respostas para ação livre ---------- */
+const RESPOSTAS_LIVRES = [
+  { re: /mia|miau|miar/i, r: () => ehHumana() ? "Você mia para os gatos. Onze pares de olhos te encaram, entre a piedade e a vergonha alheia. O Mimi pisca devagar, como quem diz: 'boa tentativa'." : "Você mia bem alto. A Popoia mia de volta, animadíssima, sem nenhum dos dois saber sobre o quê. Comunicação felina em sua forma mais pura." },
+  { re: /dormir|soneca|cochil/i, r: () => "Uma soneca é sempre tentadora — o Sebastião aprovaria com todas as patas. Mas algo te diz que hoje não é dia de dormir: tem mistério no ar." },
+  { re: /sach[eê]|comida|ração|racao|comer/i, r: () => "Só de pensar em sachê, sua barriga responde. Em algum lugar da casa, o Tiqueno sente uma perturbação na força e mia. Mas a comida vai ter que esperar um pouquinho." },
+  { re: /caf[eé]/i, r: () => ehHumana() ? "Você toma um gole do café, ainda quentinho. O dia fica 40% mais possível." : "O cheiro do café é bom, mas gato não toma café. Você já é elétrico o suficiente — pergunte à Popoia." },
+  { re: /lilica/i, r: () => pc("lilica") ? "Você é a Lilica. E a Lilica sabe o que faz." : "Você pensa na Lilica, quietinha no quarto da Flávia. A velha rainha da casa. Se alguém sabe das coisas por aqui, é ela." },
+  { re: /lamber|banho|limpar/i, r: () => ehHumana() ? "Você opta por um banho normal, de humana. Os gatos acham essa técnica muito ineficiente." : "Você para tudo para se lamber. Prioridades são prioridades. Pelo alinhado, mente alinhada." },
+  { re: /arranhar|unha|sof[aá]/i, r: () => "Você afia as unhas no braço do sofá — naquele canto que as humanas fingem que não veem mais. Pronto. Agora sim, preparado para qualquer coisa." },
+  { re: /janela|rua|fora/i, r: () => "Você olha pela janela. A rua de paralelepípedos, o muro, o pé de manga do vizinho. O mundo lá fora parece maior do que o normal hoje." },
+];
+
+function responderLivre(txt) {
+  if (!txt.trim()) return;
+  let resposta = null;
+  for (const r of RESPOSTAS_LIVRES) {
+    if (r.re.test(txt)) { resposta = r.r(); break; }
+  }
+  if (!resposta) {
+    const genericas = [
+      `Você tenta. A Tiquena observa sua tentativa com o tremorzinho de cabeça dela e um olhar que diz: "interessante… mas talvez a gente devesse focar no que importa".`,
+      `Você faz exatamente isso. A Popoia acha a ideia GENIAL e imita você, do jeito dela, ou seja: de um jeito completamente diferente e sem sentido.`,
+      `Boa tentativa! Mas o destino (e o narrador) tem outros planos. Um barulho ao longe traz sua atenção de volta para a aventura.`,
+    ];
+    resposta = genericas[Math.floor(Math.random() * genericas.length)];
+  }
+  const aviso = document.createElement("div");
+  aviso.className = "cartao evento";
+  aviso.innerHTML = `<p><em>Você:</em> "${txt.replace(/</g, "&lt;")}"</p><p>${resposta}</p>`;
+  const palco = $("#palco");
+  palco.insertBefore(aviso, palco.querySelector(".acoes"));
+  aviso.scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
+/* ============================================================
+   CENAS
+   ============================================================ */
+const CENAS = {
+
+  /* ---------- capítulo 1: a manhã ---------- */
+  manha: () => ({
+    texto: `
+      <p>O sol nasce devagar sobre o bairro. Lá fora, os paralelepípedos ainda guardam o frio da madrugada, um galo teimoso canta atrasado e o portão do vizinho range do jeito de sempre. Dentro da casa, o cheiro de café passado já toma a cozinha, e o <em>Tiqueno</em> já está gritando por sachê no pé da cama das humanas.</p>
+      <p>${ABERTURAS[S.pc]}</p>
+      <p>E então — <strong>CRASH!</strong> — um estrondo de lata vem da <em>garagem</em>. A lixeira. Alguma coisa derrubou a lixeira. A casa inteira congela por meio segundo. O Lourinho já sumiu debaixo do sofá.</p>
+    `,
+    escolhas: [
+      { t: "Investigar o barulho na garagem, agora", f: () => irPara("garagem") },
+      { t: "Primeiro o mais importante: passar na cozinha (sachê!)", f: () => irPara("cozinha") },
+      { t: ehHumana()
+          ? "Espiar pela janela da sala antes de abrir a porta da garagem"
+          : "Subir na janela da sala e espiar a garagem de longe",
+        f: () => irPara("espiar") },
+    ],
+  }),
+
+  cozinha: () => ({
+    texto: `
+      <p>A cozinha de manhã é o centro do universo. O sol entra pela janela e desenha um retângulo dourado no chão — já ocupado pela <em>Marrie</em>, claro, na pose de esfinge. O <em>Tiqueno</em> faz seu plantão oficial diante do armário dos sachês, gritando em intervalos regulares, como um despertador que ninguém consegue desligar.</p>
+      <p>${ehHumana()
+        ? `Você abre um sachê para o Tiqueno (paz, enfim) e serve a ração dos outros. Onze operações logísticas antes do primeiro gole de café.`
+        : `A ${pc("ana") ? "Flávia" : "Ana"} aparece de pijama, bocejando, e abre o sachê do Tiqueno. O barulhinho do sachê abrindo convoca a casa inteira: patas vêm de todos os cômodos.`}</p>
+      <p>Mas no meio do café da manhã — <strong>CRASH!</strong> de novo. A garagem. Mais alto. Dessa vez todo mundo ouviu, e o <em>Zé</em> já marchou pra lá bufando, com cara de "invadiram o MEU território".</p>
+    `,
+    escolhas: [
+      { t: "Seguir o Zé até a garagem", f: () => irPara("garagem") },
+      { t: "Terminar de comer primeiro (herói nenhum trabalha de barriga vazia)", f: () => irPara("comer_primeiro") },
+      { t: "Procurar a Tiquena — ela sempre percebe as coisas antes de todo mundo", f: () => irPara("tiquena_cedo") },
+    ],
+  }),
+
+  comer_primeiro: () => ({
+    texto: `
+      <p>Sábia decisão. ${ehHumana() ? "Você toma seu café em paz relativa, um olho na xícara e outro no corredor" : "Você come com a calma de quem sabe que mistério nenhum foge de barriga cheia"}. A <em>Popoia</em>, incapaz de esperar qualquer coisa, já foi ver o barulho — e voltou correndo em pânico três segundos depois, o que não significa nada, porque a Popoia faz isso todo dia sem motivo.</p>
+      <p>Da garagem, vem a voz do <em>Zé</em>, num rosnado baixo e comprido. Isso sim significa alguma coisa: tem alguém lá que não é da casa.</p>
+    `,
+    escolhas: [
+      { t: "Agora sim: ir para a garagem", f: () => irPara("garagem") },
+      { t: "Levar reforço: chamar o Mimi e o Branquinho", f: () => { S.flags.dupla_junto = true; irPara("garagem"); } },
+      { t: "Ir devagarinho, colado na parede, estilo espião", f: () => irPara("garagem") },
+    ],
+  }),
+
+  tiquena_cedo: () => ({
+    texto: `
+      <p>Você encontra a <em>Tiquena</em> no canto da sala, de onde ela enxerga o corredor, a cozinha E a porta da garagem ao mesmo tempo. Posição estratégica, como tudo o que ela faz. A cabecinha branca dela treme de leve enquanto ela te mede com os olhos azuis.</p>
+      <p>${pc("tiquena") ? "Você É a Tiquena, então essa conversa acontece dentro da sua própria cabeça, o que é bem mais rápido." : `Ela "fala" do jeito dela — um olhar aqui, uma orelha ali — e você entende:`} <span class="fala">"Três noites. Faz três noites que a lixeira cai. Sempre antes do sol. Sempre pelo mesmo canto do muro. E ontem tinha um tufinho de pelo preso no portão… de uma cor que não existe nesta casa."</span></p>
+      <p>${pc("tiquena") ? "Você" : "Ela"} aponta com o focinho: <em>cor de farofa</em>.</p>
+    `,
+    aoEntrar: () => { S.flags.tiquena = true; S.consultas++; },
+    escolhas: [
+      { t: "Ir à garagem verificar o tal canto do muro", f: () => irPara("garagem") },
+      { t: "Perguntar o que ela acha que é", f: () => irPara("tiquena_teoria") },
+      { t: "Agradecer e reunir os outros antes de qualquer coisa", f: () => irPara("garagem") },
+    ],
+  }),
+
+  tiquena_teoria: () => ({
+    texto: `
+      <p><span class="fala">"Pequeno. Leve demais pra derrubar a lixeira de propósito — derruba porque escorrega. Com fome, porque mexe no lixo. E com medo, porque só vem de madrugada."</span> A Tiquena pisca devagar. <span class="fala">"Não é invasor. É <em>refugiado</em>."</span></p>
+      <p>Como sempre, a Tiquena entendeu tudo antes de todo mundo. Resta ver com os próprios olhos.</p>
+    `,
+    escolhas: [
+      { t: "Para a garagem!", f: () => irPara("garagem") },
+      { t: "Contar a teoria para o Zé antes que ele declare guerra", f: () => { S.flags.avisou_ze = true; irPara("garagem"); } },
+      { t: "Contar primeiro para a Lilica — a matriarca precisa saber", f: () => irPara("lilica_conselho") },
+    ],
+  }),
+
+  espiar: () => ({
+    texto: `
+      <p>${ehHumana()
+        ? `Você chega na ponta dos pés à janela da sala e espia a garagem pela cortina.`
+        : `Você sobe no parapeito da janela da sala com a discrição que ${pc("mimi") ? "seus muitos quilos permitem (ou seja: pouca)" : "a situação exige"} e espia a garagem.`}</p>
+      <p>A lixeira está tombada, o saco rasgado, restos espalhados pelo chão de cimento. E ali, no meio da bagunça — um <em>vulto pequeno</em>, cor de farofa, que congela, olha diretamente para você com dois olhões enormes e assustados… e <strong>desaparece</strong> por cima do muro numa velocidade impressionante.</p>
+      <p>Pequeno demais para ser um gato adulto. Rápido demais para estar bem alimentado por alguém.</p>
+    `,
+    aoEntrar: () => { S.flags.viu_filhote = true; },
+    escolhas: [
+      { t: "Descer até a garagem e examinar a cena", f: () => irPara("garagem") },
+      { t: "Correr para o quintal e tentar ver para onde ele foi pelo muro", f: () => irPara("quintal_rastro") },
+      { t: "Contar para os outros o que você viu", f: () => irPara("garagem") },
+    ],
+  }),
+
+  quintal_rastro: () => ({
+    texto: `
+      <p>Você dispara para o pequeno quintal dos fundos. O sol já esquenta as lajotas, uma lagartixa foge para trás do vaso de samambaia (sorte a dela: hoje você tem assuntos maiores). No topo do muro, nada. Só as folhas do pé de manga do vizinho balançando onde alguém passou correndo.</p>
+      <p>Mas no chão, perto da torneira, tem uma coisa: <em>pegadas pequeninas de lama</em>, do tamanho de uma moeda. E uma marquinha diferente — como se uma das patinhas pisasse torto.</p>
+    `,
+    aoEntrar: () => { S.flags.pegadas = true; },
+    escolhas: [
+      { t: "Voltar pela casa e ir à garagem juntar as pistas", f: () => irPara("garagem") },
+      { t: "Ficar de tocaia no quintal um tempo", f: () => irPara("tocaia") },
+      { t: "Chamar o Mimi: pegada é enigma, e enigma é com ele", f: () => { S.flags.dupla_junto = true; irPara("garagem"); } },
+    ],
+  }),
+
+  tocaia: () => ({
+    texto: `
+      <p>Você se posiciona atrás do vaso de samambaia e espera. E espera. O sol sobe. A lagartixa volta, te olha, e vai embora de novo. Dona Cida varre a calçada do outro lado do muro, no seu <em>chuac-chuac</em> ritmado.</p>
+      <p>Nada de vulto cor de farofa. Ele é esperto: não volta enquanto tem movimento. A Tiquena diria que você está pensando como caçador, quando devia pensar como <em>alguém com medo</em>. Onde VOCÊ se esconderia, se fosse pequeno, faminto e estivesse sozinho?</p>
+    `,
+    escolhas: [
+      { t: "Na garagem — cheia de caixas, coberta, perto do lixo. Ir para lá!", f: () => irPara("garagem") },
+      { t: "Desistir da tocaia e reunir os outros gatos", f: () => irPara("garagem") },
+      { t: "Esperar só mais um pouquinho…", f: () => irPara("tocaia2") },
+    ],
+  }),
+
+  tocaia2: () => ({
+    texto: `
+      <p>Você espera mais. Sua paciência é recompensada… com a chegada da <em>Popoia</em>, que resolve que a tocaia é uma brincadeira nova, pula em cima de você, sai correndo, volta, pula de novo. Qualquer criatura num raio de três quarteirões já sabe que vocês estão ali.</p>
+      <p>Tocaia oficialmente comprometida. Mas a Popoia, sem querer (como tudo que ela faz), aponta uma coisa com aquela corrida doida: ela fica dando voltas e cheirando a <em>porta da garagem</em>. O nariz dela é doido, mas funciona.</p>
+    `,
+    escolhas: [
+      { t: "Seguir o faro da Popoia até a garagem", f: () => irPara("garagem") },
+      { t: "Agradecer a Popoia (ela não vai entender, mas tudo bem)", f: () => irPara("garagem") },
+      { t: "Ir para a garagem fingindo que a ideia foi sua", f: () => irPara("garagem") },
+    ],
+  }),
+
+  /* ---------- capítulo 2: a garagem e as pistas ---------- */
+  garagem: () => ({
+    texto: `
+      <p>A garagem da frente é o posto de fronteira da casa: o portão para a rua, as caixas empilhadas, a bicicleta que ninguém usa e a famosa <em>janela com a brecha</em> que liga a sala até aqui — a passagem secreta que só o Jaime atravessa.</p>
+      <p>A cena do crime: lixeira tombada, um saquinho de ração velho rasgado com desespero, e ${S.flags.pegadas ? "as mesmas pegadinhas de lama que você viu no quintal, uma delas pisando torto" : "pegadas pequeninas de lama, do tamanho de uma moeda, uma delas meio torta"}.</p>
+      <p>${pc("ze")
+        ? `Você fareja tudo com o rosnado ligado no automático. Território é território. Mas… o cheiro é de <em>filhote</em>. Isso muda as coisas. Ou não. Você ainda não decidiu.`
+        : `O <em>Zé</em> já está lá, andando de um lado para o outro, inflado feito pão na chapa. <span class="fala">"Invasor. No MEU portão. Na MINHA garagem"</span>${S.flags.avisou_ze ? " — mas você nota que, depois do que a Tiquena disse, o rosnado dele está… menos convicto." : "."}`}</p>
+      <p>No canto do portão, preso numa lasquinha de madeira: um <em>tufinho de pelo cor de farofa</em>.</p>
+    `,
+    escolhas: [
+      { t: "Examinar o tufo de pelo e as pegadas de perto", f: () => irPara("examinar") },
+      { t: pc("ze") ? "Patrulhar o muro — ninguém entra no seu território sem você saber" : "Acalmar o Zé antes que ele declare guerra ao bairro inteiro", f: () => irPara("ze_cena") },
+      { t: "Subir no murinho e vasculhar a rua", f: () => irPara("murinho") },
+    ],
+  }),
+
+  examinar: () => ({
+    texto: `
+      <p>Você chega perto. O pelo é macio, claro, cor de farofa de padaria. Pelo de <em>filhote</em>. As pegadas confirmam: patinhas minúsculas, passada curta, e aquela pisada torta que se repete — uma perninha machucada, ou só destreinada de tão nova.</p>
+      <p>O saquinho de ração rasgado conta o resto da história: estava <em>vazio</em> quando foi rasgado. Quem rasgou não comeu nada. Foi embora com a mesma fome que chegou.</p>
+      ${S.flags.viu_filhote ? "<p>Bate com o que você viu da janela: pequeno, assustado, rápido. Um filhote sozinho rondando a casa dos 11 gatos.</p>" : ""}
+      <p>${pc("mimi") ? "Seu cérebro de detetive já montou o caso inteiro. Falta só uma coisa: encontrá-lo." : "Isso é serviço para as cabeças pensantes da casa."}</p>
+    `,
+    aoEntrar: () => { S.flags.pistas = true; },
+    escolhas: [
+      { t: "Reunir o conselho da casa na sala", f: () => irPara("conselho") },
+      { t: "Vasculhar a garagem — ele pode estar escondido AQUI, agora", f: () => irPara("vasculhar_garagem") },
+      { t: "Levar o tufo de pelo para a Lilica farejar — ela conhece todos os cheiros do bairro", f: () => irPara("lilica_conselho") },
+    ],
+  }),
+
+  vasculhar_garagem: () => ({
+    texto: `
+      <p>Você fareja atrás das caixas, embaixo da bicicleta, no vão da estante. Cheiro de poeira, cheiro de lixo, cheiro fraquinho de filhote — mas frio, de horas atrás. Ele esteve aqui. Dormiu <em>aqui</em>, no meio das caixas, num ninho improvisado de jornal velho. Mas agora, nada.</p>
+      <p>De dia ele some. A Tiquena diria: volta quando escurece, quando a casa aquieta. ${pc("jaime") ? "Você conhece essa garagem melhor que ninguém — é o seu esconderijo também. A ideia de dividir seu refúgio secreto com um estranho te dá um frio… mas também uma pontinha de orgulho. Ele escolheu bem." : "E tem mais uma coisa: para entrar aqui com o portão fechado, ele passa por algum buraco. Igual… igual o Jaime passa pela brecha da janela."}</p>
+    `,
+    aoEntrar: () => { S.flags.ninho = true; },
+    escolhas: [
+      { t: "Reunir o conselho da casa na sala", f: () => irPara("conselho") },
+      { t: "Montar guarda na garagem até escurecer", f: () => irPara("conselho_apressado") },
+      { t: "Contar para as humanas — talvez elas deixem comida aqui", f: () => irPara("conselho") },
+    ],
+  }),
+
+  ze_cena: () => ({
+    texto: pc("ze") ? `
+      <p>Você faz sua ronda pelo muro, passo pesado, cauda alta. Que fique claro para o bairro: esta casa tem dono. Mas na terceira volta você para em cima do tufinho de pelo cor de farofa e fica um tempo olhando.</p>
+      <p>Pequeno. Sozinho. Com fome. Você conhece essa história de algum lugar bem antigo da sua memória, de antes desta casa, e não gosta nada de lembrar dela. Você bufa e decide que está bufando de raiva. É raiva. Com certeza é raiva.</p>
+    ` : `
+      <p>Missão diplomática: acalmar o <em>Zé</em>. ${pc("lourinho") ? "E logo você, o rival oficial dele. Vocês se encaram. Ele rosna. Você, mesmo com o coração acelerado, não abaixa a cabeça. É físico: com todo mundo você foge, com o Zé você fica." : pc("jaime") ? "O problema: você tem PÂNICO do Zé. Você chega a três metros dele, ele vira a cabeça, e seu corpo inteiro decide sozinho que é hora de estar em outro lugar. Você se esconde atrás do vaso, respirando fundo." : "Você se aproxima com cautela. O Zé infla."}</p>
+      <p><span class="fala">"Isso aqui é comigo"</span>, rosna o Zé. <span class="fala">"Aparece no MEU portão, mexe no MEU lixo…"</span> Mas aí ele olha de novo para as pegadinhas do tamanho de uma moeda e o rosnado falha no final, quase imperceptível. Quase.</p>
+      <p>A <em>Tiquena</em>, que se arrastou até a porta sem ninguém notar (como sempre), traduz com o olhar: <em>até o valentão sabe que não se declara guerra a um filhote</em>.</p>
+    `,
+    aoEntrar: () => { S.flags.ze_tocado = true; },
+    escolhas: [
+      { t: "Reunir o conselho da casa na sala", f: () => irPara("conselho") },
+      { t: "Examinar as pistas antes de sair da garagem", f: () => irPara("examinar") },
+      { t: pc("ze") ? "Voltar para a janela e vigiar a rua — se o invasor voltar, você vê primeiro" : "Deixar o Zé de guarda (ele vai adorar a importância) e ir para a sala", f: () => irPara("conselho") },
+    ],
+  }),
+
+  murinho: () => ({
+    texto: `
+      <p>${ehHumana() ? "Você sai pela garagem e olha a rua por cima do murinho." : "Você sobe no murinho da frente com a pose de quem faz isso todo dia (o Mimi faz isso todo dia)."} A rua acorda: dona Cida varre a calçada, o Bilú late para a mesma folha de sempre, um carro passa devagar pelos paralelepípedos sacudindo os vidros.</p>
+      <p>E aí você repara: na casa em obras da esquina, aquela que estava vazia há meses, tem um caminhão de mudança. <em>Gente nova no bairro.</em> Caixas na calçada, um sofá pela metade na porta…</p>
+      <p>…e nenhum sinal de um filhote cor de farofa. Mas mudança é bagunça. E na bagunça, bicho pequeno se perde.</p>
+    `,
+    aoEntrar: () => { S.flags.mudanca = true; },
+    escolhas: [
+      { t: "Interessante… Reunir o conselho da casa com essa informação", f: () => irPara("conselho") },
+      { t: "Voltar e examinar as pistas da garagem", f: () => irPara("examinar") },
+      { t: "Ficar mais um pouco observando a casa da esquina", f: () => irPara("observar_esquina") },
+    ],
+  }),
+
+  observar_esquina: () => ({
+    texto: `
+      <p>Você observa. Os carregadores entram e saem. Uma moça de rabo de cabelo anda de um lado para o outro na calçada, olhando embaixo do caminhão, atrás das caixas, chamando alguma coisa que você não escuta direito daqui.</p>
+      <p>Ela está <em>procurando</em>. E quem procura desse jeito, embaixo das coisas, não perdeu uma chave.</p>
+    `,
+    aoEntrar: () => { S.flags.moca_procurando = true; },
+    escolhas: [
+      { t: "Agora sim: reunir o conselho da casa, o quebra-cabeça está quase montado", f: () => irPara("conselho") },
+      { t: "Tentar chegar mais perto da casa da esquina", f: () => irPara("esquina_longe") },
+      { t: "Voltar para casa e contar tudo para a Tiquena", f: () => irPara("conselho") },
+    ],
+  }),
+
+  esquina_longe: () => ({
+    texto: `
+      <p>${ehHumana() ? "Você dá uns passos rua abaixo, mas o telefone toca lá dentro e o portão está aberto e onze gatos moram na sua casa: melhor não se afastar agora." : "Você desce do murinho para a calçada… e para. A regra da casa é clara, gravada a rosnados pela Lilica em anos de reinado: ninguém atravessa a rua sozinho. Nem o Zé desrespeita essa."}</p>
+      <p>Melhor jogar com o time. É para isso que a casa tem onze gatos e duas humanas.</p>
+    `,
+    escolhas: [
+      { t: "Reunir o conselho da casa na sala", f: () => irPara("conselho") },
+      { t: "Passar na garagem e conferir as pistas mais uma vez", f: () => irPara("examinar") },
+      { t: "Ir ver a Lilica — ela precisa saber da mudança na esquina", f: () => irPara("lilica_conselho") },
+    ],
+  }),
+
+  /* ---------- capítulo 3: o conselho (hub) ---------- */
+  conselho_apressado: () => ({
+    texto: `
+      <p>Você decide montar guarda… por uns dez minutos, até perceber que esperar anoitecer sozinho na garagem é um plano com graves problemas de tédio. Além disso, a <em>Marrie</em> passou por você a caminho de algum lugar que definitivamente não era a caixa de areia, e alguém precisa impedir tragédias maiores.</p>
+      <p>Melhor fazer do jeito certo: reunir a casa.</p>
+    `,
+    escolhas: [
+      { t: "Reunir o conselho na sala", f: () => irPara("conselho") },
+      { t: "Antes, buscar a Tiquena para ela ver o ninho de jornal", f: () => { if (!S.flags.tiquena) { S.flags.tiquena = true; S.consultas++; } irPara("conselho"); } },
+      { t: "Antes, passar na cozinha (energia é fundamental)", f: () => irPara("conselho") },
+    ],
+  }),
+
+  conselho: () => {
+    const feitos = [];
+    if (S.flags.tiquena) feitos.push("a sabedoria da Tiquena");
+    if (S.flags.mimi) feitos.push("o faro de detetive do Mimi");
+    if (S.flags.sebastiao) feitos.push("o Sebastião acordado (milagre)");
+    if (S.flags.lilica) feitos.push("a bênção da Lilica");
+    const escolhas = [];
+    if (!S.flags.tiquena) escolhas.push({ t: "Consultar a Tiquena — ela sempre vê o que ninguém viu", f: () => irPara("consulta_tiquena") });
+    if (!S.flags.mimi) escolhas.push({ t: "Chamar o Mimi (e o Branquinho, óbvio) para decifrar o caso", f: () => irPara("consulta_mimi") });
+    if (!S.flags.sebastiao) escolhas.push({ t: "Tentar acordar o Sebastião — vão precisar de todo mundo", f: () => irPara("acordar_sebastiao") });
+    if (!S.flags.lilica) escolhas.push({ t: "Ir ao quarto da Flávia falar com a Lilica", f: () => irPara("lilica_conselho") });
+    escolhas.push({
+      t: S.consultas > 0 ? "Chega de conversa: a tarde já vai caindo. Preparar o plano da noite!" : "Ignorar todo mundo e partir para o plano sozinho (coragem ou teimosia?)",
+      f: () => irPara("fim_tarde"),
+    });
+    return {
+      texto: `
+        <p>A sala vira sala de guerra — na medida do possível. A <em>Popoia</em> preside a reunião correndo em círculos. A <em>Marrie</em> comparece, mas deixa claro com o olhar que veio como observadora. O <em>Lourinho</em> ouve tudo de dentro do vão do sofá, com só o focinho de fora. ${pc("ze") ? "Você finge que não está ouvindo, da janela. Está ouvindo tudo." : "O <em>Zé</em> finge que não participa, da janela — mas a orelha dele está virada para cá."}</p>
+        <p>O caso até agora: um <em>filhote cor de farofa</em>, faminto e assustado, ronda a garagem de madrugada${S.flags.ninho ? ", dorme num ninho de jornal atrás das caixas" : ""}${S.flags.mudanca ? ", e tem uma mudança recém-chegada na esquina onde uma moça procura alguma coisa embaixo das coisas" : ""}.</p>
+        ${feitos.length ? `<p>Já do seu lado: ${feitos.join(", ")}.</p>` : ""}
+        <p>Quem consultar? Cada gato da casa vê o mundo de um jeito — e essa é a força dos 11.</p>
+      `,
+      escolhas: escolhas.slice(0, 4),
+    };
+  },
+
+  consulta_tiquena: () => ({
+    texto: `
+      <p>${pc("tiquena") ? "Todo mundo se vira para você, que já estava esperando — óbvio." : `A <em>Tiquena</em> se arrasta até o centro da sala com a dignidade de quem nunca precisou de pernas para chegar primeiro.`} A cabecinha treme, os olhos azuis varrem o grupo, e o plano dela sai pronto, redondinho:</p>
+      <p><span class="fala">"Ele vem quando escurece, pela fresta do portão. Fome vence medo — mas só se o medo não tiver plateia. Então: <em>comida perto do ninho, luz apagada, todo mundo LONGE</em>. E alguém pequeno e leve de vigia, escondido, só para ver se ele está machucado."</span></p>
+      <p>Ela olha para o Jaime ao dizer "pequeno e leve". O Jaime, no mundo da lua, demora três segundos para perceber e engole em seco.</p>
+    `,
+    aoEntrar: () => { S.flags.tiquena = true; S.consultas++; },
+    escolhas: [
+      { t: "Plano perfeito. Voltar ao conselho", f: () => talvezInterludio("conselho") },
+      { t: "Perguntar: e se o filhote for da mudança da esquina?", f: () => irPara("consulta_tiquena2") },
+      { t: "Perguntar quem doa a comida (silêncio geral, todos olham o Tiqueno)", f: () => irPara("consulta_tiquena3") },
+    ],
+  }),
+
+  consulta_tiquena2: () => ({
+    texto: `
+      <p>${S.flags.mudanca || S.flags.moca_procurando
+        ? `A Tiquena pisca devagar, aprovando a pergunta. <span class="fala">"Mudança é barulho, caixa, porta aberta. Filhote se assusta, corre, se perde. Se ele é de lá… tem alguém naquela casa com o coração na mão agora. Primeiro a gente alimenta e acalma. Depois devolve."</span>`
+        : `A Tiquena inclina a cabecinha trêmula. <span class="fala">"Mudança? Que mudança?"</span> Você ainda não olhou a rua direito. Talvez valesse subir no murinho depois… Mas a Tiquena arquiva a hipótese naquela cabecinha: nada se perde com ela.`}</p>
+    `,
+    escolhas: [
+      { t: "Voltar ao conselho", f: () => talvezInterludio("conselho") },
+      { t: "Ir subir no murinho olhar a rua agora", f: () => irPara("murinho") },
+      { t: "Perguntar quem doa a comida (todos olham o Tiqueno)", f: () => irPara("consulta_tiquena3") },
+    ],
+  }),
+
+  consulta_tiquena3: () => ({
+    texto: `
+      <p>Silêncio. Todos os olhares convergem lentamente para o <em>Tiqueno</em> — dono do único alimento verdadeiramente irresistível da casa: o sachê.</p>
+      <p>${pc("tiqueno") ? "Todos olham para VOCÊ. Seu sachê. SEU sachê. Sua patinha torta range no chão. Isso vai doer." : "O Tiqueno olha para um lado, para o outro, para o teto. Faz a cara de quem não ouviu. A mãe dele, a Tiquena, só o encara com o tremorzinho e AQUELE olhar de mãe."} </p>
+      <p><span class="fala">"…tá BOM"</span>, mia o Tiqueno, dramático como só ele. <span class="fala">"Metade. METADE do meu sachê da noite. E vocês todos me devem."</span> A casa inteira registra o momento histórico.</p>
+    `,
+    aoEntrar: () => { S.flags.sache_doado = true; },
+    escolhas: [
+      { t: "Voltar ao conselho, plano encaminhado", f: () => talvezInterludio("conselho") },
+      { t: "Prometer ao Tiqueno o seu carinho eterno (ele prefere sachê, mas aceita)", f: () => talvezInterludio("conselho") },
+      { t: "Sugerir que as humanas abram um sachê EXTRA hoje (revolucionário)", f: () => talvezInterludio("conselho") },
+    ],
+  }),
+
+  consulta_mimi: () => ({
+    texto: `
+      <p>${pc("mimi") ? "Você já estava no caso desde o café da manhã, claro. O Branquinho, grudado em você como sempre, acompanha cada dedução lambendo seu cocuruto de vez em quando, por apoio moral." : `Você encontra a dupla no lugar de sempre: juntos. O <em>Mimi</em>, enorme e branco, deitado feito uma esfinge; o <em>Branquinho</em>, pequeno e amarelo, encostado nele. Onde vai um, vai o outro.`}</p>
+      <p>${pc("mimi") ? "Você revisa" : "O Mimi ouve tudo e revisa"} o caso com aquele olhar azul que fala mais que miado: <em>pegadas pequenas… pisada torta… saquinho vazio rasgado… ${S.flags.mudanca ? "mudança na esquina…" : ""}</em> Então ${pc("mimi") ? "você fixa" : "ele fixa"} os olhos na porta da frente e todos entendem a conclusão:</p>
+      <p><span class="fala">"O filhote não veio do nada. Veio de perto. Bicho perdido não escolhe casa por acaso — ele veio para CÁ porque aqui tem cheiro de muitos gatos. Cheiro de gato, para um filhote, é cheiro de mãe."</span></p>
+      <p>O Branquinho, emocionado, lambe ${pc("mimi") ? "sua orelha" : "a orelha do Mimi"}. E depois lambe a Ana, que passava por perto. Ele lambe quando se emociona. Ele se emociona muito.</p>
+    `,
+    aoEntrar: () => { S.flags.mimi = true; S.consultas++; },
+    escolhas: [
+      { t: "Voltar ao conselho com a revelação", f: () => talvezInterludio("conselho") },
+      { t: "Perguntar ao Mimi: e como ganhamos a confiança dele?", f: () => irPara("consulta_mimi2") },
+      { t: "Pedir para a dupla ficar de olho na frente da casa", f: () => { S.flags.dupla_vigia = true; talvezInterludio("conselho"); } },
+    ],
+  }),
+
+  consulta_mimi2: () => ({
+    texto: `
+      <p>O Mimi pisca devagar, bem devagar — o jeito gato de sorrir. A resposta dele é uma demonstração: ele se deita de lado, mole, bocejando, o maior gato da casa virando a coisa menos ameaçadora do mundo.</p>
+      <p><span class="fala">"Confiança não se pede. Se oferece. A gente não vai até ele: a gente deixa ele vir. Comida no chão, corpo relaxado, olhar desviado. E paciência."</span></p>
+      <p>${pc("popoia") ? "Você sente que 'paciência' vai ser um problema pessoal seu." : "Todos concordam. A Popoia concorda correndo em círculos, o que preocupa um pouco no quesito paciência."}</p>
+    `,
+    escolhas: [
+      { t: "Voltar ao conselho", f: () => talvezInterludio("conselho") },
+      { t: "Ensaiar a pose 'não sou ameaça' (a Marrie julga sua performance)", f: () => talvezInterludio("conselho") },
+      { t: "Combinar sinais: uma piscada = tudo bem, duas = perigo", f: () => talvezInterludio("conselho") },
+    ],
+  }),
+
+  acordar_sebastiao: () => ({
+    texto: `
+      <p>${pc("sebastiao") ? "Uma delegação vem te acordar. Você, obviamente, está dormindo — na cama da Flávia, na sua pose número 7 (a do tapete de nuvem). Você decide, por dentro do sono, dificultar por princípio." : `Missão: acordar o <em>Sebastião</em>. Ele está na cama da Flávia, esparramado na pose mais fotogênica do repertório, o pelo longo subindo e descendo num ritmo de quem não acorda nem com fogos de artifício.`}</p>
+      <p>Historicamente, existem três técnicas. Nenhuma com boa taxa de sucesso.</p>
+    `,
+    escolhas: [
+      { t: "Técnica do barulho: bater na porta do guarda-roupa", f: () => irPara("seb_barulho") },
+      { t: "Técnica do carinho: massagear a barriguinha peluda", f: () => irPara("seb_carinho") },
+      { t: "Técnica do sachê: abrir um sachê a dois metros do focinho dele", f: () => irPara("seb_sache") },
+    ],
+  }),
+
+  seb_barulho: () => ({
+    texto: `
+      <p><strong>TUM TUM TUM.</strong> O guarda-roupa treme. Resultado imediato: o <em>Lourinho</em>, dois cômodos de distância, dispara para debaixo do sofá (coitado). A <em>Popoia</em> aparece do nada achando que é festa.</p>
+      <p>O Sebastião? Abre <em>meio</em> olho. Avalia a situação. Conclui que não é da conta dele. Fecha o olho. Ajeita a pose para uma ainda mais fotogênica — parece impossível, mas ele consegue.</p>
+    `,
+    escolhas: [
+      { t: "Técnica do carinho: massagear a barriguinha", f: () => irPara("seb_carinho") },
+      { t: "Técnica do sachê: a arma definitiva", f: () => irPara("seb_sache") },
+      { t: "Desistir — deixa ele dormindo, a casa funciona sem ele mesmo", f: () => talvezInterludio("conselho") },
+    ],
+  }),
+
+  seb_carinho: () => ({
+    texto: `
+      <p>Você afunda ${ehHumana() ? "a mão" : "a patinha"} naquele pelo de nuvem e faz a massagem. Erro clássico de principiante. O Sebastião começa a <em>ronronar</em> — um motor de barco, profundo e satisfeito — e afunda AINDA MAIS no sono, agora com um sorrisinho no focinho.</p>
+      <p>Você não o acordou. Você o <em>recompensou</em>. Ele está tecnicamente mais dormindo do que antes. A Marrie, da porta, balança a cabeça diante do amadorismo.</p>
+    `,
+    escolhas: [
+      { t: "Técnica do sachê: chega de gentileza", f: () => irPara("seb_sache") },
+      { t: "Técnica do barulho: bater no guarda-roupa", f: () => irPara("seb_barulho") },
+      { t: "Aceitar a derrota com dignidade e voltar ao conselho", f: () => talvezInterludio("conselho") },
+    ],
+  }),
+
+  seb_sache: () => ({
+    texto: `
+      <p>${ehHumana() ? "Você abre um sachê" : "Você convence a Ana a abrir um sachê"} a dois metros do focinho do Sebastião. O barulhinho do plástico corta o ar do quarto.</p>
+      <p>Uma orelha gira feito antena. O nariz rosado treme. Um olho abre. O outro. E então, num movimento que desafia tudo que se sabe sobre o Sebastião, ele se levanta, se espreguiça num arco perfeito de comercial de ração, e caminha até vocês como se a ideia de acordar tivesse sido dele.</p>
+      <p><span class="fala">"Estava mesmo pensando em me juntar à causa"</span>, diz a cara dele. Ninguém acredita. Todos aceitam. <em>O Sebastião está oficialmente na equipe.</em></p>
+    `,
+    aoEntrar: () => { S.flags.sebastiao = true; S.consultas++; },
+    escolhas: [
+      { t: "Voltar ao conselho em triunfo", f: () => talvezInterludio("conselho") },
+      { t: "Dar o sachê para ele (justo) e voltar ao conselho", f: () => talvezInterludio("conselho") },
+      { t: "Registrar mentalmente a técnica para sempre e voltar ao conselho", f: () => talvezInterludio("conselho") },
+    ],
+  }),
+
+  lilica_conselho: () => ({
+    texto: `
+      <p>O quarto da Flávia é quieto e cheira a lavanda e cobertor. A <em>Lilica</em> está na cama, enroladinha no lugar mais quente, magra do jeito que a doença renal deixou — mas os olhos, ah, os olhos ainda são os da rainha que mandou nesta casa a vida inteira.</p>
+      <p>${pc("lilica") ? "Você ouve os passos chegando antes de todo mundo entrar. Vieram te consultar. Claro que vieram." : "Você entra devagar, com o respeito que todos aprenderam a ter. Ela abre os olhos sem levantar a cabeça e escuta tudo — o filhote, o lixo, o pelo cor de farofa."}</p>
+      <p>Um silêncio comprido. Então ela fala, baixinho, e a casa inteira parece se inclinar para ouvir:</p>
+      <p><span class="fala">"Eu já fui esse filhote. Muito antes de vocês, fui eu do lado de fora de um muro, com fome, brigando com o mundo. Foi assim que virei braba: medo antigo vira casca. Alguém abriu uma porta pra mim — e olha no que deu. Onze gatos."</span> Ela fecha os olhos de novo. <span class="fala">"Comida vence medo. Vão. E tragam o pequeno para dentro antes da chuva. Meus ossos dizem que hoje cai água grossa."</span></p>
+    `,
+    aoEntrar: () => { S.flags.lilica = true; S.consultas++; },
+    escolhas: [
+      { t: "Se despedir com uma encostadinha de cabeça (honra máxima) e voltar ao conselho", f: () => talvezInterludio("conselho") },
+      { t: "Perguntar: e se ele tiver dono procurando por ele?", f: () => irPara("lilica_dono") },
+      { t: "Ficar mais um pouquinho fazendo companhia a ela", f: () => irPara("lilica_companhia") },
+    ],
+  }),
+
+  lilica_dono: () => ({
+    texto: `
+      <p>A Lilica abre um olho só. <span class="fala">"Melhor ainda. Filhote com dono tem alguém chorando por ele agora. Primeiro a barriga, depois o caminho de casa. E se ninguém procurar…"</span> — o olho fecha devagar — <span class="fala">"…bom, esta casa já provou que sempre cabe mais um. Contra a minha vontade, todas as vezes. E ainda bem."</span></p>
+      <p>Foi quase um sorriso. Quase.</p>
+    `,
+    escolhas: [
+      { t: "Voltar ao conselho", f: () => talvezInterludio("conselho") },
+      { t: "Encostar a cabeça nela antes de sair (ela deixa — tempos novos)", f: () => talvezInterludio("conselho") },
+      { t: "Ir subir no murinho conferir a rua e a casa da esquina", f: () => irPara("murinho") },
+    ],
+  }),
+
+  lilica_companhia: () => ({
+    texto: `
+      <p>Você fica. ${ehHumana() ? "Faz carinho devagarinho atrás da orelha dela, confere a aguinha dela, ajeita o cobertor." : "Se enrola a uma distância respeitosa, que ela encurta com uma pata, te puxando pra mais perto. A LILICA. Te puxando pra perto. Anos atrás isso seria lenda urbana."}</p>
+      <p>Ela ronrona baixinho, um ronron velhinho e falhado, mas ronron. Lá fora o dia segue; aqui dentro o tempo anda mais devagar, do jeito que ela precisa agora. Antes de você sair, ela murmura, já meio dormindo: <span class="fala">"O pequeno… vai confiar em quem não é ameaça. Manda o medroso. Medo entende medo."</span></p>
+      <p><em>O medroso.</em> O Lourinho? A rainha sabe das coisas.</p>
+    `,
+    aoEntrar: () => { S.flags.dica_lourinho = true; },
+    escolhas: [
+      { t: "Voltar ao conselho com a dica misteriosa", f: () => talvezInterludio("conselho") },
+      { t: "Ir contar a dica diretamente ao Lourinho (ele vai negar na hora)", f: () => irPara("lourinho_dica") },
+      { t: "Guardar a dica para a hora certa", f: () => talvezInterludio("conselho") },
+    ],
+  }),
+
+  lourinho_dica: () => ({
+    texto: `
+      <p>Você encontra o <em>Lourinho</em> no vão do sofá, posição defensiva padrão nível 2 (focinho de fora, pronto para recuar ao nível 3: invisibilidade total). ${pc("lourinho") ? "Quer dizer: você É o Lourinho, e a notícia chega até seu esconderijo." : ""}</p>
+      <p>"A Lilica disse que <em>você</em> é a chave. Que medo entende medo."</p>
+      <p>O Lourinho pisca. Olha para os lados procurando outro Lourinho na sala. <span class="fala">"Eu?? Eu não. Eu NÃO. Eu sou o gato que corre de saco plástico. Semana passada eu corri de um pepino. Um PEPINO."</span> Mas você percebe que, no fundo do vão do sofá, o coração de urso de pelúcia dele já começou a considerar.</p>
+    `,
+    escolhas: [
+      { t: "Deixar a semente plantada e voltar ao conselho", f: () => talvezInterludio("conselho") },
+      { t: "Contar a ele que o filhote tem medo até de lixeira (isso o conforta)", f: () => talvezInterludio("conselho") },
+      { t: "Prometer que ninguém vai contar ao Zé se ele chorar", f: () => talvezInterludio("conselho") },
+    ],
+  }),
+
+  /* ---------- capítulo 4: a tempestade ---------- */
+  fim_tarde: () => ({
+    texto: `
+      <p>A tarde cai dourada sobre o bairro — mas não por muito tempo. Do fundo do céu, atrás da caixa d'água da esquina, sobe uma muralha de nuvem cor de chumbo. O vento muda, vira o cheiro de terra molhada que chega antes da chuva. ${S.flags.lilica ? "Os ossos da Lilica, como sempre, estavam certos." : "A Lilica avisou uma vez: quando o cheiro de terra chega antes da água, a chuva vem grossa."}</p>
+      <p>${S.flags.sache_doado ? "O plano está de pé: o meio sachê do Tiqueno (doado sob protesto histórico) já espera num pires perto do ninho de jornal na garagem." : S.consultas > 0 ? "O plano se ajeita às pressas: um punhado de ração num pires perto das caixas da garagem." : "Sem conselho, sem plano: você improvisa um punhado de ração num pires na garagem e torce."}</p>
+      <p>E aí, três coisas acontecem quase ao mesmo tempo:</p>
+      <p>1. O primeiro <strong>TROVÃO</strong> estoura — e o <em>Lourinho</em> atravessa a sala como um cometa gordo rumo ao sofá.<br>
+      2. A <em>Ana</em> abre a porta da frente para recolher o tapete… e esquece a porta <em>aberta</em>.<br>
+      3. ${pc("mimi") ? "Você, Mimi, sente o chamado: a porta aberta, a frente da casa, SEU lugar favorito. Suas patas já estão andando sozinhas." : "O <em>Mimi</em> levanta da almofada com uma decisão silenciosa no olhar: porta aberta é convite, e a frente da casa é o lugar favorito dele no mundo."}</p>
+    `,
+    escolhas: [
+      pc("mimi")
+        ? { t: "Resistir ao chamado da porta (o filhote é mais importante… respira, Mimi)", f: () => irPara("choro_muro") }
+        : { t: "Interceptar o Mimi antes da porta!", f: () => irPara("interceptar_mimi") },
+      pc("mimi")
+        ? { t: "Ir até a porta — só espiar, juro, só espiar", f: () => irPara("mimi_porta") }
+        : { t: "Deixar o Mimi ir — ele sabe se cuidar, e a porta pode ser útil", f: () => irPara("mimi_porta") },
+      { t: "Gritar/miar o alerta geral: 'PORTA ABERTA!'", f: () => irPara("alerta_porta") },
+    ],
+  }),
+
+  interceptar_mimi: () => ({
+    texto: `
+      <p>Você se joga na frente do Mimi. Ele para. Te olha. Aquele olhar azul que fala: <span class="fala">"É só a frente de casa. Cinco minutinhos."</span></p>
+      <p>Você segura o olhar dele: <em>vem chuva, vem filhote, vem confusão — hoje não, Mimi.</em></p>
+      <p>Ele pondera com a dignidade dos grandes. Olha a porta. Olha você. Olha o céu de chumbo. E então senta, majestoso, do lado de DENTRO — no exato momento em que o <em>Branquinho</em> chega correndo e se joga em cima dele de alívio, lambendo a testa do amigo sem parar. A Ana, ouvindo o alvoroço, fecha a porta. <span class="fala">"MEU DEUS, a porta! Valeu, gente."</span></p>
+    `,
+    aoEntrar: () => { S.flags.mimi_dentro = true; },
+    escolhas: [
+      { t: "Agora, todos à garagem — a chuva vem vindo!", f: () => irPara("choro_muro") },
+      { t: "Agradecer ao Mimi pela sensatez (ele aceita o crédito)", f: () => irPara("choro_muro") },
+      { t: "Conferir se o pires com comida ainda está no lugar", f: () => irPara("choro_muro") },
+    ],
+  }),
+
+  mimi_porta: () => ({
+    texto: `
+      <p>${pc("mimi")
+        ? "Você chega à porta. O ar da rua bate no seu focinho: chuva chegando, poeira assentando, o bairro inteiro em versão cheiro. A frente da casa. SEU lugar. Você põe uma pata pra fora—"
+        : "O Mimi chega à porta com a solenidade de um rei indo à sacada. Põe uma pata pra fora—"}</p>
+      <p>—e o céu <strong>DESABA</strong>. Não chuvinha: cachoeira. Um trovão estala em cima da caixa d'água e ${pc("mimi") ? "até você, o imperturbável, dá um passo atrás" : "o Mimi, o imperturbável, dá um passo elegante para trás"}, sacudindo a pata molhada com profundo desgosto.</p>
+      <p>A Ana aparece correndo, fecha a porta e conta os gatos por reflexo. <span class="fala">"…nove, dez, onze. TODOS dentro. Ufa."</span></p>
+      <p>Mas aí, no meio do barulho da chuva, todos ouvem: um <em>choro fininho</em>, agudo, desesperado — vindo da garagem. Do ALTO da garagem.</p>
+    `,
+    escolhas: [
+      { t: "Correr para a garagem!", f: () => irPara("choro_muro") },
+      { t: "Chamar as humanas apontando (miando) para a garagem", f: () => { S.flags.humanas_sabem = true; irPara("choro_muro"); } },
+      { t: "Buscar o Jaime — a rota da brecha pode ser necessária", f: () => { S.flags.jaime_pronto = true; irPara("choro_muro"); } },
+    ],
+  }),
+
+  alerta_porta: () => ({
+    texto: `
+      <p>${ehHumana() ? `"A PORTA!" — você grita, e a Ana se joga na porta no susto, fechando com o pé enquanto segura o tapete.` : `Você solta O MIADO — aquele reservado para incêndios e caixas de transporte. A casa inteira congela. A Ana olha para trás, vê a porta aberta e o Mimi a três passos dela com cara de paisagem, e fecha tudo num pulo. <span class="fala">"Nem pensar, mocinho."</span>`}</p>
+      <p>O Mimi senta e se lambe, fingindo que nunca teve interesse naquela porta. A dignidade dele não sofreu um arranhão. A da porta, sim.</p>
+      <p>E então a chuva <strong>desaba</strong> de uma vez, grossa, barulhenta — e no meio dela, um <em>choro fininho</em> corta o barulho. Vem da garagem. Do alto da garagem.</p>
+    `,
+    aoEntrar: () => { S.flags.mimi_dentro = true; },
+    escolhas: [
+      { t: "Correr para a garagem!", f: () => irPara("choro_muro") },
+      { t: "Chamar as humanas junto", f: () => { S.flags.humanas_sabem = true; irPara("choro_muro"); } },
+      { t: "Buscar o Jaime no caminho — a brecha dele dá na garagem", f: () => { S.flags.jaime_pronto = true; irPara("choro_muro"); } },
+    ],
+  }),
+
+  choro_muro: () => ({
+    texto: `
+      <p>A garagem, na chuva, virou um tambor: a água bate no telhado de zinco e o mundo inteiro é barulho. E lá em cima — na prateleira mais alta, encalhado entre o vão do telhado e a parede — está <em>ele</em>.</p>
+      <p>O filhote cor de farofa. Encharcado, minúsculo, os olhões enormes brilhando no escuro, chorando aquele choro fininho que aperta o coração até do Zé (que está aqui, aliás, fingindo que veio só supervisionar).</p>
+      <p>A história se monta sozinha: ele veio pela fresta buscar a comida, o trovão estourou, ele subiu em pânico — caixa, estante, prateleira — e agora está alto demais para descer, molhado demais para pular, assustado demais para pensar.</p>
+      <p>${S.consultas >= 2 ? "O conselho da casa se entreolha. Hora de usar tudo o que vocês prepararam." : "Não tem conselho completo, não tem plano B. Vai ter que dar certo de primeira."}</p>
+    `,
+    escolhas: (() => {
+      const ops = [];
+      if (S.flags.sache_doado || S.flags.lilica || S.flags.tiquena) {
+        ops.push({ t: "O plano da comida: trilha de sachê da prateleira até o chão, todos quietos", f: () => irPara("plano_comida") });
+      }
+      ops.push({ t: pc("jaime")
+        ? "Sua hora, Jaime: pela brecha da janela, subir por dentro pelas prateleiras"
+        : "Mandar o Jaime pela brecha da janela: só ele alcança a rota interna das prateleiras",
+        f: () => irPara("plano_jaime") });
+      ops.push({ t: ehHumana()
+        ? "Buscar a escada você mesma e subir até ele"
+        : "Escalar você mesmo a estante até a prateleira",
+        f: () => irPara("plano_escalada") });
+      return ops.slice(0, 3);
+    })(),
+  }),
+
+  plano_comida: () => ({
+    texto: `
+      <p>${S.flags.sache_doado ? "O meio sachê do Tiqueno entra em ação" : "Um sachê é sacrificado em nome da causa (o Tiqueno acompanha cada gota com os olhos, sofrendo)"}: uma trilha de petiscos da beirada da prateleira, descendo pela pilha de caixas, até um cantinho seco e protegido no chão.</p>
+      <p>Depois, a parte mais difícil do plano — e a Tiquena avisou que seria: <em>todo mundo parado e longe</em>. Onze gatos e ${S.flags.humanas_sabem ? "duas humanas" : "meia casa"} fingindo que não existem. A Popoia precisa ser contida ${pc("popoia") ? "(você trava suas próprias pernas com força de vontade sobre-humana… sobre-gatuna)" : "pelo Sebastião, que deita EM CIMA do rabo dela, tecnicamente ajudando"}.</p>
+      <p>O filhote olha a trilha. Olha o silêncio. O nariz minúsculo treme, faminto. Uma patinha desce para a primeira caixa… a pisada torta escorrega no papelão molhado — o coração de todo mundo para — mas ele se firma. Segunda caixa. Terceira. Petisco por petisco, tremendo, descendo…</p>
+      <p>…até o chão. <em>Conseguiu.</em> Ele se joga na comida com uma fome de partir o coração, e a casa inteira solta o ar ao mesmo tempo, bem devagarinho, para não fazer barulho.</p>
+    `,
+    escolhas: [
+      { t: "Deixar ele comer em paz e só então se aproximar devagar", f: () => irPara("ze_segredo") },
+      { t: "Empurrar mais comida na direção dele, devagarinho", f: () => irPara("ze_segredo") },
+      { t: "Piscar devagar para ele, de longe (a linguagem da paz)", f: () => irPara("ze_segredo") },
+    ],
+  }),
+
+  plano_jaime: () => ({
+    texto: pc("jaime") ? `
+      <p>É a sua hora. A brecha da janela — SUA brecha — te cospe dentro da garagem escura e barulhenta de chuva. Você conhece cada palmo daqui: a caixa que balança (evitar), a prateleira firme (usar), o vão atrás do armário (atalho).</p>
+      <p>Você sobe. Do jeito magrelo e avoado de sempre, meio esquecendo no caminho por que subiu — <em>foco, Jaime, o filhote</em> — até chegar na prateleira alta. O pequeno cor de farofa se aperta contra a parede, tremendo.</p>
+      <p>E aí você faz a única coisa que você sabe fazer com perfeição: nada. Você deita ali perto, no mundo da lua, molhado e magro, sem ameaça nenhuma no corpo inteiro. E o filhote, aos pouquinhos, entende. Se achega. Encosta em você.</p>
+      <p>Descer é mais fácil em dupla: você na frente mostrando o caminho seguro, ele atrás copiando cada passo. Caixa firme, prateleira, pilha, chão. <em>No chão.</em> A casa explode num miado coletivo de alívio — e você, Jaime, o gato que tem medo do Zé e conversa com poeira, é oficialmente o herói do dia.</p>
+    ` : `
+      <p>Todos olham para o <em>Jaime</em>. O Jaime olha para trás procurando outro Jaime. ${S.flags.jaime_pronto ? "Mas ele já estava avisado, já tinha subido na janela — no fundo, avoado do jeito que é, ele estava esperando ser chamado." : "Ele engole em seco. A brecha é dele, a garagem é o refúgio dele… e o filhote escolheu logo o esconderijo DELE para se perder."}</p>
+      <p>Ele atravessa a brecha — <em>plop</em>, só ele mesmo — e o resto da casa assiste pela janela da sala, narinas coladas no vidro. O magrelo sobe pelas caixas com uma agilidade que ninguém sabia que ele tinha (nem ele), chega à prateleira, e faz a coisa mais Jaime do mundo: <em>deita ao lado do filhote e fica olhando o nada.</em></p>
+      <p>E funciona. O filhote para de tremer. Se achega. Dois avoados no topo da prateleira, na maior tempestade do ano. Depois de um tempo que parece uma era, o Jaime desce mostrando o caminho, degrau por degrau, e o pequeno vem atrás, copiando tudo — até o chão. <em>No chão!</em></p>
+      <p>A casa explode em miados de alívio. O Jaime volta pela brecha com cara de quem já esqueceu o que fez. Herói do dia. Ele vai lembrar disso amanhã, talvez.</p>
+    `,
+    escolhas: [
+      { t: "Se aproximar do filhote devagar, agora que ele está no chão", f: () => irPara("ze_segredo") },
+      { t: "Fazer festa para o Jaime (com moderação, para não assustar o pequeno)", f: () => irPara("ze_segredo") },
+      { t: "Empurrar o pires de comida para perto do filhote", f: () => irPara("ze_segredo") },
+    ],
+  }),
+
+  plano_escalada: () => ({
+    texto: `
+      <p>${ehHumana()
+        ? `Você busca a escadinha da área de serviço, abre na garagem escorregadia e sobe, no barulho ensurdecedor da chuva no zinco. O filhote se espreme contra a parede, apavorado — humana gigante se aproximando não estava nos planos dele.`
+        : `Você mesmo encara a estante. Caixa, prateleira de baixo, pilha de jornal… O problema aparece no meio do caminho: o papelão está <em>molhado</em>. Sua pata afunda, a caixa cede, você escorrega—`}</p>
+      <p>${ehHumana()
+        ? `E na hora que você estica a mão, ele entra em pânico e pula para a prateleira de trás — que balança. Tudo ia acabar mal, MAS—`
+        : `Tudo ia acabar mal, MAS—`}</p>
+      <p>—uma coisa enorme, macia e tremendamente improvável se posiciona embaixo: o <strong>LOURINHO</strong>. O gato que foge de pepino. O gato que corre de trovão — e está TREMENDO da cabeça ao rabo, cada trovão sacudindo ele inteiro — mas está ali, parado, firme, porque ${ehHumana() ? "a humana dele" : "alguém que ele ama"} estava em perigo. ${S.flags.dica_lourinho ? "A Lilica avisou: medo entende medo. Na hora H, o medroso é o mais corajoso de todos." : "A exceção da regra do Lourinho, funcionando diante de todos: covarde o ano inteiro, herói quando importa."}</p>
+      <p>${ehHumana()
+        ? `Amortecida pela presença dele (e pela coragem que ele te empresta), você tenta de novo, mais devagar, mão aberta, voz baixinha. O filhote, sem opções e sem forças, escolhe a mão quente.`
+        : `Você se firma no lombo fofo do Lourinho, recupera o equilíbrio e completa a subida pelo caminho que ele, lá de baixo, vai apontando com o focinho (ele conhece cada esconderijo da casa — especialidade de quem vive fugindo). Na prateleira, você se deita, espera, e o filhote exausto se achega.`}</p>
+      <p>A descida é lenta, molhada e desajeitada — e termina no chão, com o filhote são e salvo entre as patas do maior urso de pelúcia do bairro, que agora que acabou voltou a tremer feito vara verde. Herói é isso aí.</p>
+    `,
+    aoEntrar: () => { S.flags.lourinho_heroi = true; },
+    escolhas: [
+      { t: "Agradecer ao Lourinho (ele vai negar tudo amanhã)", f: () => irPara("ze_segredo") },
+      { t: "Levar o filhote para perto do pires de comida", f: () => irPara("ze_segredo") },
+      { t: "Checar a patinha torta do pequeno", f: () => irPara("ze_segredo") },
+    ],
+  }),
+
+  ze_segredo: () => ({
+    texto: pc("ze") ? `
+      <p>O filhote está no chão, comendo, mas ainda tremendo de frio — e a chuva não dá trégua. Todo mundo hesita a uma distância respeitosa, seguindo o protocolo do "não assustar".</p>
+      <p>Todo mundo, menos você.</p>
+      <p>Você, o Zé, o valentão, atravessa a garagem com o passo de sempre, pega o filhote pelo cangote — firme e delicado ao mesmo tempo, um jeito que você nem sabia que suas mandíbulas tinham — e carrega o pequeno até o cantinho mais seco e quente da garagem, junto à parede da cozinha. Deposita. Deita do lado. Enrosca o rabo nele.</p>
+      <p>A casa INTEIRA está olhando. Você encara todo mundo, um por um, com a sua melhor cara de mau: <span class="fala">"Ninguém viu nada. NINGUÉM. VIU. NADA."</span></p>
+      <p>Todos viram tudo. Ninguém vai esquecer nunca. A Tiquena, no canto, faz aquela cara de quem sempre soube.</p>
+    ` : `
+      <p>O filhote come, mas treme de frio, encharcado até os ossos. Todo mundo hesita a uma distância respeitosa, seguindo o protocolo do "não assustar". E aí acontece a coisa mais impossível do dia — mais impossível que o Sebastião acordado, mais impossível que o Lourinho firme na tempestade:</p>
+      <p>O <strong>Zé</strong> atravessa a garagem.</p>
+      <p>O valentão. O rei da janela. O terror do Jaime. Ele pega o filhote pelo cangote com uma delicadeza que NINGUÉM sabia que existia naquelas mandíbulas, carrega o pequeno até o canto mais seco e quente da garagem, deita do lado dele e enrosca o rabo em volta, feito cerca.</p>
+      <p>A casa inteira congela. O Zé levanta a cabeça, encara todo mundo, um por um: <span class="fala">"Ninguém viu nada. NINGUÉM. VIU. NADA."</span></p>
+      <p>Todos viram. Ninguém vai esquecer. ${S.flags.ze_tocado ? "Você lembra do jeito que ele olhou as pegadinhas de manhã. No fundo, você já sabia." : "A Tiquena faz a cara de quem sempre soube — porque sempre soube."}</p>
+    `,
+    escolhas: [
+      { t: "Respeitar o segredo do Zé (por fora; por dentro, guardar para sempre)", f: () => irPara("humanas_chegam") },
+      { t: "Deitar também, formando uma roda de calor em volta do pequeno", f: () => irPara("humanas_chegam") },
+      { t: "Ir chamar as humanas: o filhote precisa de toalha e cuidado", f: () => irPara("humanas_chegam") },
+    ],
+  }),
+
+  humanas_chegam: () => ({
+    texto: `
+      <p>A porta da cozinha se abre e a luz acende: <em>Flávia e Ana</em>, atraídas pelo alvoroço${ehHumana() ? " (bom, uma delas é você)" : ""}. A cena que elas encontram: onze gatos em círculo na garagem, um filhote desconhecido cor de farofa no meio, e o Zé fingindo MUITO que só está ali por acaso.</p>
+      <p><span class="fala">"Ai. Meu. Deus"</span>, diz a Flávia, já derretida. <span class="fala">"NÚMERO DOZE?"</span>, diz a Ana, entre o pânico e o encanto.</p>
+      <p>Toalha, colo, o filhote embrulhado feito pastel. Um pires de leite especial (daquele de gato, a Flávia sabe das coisas). O pequeno, quentinho e de barriga cheia pela primeira vez em dias, apaga no colo dela no meio de um ronron do tamanho dele: minúsculo e valente.</p>
+      ${S.flags.moca_procurando || S.flags.mudanca
+        ? `<p>É aí que ${ehHumana() ? "você lembra" : "o Mimi encara a janela da frente com o olhar-que-fala, até as humanas entenderem"}: <em>a mudança na esquina. A moça procurando embaixo do caminhão.</em></p>`
+        : `<p>Entre uma lambida e outra na toalha, a chuva vai passando. E quando o bairro volta a fazer os barulhos de sempre, dá para ouvir, ao longe, uma voz chamando alguma coisa pela rua…</p>`}
+    `,
+    escolhas: [
+      { t: "Investigar a casa da esquina — o filhote pode ser de lá", f: () => irPara("final_dona") },
+      { t: "Esperar a chuva passar de vez, todos juntos na cozinha", f: () => irPara("final_dona") },
+      { t: "Votar para adotar o número doze AGORA (a Ana precisa de apoio moral)", f: () => irPara("final_dona") },
+    ],
+  }),
+
+  final_dona: () => ({
+    texto: `
+      <p>A chuva afina, vira garoa, vai embora resmungando. O bairro sai para respirar: portões abrem, dona Cida confere as plantas, o Bilú late para uma poça. E aí a campainha da casa toca.</p>
+      <p>No portão da garagem, debaixo de um guarda-chuva emprestado, está a <em>moça do rabo de cabelo da casa da esquina</em> — olhos vermelhos, voz embargada: <span class="fala">"Oi, desculpa incomodar… é que no meio da mudança a minha gatinha fugiu, ela é novinha, cor de… cor de farofa, sabe? Alguém viu? Ela chama <strong>Paçoca</strong>."</span></p>
+      <p>Atrás da Flávia, um miadinho responde sozinho. <em>Paçoca.</em> A moça desmonta em lágrimas ali mesmo no portão quando a Ana aparece com o embrulhinho de toalha ronronando.</p>
+      <p>O reencontro acontece na garagem, testemunhado por onze gatos enfileirados na janela da sala (o Zé na ponta, fingindo desinteresse, sem tirar o olho). A moça — Duda, a vizinha nova — agradece chorando, promete bolo, promete visita, e faz a proposta que sela o destino do bairro: <span class="fala">"Ela pode vir brincar no quintal de vocês? Acho que ela… escolheu vocês também."</span></p>
+    `,
+    escolhas: [
+      { t: "Aceitar oficialmente: a Paçoca ganha passe livre no quintal", f: () => irPara("final") },
+      { t: "Olhar para a Lilica primeiro — a matriarca dá a palavra final", f: () => irPara("final_lilica") },
+      { t: "Aceitar, mas com uma condição: nada de mexer na lixeira", f: () => irPara("final") },
+    ],
+  }),
+
+  final_lilica: () => ({
+    texto: `
+      <p>Antes de qualquer resposta, todos os olhares — humanos e felinos — se voltam para o corredor. Porque ela está lá.</p>
+      <p>A <em>Lilica</em> saiu do quarto. Devagar, no passo que a doença permite, mas com toda a realeza de sempre, ela atravessa a sala, sobe no braço do sofá com uma ajudinha discreta da Flávia (que ela aceita fingindo que não precisava), e olha a cena da garagem: o filhote, a vizinha, a casa inteira reunida.</p>
+      <p>Ela pisca devagar. Uma vez. Aprovado.</p>
+      <p>E dizem — a Popoia jura, mas a Popoia jura muita coisa — que ela murmurou baixinho, antes de voltar para o quentinho: <span class="fala">"Onze gatos, e sempre cabe mais um no quintal. Esta casa não aprende. Ainda bem."</span></p>
+    `,
+    escolhas: [
+      { t: "Está decidido: passe livre para a Paçoca!", f: () => irPara("final") },
+      { t: "Acompanhar a Lilica de volta ao quarto, no passo dela", f: () => irPara("final") },
+      { t: "Miar em coro (ou aplaudir, se você for humana)", f: () => irPara("final") },
+    ],
+  }),
+
+  final: () => ({
+    fim: true,
+    texto: `
+      <p>A noite chega lavada e limpa sobre o bairro. Nos paralelepípedos molhados, as poças refletem os postes acesos. Na casa da esquina, a Paçoca dorme no meio das caixas de mudança, de barriga cheia, sonhando com o quintal novo que ganhou de presente.</p>
+      <p>E na casa dos onze…</p>
+      <p>O <em>Tiqueno</em> recebe um sachê INTEIRO extra (pagamento de dívida histórica) e acorda as humanas só duas vezes de madrugada, em sinal de gratidão. A <em>Tiquena</em> dorme com a cara de quem resolveu tudo — porque resolveu. O <em>Sebastião</em> voltou a dormir há muitas horas e vai saber do final da história por resumo. A <em>Marrie</em> celebrou a ocasião fazendo cocô fora da caixa, mas hoje ninguém brigou (era um dia especial). A <em>Popoia</em> correu em círculos de alegria até apagar no colo da Flávia.</p>
+      <p>O <em>Mimi</em> dorme em cima da Ana, pesado e satisfeito, e o <em>Branquinho</em> lambe a testa da humana até nos sonhos. O <em>Jaime</em> dorme na sala, herói distraído, perto da sua brecha. O <em>Lourinho</em>${S.flags.lourinho_heroi ? ", herói assumido de hoje," : ""} dorme esparramado, e o <em>Zé</em>… o Zé está na janela, cabeça pra fora, bunda balançando, vigiando a rua. Alguém tem que proteger este bairro. Principalmente agora, que tem uma filhotinha nova na esquina.</p>
+      <p>No quarto da Flávia, a <em>Lilica</em> ronrona baixinho, quentinha, cuidada, com a casa inteira em paz sob o reinado dela.</p>
+      <p><strong>Os 11 do bairro. Todos em casa. Todos juntos. Como sempre. Como tem que ser.</strong></p>
+      ${epilogoDoPersonagem()}
+      <p style="text-align:center; font-size:1.4rem; margin-top:18px;">🐾 FIM 🐾</p>
+    `,
+    escolhas: [
+      { t: "Jogar de novo com outro personagem", f: () => { S = null; telaInicial(); } },
+    ],
+  }),
+};
+
+function epilogoDoPersonagem() {
+  const ep = {
+    lilica: "Você, Lilica, adormece sabendo que a casa que você fundou a rosnados continua acolhendo os perdidos. Seu reinado mudou de forma, não de força.",
+    lourinho: "Você, Lourinho, vai negar qualquer ato de coragem até o fim dos tempos. Mas hoje, no escuro, você dorme um pouquinho mais inflado de orgulho. Só um pouquinho.",
+    popoia: "Você, Popoia, sonha com o dia de hoje todo fora de ordem, e mesmo assim faz mais sentido que a sua vida acordada. Perfeito.",
+    jaime: "Você, Jaime, herói do dia, já esqueceu metade da própria façanha. Mas a brecha da janela agora tem cheiro de história pra contar. Se você lembrar.",
+    ze: "Você, Zé, reassume a janela. Ninguém viu nada. Todos viram tudo. E amanhã, quando a Paçoca aparecer no quintal, você vai rosnar para ela… e depois vigiar o muro para ninguém mexer com ela. Ninguém precisa saber disso também.",
+    sebastiao: "Você, Sebastião, participou de uma aventura inteira e voltou a dormir antes do final. A pose de hoje à noite está particularmente fotogênica. Prioridades.",
+    marrie: "Você, Marrie, encerra o dia com a elegância de sempre e o mistério de sempre, a dez centímetros da caixa. Uma dama não dá explicações.",
+    mimi: "Você, Mimi, resolveu mais um enigma do bairro sem precisar de um miado sequer. Amanhã tem frente de casa. Hoje tem Ana quentinha embaixo de você.",
+    branquinho: "Você, Branquinho, lambeu todo mundo que precisava ser lambido hoje. Missão cumprida. A Ana está devidamente amada. O Mimi também. O mundo está em ordem.",
+    tiqueno: "Você, Tiqueno, doou meio sachê e recebeu um inteiro. Lucro de 100%. Além de sapeca, empresário. Amanhã tem mais gritaria no pé da cama.",
+    tiquena: "Você, Tiquena, se arrasta para o seu canto com a satisfação silenciosa de quem montou o plano inteiro. Ninguém esperava. Você sempre espera. É por isso que sempre acontece.",
+    flavia: "Você, Flávia, confere a Lilica uma última vez antes de dormir, com a Popoia no colo e o Sebastião ocupando a cama. Onze gatos, um resgate e uma vizinha nova. Dia comum, no fim das contas.",
+    ana: "Você, Ana, adormece esmagada pelo Mimi e lambida pelo Branquinho, exatamente como todas as noites — só que hoje com a sensação boa de um bairro um pouquinho maior. Amanhã: café. Muito café.",
+  };
+  return `<p style="margin-top:14px;"><em>${ep[S.pc] || ""}</em></p>`;
+}
+
+/* ============================================================
+   RENDERIZAÇÃO
+   ============================================================ */
+function renderizar({ texto, escolhas, evento, semLivre, fim }) {
+  const palco = $("#palco");
+  palco.innerHTML = "";
+
+  const cartao = document.createElement("div");
+  cartao.className = "cartao" + (evento ? " evento" : "") + (fim ? " fim" : "");
+  cartao.innerHTML = (fim ? "<h2>🌙 Boa noite, bairro</h2>" : "") + texto;
+  palco.appendChild(cartao);
+
+  const acoes = document.createElement("div");
+  acoes.className = "acoes";
+
+  const div = document.createElement("div");
+  div.className = "escolhas";
+  escolhas.forEach((e, i) => {
+    const b = document.createElement("button");
+    b.className = "escolha";
+    b.innerHTML = `<span class="num">${i + 1}</span>${e.t}`;
+    b.onclick = e.f;
+    div.appendChild(b);
+  });
+  acoes.appendChild(div);
+
+  if (!semLivre && !fim) {
+    const livre = document.createElement("div");
+    livre.id = "livre";
+    livre.innerHTML = `
+      <input type="text" placeholder="…ou diga o que você quer fazer" maxlength="120">
+      <button>Fazer</button>`;
+    const input = livre.querySelector("input");
+    const botao = livre.querySelector("button");
+    const agir = () => { responderLivre(input.value); input.value = ""; };
+    botao.onclick = agir;
+    input.addEventListener("keydown", (ev) => { if (ev.key === "Enter") agir(); });
+    acoes.appendChild(livre);
+  }
+
+  palco.appendChild(acoes);
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function irPara(id) {
+  S.cena = id;
+  const def = CENAS[id];
+  if (!def) { console.error("Cena não encontrada:", id); return; }
+  const cena = def();
+  if (cena.aoEntrar) cena.aoEntrar();
+  renderizar(cena);
+}
+
+/* ---------- tela inicial ---------- */
+function telaInicial() {
+  const palco = $("#palco");
+  palco.innerHTML = "";
+
+  const cartao = document.createElement("div");
+  cartao.className = "cartao";
+  cartao.innerHTML = `
+    <p>O sol nasce devagar sobre o bairro. Na casa dos 11 gatos, o cheiro de café já toma a cozinha e o Tiqueno já está gritando por sachê no pé da cama. Um novo dia começa… <em>e algo diferente está para acontecer.</em></p>
+    <p><strong>Quem você quer ser nessa história?</strong></p>
+  `;
+  palco.appendChild(cartao);
+
+  const grade = document.createElement("div");
+  grade.className = "grade-gatos";
+  for (const [id, p] of Object.entries(PERSONAGENS)) {
+    const carta = document.createElement("button");
+    carta.className = "carta-gato" + (p.humana ? " humanas" : "");
+    carta.innerHTML = `<span class="emoji">${p.emoji}</span><span class="nome">${p.nome}${p.humana ? " (humana)" : ""}</span><span class="desc">${p.desc}</span>`;
+    carta.onclick = () => { S = novoEstado(id); irPara("manha"); };
+    grade.appendChild(carta);
+  }
+  palco.appendChild(grade);
+}
+
+telaInicial();
+</script>
+</body>
+</html>
