@@ -279,11 +279,26 @@ function responderLivre(txt) {
    ============================================================ */
 const CENAS = {
 
-  /* ---------- capítulo 1: a manhã ---------- */
-  manha: () => ({
+  /* ---------- escolha da aventura ---------- */
+  escolha_aventura: () => ({
     texto: `
       <p>O sol nasce devagar sobre o bairro. Lá fora, os paralelepípedos ainda guardam o frio da madrugada, um galo teimoso canta atrasado e o portão do vizinho range do jeito de sempre. Dentro da casa, o cheiro de café passado já toma a cozinha, e o <em>Tiqueno</em> já está gritando por sachê no pé da cama das humanas.</p>
       <p>${ABERTURAS[S.pc]}</p>
+      <p>O dia ainda é novinho, e no bairro dos 11 gatos, nenhum dia novinho fica comum por muito tempo. <strong>Que tipo de dia vai ser hoje?</strong></p>
+    `,
+    semLivre: true,
+    escolhas: [
+      { t: "🗑️ Um estrondo na garagem — O Mistério do Lixo Derrubado", f: () => irPara("manha") },
+      { t: "🧺 A caixa de transporte apareceu — O Dia do Veterinário", f: () => irPara("vet_manha") },
+      { t: "🐈‍⬛ Tem um estranho lá fora — O Gato Desconhecido do Muro", f: () => irPara("muro_manha") },
+    ],
+  }),
+
+  /* ============================================================
+     AVENTURA 1: O MISTÉRIO DO LIXO DERRUBADO
+     ============================================================ */
+  manha: () => ({
+    texto: `
       <p>E então — <strong>CRASH!</strong> — um estrondo de lata vem da <em>garagem</em>. A lixeira. Alguma coisa derrubou a lixeira. A casa inteira congela por meio segundo. O Lourinho já sumiu debaixo do sofá.</p>
     `,
     escolhas: [
@@ -940,6 +955,364 @@ const CENAS = {
       { t: "Jogar de novo com outro personagem", f: () => { S = null; telaInicial(); } },
     ],
   }),
+
+  /* ============================================================
+     AVENTURA 2: O DIA DO VETERINÁRIO
+     ============================================================ */
+  vet_manha: () => ({
+    texto: `
+      <p>A manhã seguia normal até <em>o som</em>. O rangido da porta do armário do corredor, seguido do <strong>toc</strong> oco de plástico duro batendo no chão. A casa inteira reconhece na primeira nota: <em>A CAIXA DE TRANSPORTE.</em></p>
+      <p>Protocolo de pânico, executado com precisão militar: o <em>Lourinho</em> evapora para debaixo do sofá. O <em>Jaime</em> — <em>plop</em> — já atravessou a brecha para a garagem. A <em>Popoia</em> corre em formato de oito, sem destino, por princípio. O <em>Tiqueno</em> para de gritar por sachê no meio de um grito (situação gravíssima, portanto). A <em>Marrie</em> se posiciona atrás da cortina sem pressa nenhuma — uma lady não corre, uma lady <em>se realoca</em>. O <em>Sebastião</em> continua dormindo. Claro.</p>
+      <p>A <em>Flávia</em> ergue a caixa e anuncia para a sala aparentemente vazia (ela sabe que tem doze olhos ouvindo): <span class="fala">"Calma, gente. Hoje é dia da <strong>Lilica</strong>. Consulta de rotina, coisa rápida, é do tratamento dela."</span></p>
+    `,
+    escolhas: [
+      { t: "Levar a notícia aos escondidos — missão diplomática", f: () => irPara("vet_espalhar") },
+      { t: "Ir ao quarto ver como a Lilica está", f: () => irPara("vet_lilica_quarto") },
+      { t: ehHumana() ? "Preparar a caixa com a mantinha preferida dela" : "Inspecionar a caixa de perto — conheça seu inimigo", f: () => irPara("vet_caixa") },
+    ],
+  }),
+
+  vet_espalhar: () => ({
+    texto: `
+      <p>Missão diplomática iniciada. Primeiro alvo: o vão do sofá. <span class="fala">"Lourinho, a caixa é para a Lilica. Consulta de rotina."</span> Dois olhos enormes piscam no escuro: <span class="fala">"É o que TODOS dizem antes de ir pro veterinário. 'É pro outro gato'. Sei. Conheço o esquema."</span> Ele só sai depois de você jurar pelo pé de manga do vizinho.</p>
+      <p>Na garagem, o <em>Jaime</em> ouve a explicação inteira com atenção e pergunta: <span class="fala">"Que caixa?"</span> Ele já tinha esquecido do que estava fugindo. Estava na garagem porque… ele não lembra por quê. Missão cumprida por acidente.</p>
+      <p>A <em>Popoia</em> é a surpresa: quando ouve o nome "Lilica", ela freia no meio de um oito e fica séria. A Popoia. Séria. Ela caminha até o quarto da Flávia e monta guarda na porta, quietinha. Ninguém nunca viu isso. Todos fingem naturalidade para não quebrar o encanto.</p>
+    `,
+    escolhas: [
+      { t: "Ir ver a Lilica também", f: () => irPara("vet_lilica_quarto") },
+      { t: "Conferir a caixa antes da viagem", f: () => irPara("vet_caixa") },
+      { t: "Acordar o Sebastião só para ele participar da preocupação (boa sorte)", f: () => irPara("vet_seb") },
+    ],
+  }),
+
+  vet_seb: () => ({
+    texto: `
+      <p>Você tenta explicar a situação ao <em>Sebastião</em>. Ele abre meio olho na palavra "veterinário", processa por dois segundos inteiros… e conclui que não é com ele. O olho fecha.</p>
+      <p>Mas na hora que você desiste e sai, acontece uma coisa: ele se levanta, se espreguiça, e vai deitar <em>na porta do quarto da Flávia</em>, do lado da Popoia. Sem explicação, sem abrir os olhos direito. O Sebastião tem o próprio jeito de se importar: ele leva a soneca dele para perto de quem precisa.</p>
+    `,
+    escolhas: [
+      { t: "Deixar os dois de guarda e ir ver a Lilica", f: () => irPara("vet_lilica_quarto") },
+      { t: "Conferir a caixa de transporte", f: () => irPara("vet_caixa") },
+      { t: "Se juntar à vigília na porta", f: () => irPara("vet_lilica_quarto") },
+    ],
+  }),
+
+  vet_lilica_quarto: () => ({
+    texto: `
+      <p>${pc("lilica")
+        ? "Você já sabia antes de todo mundo, claro. Rins. Rotina. Você conhece o cheiro do dia de consulta antes de a caixa sair do armário: a Flávia acorda diferente, mexe nas gavetas, fala com voz de quem finge que é um dia qualquer."
+        : `No quarto, a <em>Lilica</em> está sentada na cama, ereta, os olhos de rainha em quem entra. Ela já sabe. Ela sempre sabe.`}</p>
+      <p><span class="fala">"Rins. Rotina. Podem parar com essas caras"</span>${pc("lilica") ? ", você anuncia para a plateia que se formou na porta" : ", ela diz, com a voz baixinha que sobrou mas a pose inteira de sempre"}. <span class="fala">"A caixa é minha <em>carruagem</em>, não minha jaula. Diferença importante."</span></p>
+      <p>${pc("lilica") ? "Mas antes de sair, você chama o mais próximo com o olhar e encomenda, baixinho:" : "Mas na hora que a Flávia vem buscá-la, ela segura seu olhar por um segundo a mais e diz, baixinho, só para você:"} <span class="fala">"Cuida da casa enquanto eu não estiver. Você sabe como eles ficam."</span></p>
+      <p>A rainha confiou a casa a ${pc("lilica") ? "alguém" : "você"}. Isso não se recusa.</p>
+    `,
+    aoEntrar: () => { S.flags.encarregado = true; },
+    escolhas: [
+      { t: "Acompanhar a saída com honras de escolta real", f: () => irPara("vet_saida") },
+      { t: "Conferir a caixa e a mantinha antes", f: () => irPara("vet_caixa") },
+      { t: "Prometer que vai ficar tudo em ordem (mentira estatisticamente improvável)", f: () => irPara("vet_saida") },
+    ],
+  }),
+
+  vet_caixa: () => ({
+    texto: `
+      <p>${ehHumana()
+        ? "Você forra a caixa com a mantinha lilás — a preferida dela, a que fica no pé da sua cama. Ajeita duas vezes. Na terceira, percebe que está enrolando porque dia de consulta aperta o coração, mesmo sendo rotina."
+        : "Você circula a caixa de transporte com a cautela de quem desarma uma armadilha. Ela cheira a veterinário antigo, a plástico e — se você farejar fundo — a todos os gatos desta casa, um por um, cada um com seu dia de caixa."}</p>
+      <p>A mantinha lilás da Lilica vai dentro${S.flags.encarregado ? " (a Flávia teve a mesma ideia que todo mundo)" : ""}. E aí você nota uma coisa curiosa: a <em>Popoia</em> está rondando a caixa. Em círculos. Cada volta um pouquinho menor. Com uma cara que em qualquer outro gato seria "estou tramando alguma coisa" — mas na Popoia pode ser qualquer coisa, inclusive nada.</p>
+    `,
+    aoEntrar: () => { S.flags.popoia_rondando = true; },
+    escolhas: [
+      { t: "Ficar de olho na Popoia (instinto raramente erra)", f: () => irPara("vet_saida") },
+      { t: "Chamar a atenção dela para longe da caixa", f: () => irPara("vet_saida") },
+      { t: "Dar de ombros — é a Popoia, vai entender", f: () => irPara("vet_saida") },
+    ],
+  }),
+
+  vet_saida: () => ({
+    texto: `
+      <p>E então acontece a cena que ninguém estava preparado para ver: a <em>Lilica</em> atravessa a sala inteira, devagar, no passo dela, diante da casa em silêncio absoluto — e entra na caixa <strong>sozinha</strong>. Por vontade própria. De cabeça erguida. Ajeita a mantinha com uma pata, se acomoda e olha para a Flávia como quem diz "pode levar a carruagem".</p>
+      <p>O <em>Lourinho</em> esquece de ter medo por dez segundos inteiros. A <em>Marrie</em> inclina a cabeça em respeito de lady para lady. Até o <em>Zé</em>, na janela, para de balançar a bunda.</p>
+      <p>A <em>Ana</em> pega a chave do carro. A <em>Flávia</em> levanta a caixa com um cuidado de quem carrega coroa. ${ehHumana() ? "Vocês saem pela garagem." : "E é agora ou nunca:"}</p>
+    `,
+    escolhas: ehHumana() ? [
+      { t: "Partir para a clínica — dirigindo com cuidado dobrado nos paralelepípedos", f: () => irPara("vet_carro") },
+      { t: "Conferir a caixa uma última vez antes de ligar o carro", f: () => irPara("vet_carro") },
+      { t: "Prometer sachê para a casa inteira na volta (onze pares de orelhas registram)", f: () => irPara("vet_carro") },
+    ] : [
+      { t: "Escoltar a carruagem até o carro com honras reais", f: () => irPara("vet_carro") },
+      { t: "Entrar escondido na caixa junto com ela — a rainha não vai sozinha!", f: () => { S.flags.penetra = true; irPara("vet_carro"); } },
+      { t: "Assumir o posto da janela para vigiar a partida", f: () => irPara("vet_carro") },
+    ],
+  }),
+
+  vet_carro: () => ({
+    texto: `
+      <p>O carro desce a rua sacudindo nos paralelepípedos, devagarinho — a Ana dirige como quem carrega ovos. Dona Cida acena da calçada com a vassoura. O Bilú late para o carro, para a vassoura e para si mesmo.</p>
+      ${S.flags.penetra && !ehHumana()
+        ? `<p>E dentro da caixa… tem gente demais. Você. Você está DENTRO da caixa, espremido contra a mantinha lilás, ${pc("mimi") ? "e até hoje a ciência não explica como um gato do seu tamanho coube aqui" : pc("popoia") ? "porque seu corpo decidiu entrar antes de consultar seu cérebro, procedimento padrão seu" : "numa decisão que pareceu excelente há três minutos e agora é só apertada"}. A <em>Lilica</em> te olha longamente. <span class="fala">"…nem eu sei por que você está aqui"</span>, diz o olhar dela. <span class="fala">"Mas fica."</span> E ela encosta em você. A rainha. Encostada. Em você.</p>`
+        : `<p>No banco de trás, a caixa vai no colo da Flávia. E tem alguma coisa estranha: a caixa está… <em>pesada demais</em>. E de vez em quando sai lá de dentro um barulhinho a mais, um remexido que não combina com uma gata velhinha quieta. A Flávia franze a testa. A Lilica, lá dentro, tem uma cara de paisagem suspeitíssima.</p>`}
+      <p>A clínica fica na rua do mercadinho, com a fachada pintada de azul e um letreiro de pata. A porta abre com sininho.</p>
+    `,
+    escolhas: [
+      { t: "Entrar na sala de espera", f: () => irPara("vet_espera") },
+      { t: (S.flags.penetra && !ehHumana()) ? "Ficar bem quietinho — talvez ninguém perceba você" : "Espiar dentro da caixa para investigar o peso extra", f: () => irPara("vet_espera") },
+      { t: "Respirar fundo (cheiro de clínica: registrado e desaprovado)", f: () => irPara("vet_espera") },
+    ],
+  }),
+
+  vet_espera: () => ({
+    texto: `
+      <p>A sala de espera da clínica é um pequeno teatro do bairro. Elenco de hoje: <em>Nino</em>, um dogue alemão do tamanho de um sofá que chora baixinho de medo, encolhido atrás do dono (que pede desculpas para a sala em geral); <em>Chico</em>, um papagaio na caixa de transporte dele que imita o choro do Nino com perfeição cruel e depois o toque do telefone da recepção; e uma gata siamesa de coleira de strass que julga silenciosamente cada ser vivo do recinto.</p>
+      <p>A <em>Lilica</em> observa tudo pela grade da caixa como uma rainha em audiência pública: entediada, soberana, acima.</p>
+      <p><span class="fala">"Lilica?"</span> — chama a <em>Dra. Marta</em>, da porta do consultório, com o sorriso de quem conhece a paciente há anos. <span class="fala">"Pode entrar, majestade."</span> (Até a doutora sabe.)</p>
+    `,
+    escolhas: [
+      { t: "Entrar no consultório", f: () => irPara("vet_consulta") },
+      { t: "Mandar um olhar solidário para o Nino antes de entrar (coitado)", f: () => irPara("vet_consulta") },
+      { t: "Sustentar o duelo de julgamento com a siamesa (alguém precisa)", f: () => irPara("vet_consulta") },
+    ],
+  }),
+
+  vet_consulta: () => ({
+    texto: `
+      <p>A Dra. Marta abre a caixa em cima da mesa de inox e—</p>
+      <p><span class="fala">"Lilica e… <strong>VOCÊ?</strong>"</span></p>
+      ${S.flags.penetra && !ehHumana()
+        ? `<p>Você é içado da caixa diante de todos, pendurado no ar, flagrado. A Flávia leva a mão à boca. A Ana ri até chorar. A Dra. Marta balança a cabeça: <span class="fala">"Vinte anos de clínica e essa casa ainda me surpreende. Acompanhante, pode aguardar aqui do lado."</span> Você recebe uma caminha improvisada de toalha, de onde supervisiona tudo. A Lilica finge que não te conhece, mas deixa o rabo apontado na sua direção o tempo todo. É o radar dela. Está ligado em você.</p>`
+        : `<p>De dentro da caixa, atrás da Lilica, desamassa-se a <em>POPOIA</em>. A penetra. Entrou escondida na caixa na saída e passou a viagem inteira quieta (a maior façanha atlética da vida dela é ficar quieta). Por quê? Ninguém sabe. Nem ela. Mas quando a tiram da caixa ela se pendura no ombro da Flávia e fica olhando a consulta inteira, séria, de guarda. A Dra. Marta balança a cabeça, rindo: <span class="fala">"Acompanhante oficial, então."</span></p>`}
+      <p>A consulta em si: a Lilica aguenta a pesagem, o aparelho, a coleta, tudo com um tédio de rainha em cerimônia longa demais. E então a Dra. Marta olha os resultados, compara com a ficha, e sorri de verdade:</p>
+      <p><span class="fala">"Os exames <strong>melhoraram</strong>. O tratamento está funcionando, o rim está respondendo, ela ganhou até um pesinho. Essa velhinha ainda tem muita história pra mandar aí na casa de vocês."</span></p>
+      <p>A Flávia solta um ar que estava preso desde o armário da caixa, de manhã.</p>
+    `,
+    escolhas: [
+      { t: "Comemorar (com dignidade — a Lilica está olhando)", f: () => irPara("vet_volta") },
+      { t: "Encostar a cabeça na Lilica, rapidinho, ninguém precisa ver", f: () => irPara("vet_volta") },
+      { t: "Perguntar (miando ou falando) se pode dar sachê extra de comemoração", f: () => irPara("vet_volta") },
+    ],
+  }),
+
+  vet_volta: () => ({
+    texto: `
+      <p>Na volta, o carro sacode nos paralelepípedos e a caixa vai leve — leve do jeito que boas notícias pesam. A <em>Lilica</em> dorme a viagem inteira, enrolada na mantinha lilás${S.flags.penetra && !ehHumana() ? ", encostada em você, o acompanhante oficial" : ", com a Popoia de sentinela pendurada no banco"}.</p>
+      <p>E aí o carro dobra a esquina de casa e… a janela da sala está <em>lotada</em>. Todos. Enfileirados no parapeito e no encosto do sofá: o Zé no posto oficial, o Lourinho espremido (e tremendo, mas presente), a Marrie atrás da cortina fingindo que passava por ali, o Mimi e o Branquinho colados, a Tiquena no parapeito baixo, o Tiqueno gritando notícias em tempo real — e o <strong>Sebastião</strong>. Acordado. <em>Acordado por conta própria</em>, esperando na janela.</p>
+      <p>Ninguém comenta. Alguns milagres é melhor não assustar.</p>
+    `,
+    escolhas: [
+      { t: "Entrar e dar a boa notícia para a casa inteira", f: () => irPara("vet_final") },
+      { t: "Deixar a própria Lilica anunciar, do alto da caixa aberta", f: () => irPara("vet_final") },
+      { t: "Gritar/miar a notícia ainda do portão (o Tiqueno repassa em tempo real)", f: () => irPara("vet_final") },
+    ],
+  }),
+
+  vet_final: () => ({
+    fim: true,
+    texto: `
+      <p>A notícia atravessa a casa mais rápido que a Popoia em dia elétrico: <em>a Lilica está melhorando</em>. O tratamento funciona. A rainha ganhou peso, ganhou tempo, ganhou mais histórias pra mandar.</p>
+      <p>A Flávia abre sachês em quantidade escandalosa — o <em>Tiqueno</em> chora de emoção na terceira lambida. A <em>Marrie</em> aceita o dela com um aceno de cabeça, como quem recebe homenagem justa. O <em>Sebastião</em> come e dorme em cima do pires, estabelecendo novo recorde pessoal de eficiência.</p>
+      <p>E de noite, no quarto da Flávia, acontece a melhor parte: a <em>Lilica</em>, quentinha na mantinha lilás recém-saída da aventura, conta histórias antigas para quem quiser ouvir — e hoje a porta ficou aberta e meia casa se espremeu pelo chão do quarto para ouvir. Histórias do bairro de antes, dos telhados de antes, de quando ela era a braba que ninguém chegava perto. <span class="fala">"E olha no que deu"</span>, ela diz, olhando o quarto entupido de gato. <span class="fala">"Não chega perto quem quer. Chega quem eu deixo. E eu deixei todos vocês."</span></p>
+      <p>O <em>Mimi</em> pisca devagar. O <em>Branquinho</em> lambe o mais próximo. O <em>Zé</em>, do corredor, ouve tudo fingindo que faz ronda.</p>
+      <p><strong>Os 11 do bairro. Todos em casa. Todos juntos. E a rainha, cada dia mais rainha.</strong></p>
+      ${epilogoCurto()}
+      <p style="text-align:center; font-size:1.4rem; margin-top:18px;">🐾 FIM 🐾</p>
+    `,
+    escolhas: [
+      { t: "Jogar de novo com outro personagem (ou outra aventura)", f: () => { S = null; telaInicial(); } },
+    ],
+  }),
+
+  /* ============================================================
+     AVENTURA 3: O GATO DESCONHECIDO DO MURO
+     ============================================================ */
+  muro_manha: () => ({
+    texto: `
+      <p>Quem percebe primeiro é o <em>Zé</em>, do posto oficial da janela — e todo mundo percebe que o Zé percebeu, porque a bunda dele <strong>para de balançar</strong>. No meio do movimento. Congelada no ar. Isso nunca aconteceu na história da casa.</p>
+      <p>No muro em frente, em cima da casa vazia com a placa de "VENDE-SE", tem um <em>gato</em>. Grande. Cinzento como dia de chuva, com uma orelha rasgada de guerra antiga. Sentado, imóvel feito estátua de praça, olhando na direção da casa. Sem miar. Sem se mexer. Só… olhando.</p>
+      <p>${pc("ze") ? "Você infla. Território é território, e aquilo ali é um desafio formal, com hora marcada e tudo." : `O Zé infla até dobrar de tamanho. <span class="fala">"INVASOR À VISTA"</span>, anuncia o corpo inteiro dele.`} A <em>Tiquena</em>, do canto dela, estreita os olhos: tem alguma coisa <em>errada</em> nesse invasor. Invasor invade. Esse só… fica.</p>
+    `,
+    escolhas: [
+      { t: pc("ze") ? "Subir no murinho e encarar de volta — duelo formal de olhares" : "Acompanhar o Zé ao murinho para o confronto (alguém precisa supervisionar)", f: () => irPara("muro_duelo") },
+      { t: "Observar da janela com a Tiquena antes de qualquer coisa", f: () => irPara("muro_observar") },
+      { t: "Acordar a casa: isso é assunto para o conselho", f: () => irPara("muro_observar") },
+    ],
+  }),
+
+  muro_duelo: () => ({
+    texto: `
+      <p>${pc("ze") ? "Você marcha para o murinho e executa o repertório completo, aperfeiçoado em anos de reinado:" : "O Zé marcha para o murinho e executa o repertório completo:"} pelo eriçado, lombo arqueado, o rosnado grave que já fez cachorro atravessar a rua, a encarada oficial de declaração de guerra.</p>
+      <p>O gato cinzento… <em>não reage</em>.</p>
+      <p>Nada. Nem uma orelha. Nem um pelo. Ele continua olhando na mesma direção, sereno, como se ${pc("ze") ? "você fosse" : "o Zé fosse"} paisagem. ${pc("ze") ? "Você não sabe o que fazer. Isso NUNCA aconteceu. Todo mundo reage a você. O mundo inteiro reage a você. É assim que o mundo funciona." : "O Zé olha para trás, para a casa, desconcertado — e essa cara de dúvida no Zé é tão inédita que a Popoia para de correr para assistir."}</p>
+      <p>É a <em>Tiquena</em> quem resolve o primeiro mistério, chegando se arrastando pelo quintal, os olhos sabidos no estranho: <span class="fala">"Ele não está te desprezando, Zé. Ele não te <strong>ouviu</strong>. O caminhão do gás passou buzinando atrás dele agorinha… e ele nem piscou."</span></p>
+      <p>Um gato <em>surdo</em>.</p>
+    `,
+    aoEntrar: () => { S.flags.surdo = true; },
+    escolhas: [
+      { t: "Observar melhor: para onde exatamente ele está olhando?", f: () => irPara("muro_observar") },
+      { t: pc("ze") ? "Recuar com dignidade estratégica (não é retirada, é reposicionamento)" : "Convencer o Zé a recuar (missão diplomática nível difícil)", f: () => irPara("muro_observar") },
+      { t: "Tentar acenar para o estranho — se ele não ouve, talvez veja", f: () => irPara("muro_observar") },
+    ],
+  }),
+
+  muro_observar: () => ({
+    texto: `
+      <p>Da janela, com a <em>Tiquena</em> comandando a observação (cabecinha trêmula, olhos de mira), os detalhes vão aparecendo um por um:</p>
+      <p>Ele é <em>velho</em> — dá para ver no jeito de sentar, cuidadoso com as juntas, como a Lilica senta. ${S.flags.surdo ? "É surdo — confirmado pelo caminhão do gás." : "O caminhão do gás passa buzinando atrás dele e ele nem pisca: <em>surdo</em>."} Está magro, mas o pelo é escovado — <em>alguém cuida dele</em>. E o mais importante, que só a Tiquena notou: ele não está olhando para a nossa casa.</p>
+      <p>Ele está olhando para a <strong>casa vazia embaixo dele</strong>. A casa da placa de VENDE-SE. Olhando para o quintal dela como se enxergasse alguma coisa que não está mais lá.</p>
+      <p>E tem uma <em>coleira</em>. Velha, desbotada, com uma plaquinha pendurada que brilha de vez em quando no sol.</p>
+    `,
+    aoEntrar: () => { S.flags.surdo = true; S.flags.coleira = true; },
+    escolhas: [
+      { t: "Chamar o Mimi: ninguém decifra uma plaquinha a distância como ele", f: () => irPara("muro_mimi") },
+      { t: "Perguntar à Tiquena o que ela acha que ele vê naquele quintal", f: () => irPara("muro_tiquena_teoria") },
+      { t: "Levar o caso direto à Lilica — gato velho entende gato velho", f: () => irPara("muro_mimi") },
+    ],
+  }),
+
+  muro_tiquena_teoria: () => ({
+    texto: `
+      <p>A Tiquena fica um tempo em silêncio, o tremorzinho na cabeça, os olhos indo do gato para o quintal vazio e de volta.</p>
+      <p><span class="fala">"Ele não vê o quintal. Ele vê o que o quintal <em>era</em>. Gato guarda mapa das coisas no coração, não nos olhos. Aquele muro ali… aquele já foi o muro <em>dele</em>. Ele não veio invadir nada. Ele veio <strong>visitar</strong>."</span></p>
+      <p>Ela se vira para você com a conclusão pronta, do jeito dela: <span class="fala">"A pergunta não é o que ele quer. É por que ele não consegue ir embora."</span></p>
+    `,
+    escolhas: [
+      { t: "Chamar o Mimi para decifrar a plaquinha da coleira", f: () => irPara("muro_mimi") },
+      { t: "Contar a teoria à Lilica", f: () => irPara("muro_mimi") },
+      { t: "Observar mais um pouco, agora com outros olhos", f: () => irPara("muro_mimi") },
+    ],
+  }),
+
+  muro_mimi: () => ({
+    texto: `
+      <p>${pc("mimi") ? "Sua vez. Você sobe ao parapeito, aperta os olhos azuis e faz o que ninguém mais nesta casa faz: <em>lê o mundo</em>." : `O <em>Mimi</em> sobe ao parapeito com a solenidade de perito chamado ao caso, aperta os olhos azuis e fica um longo minuto em silêncio absoluto, lendo o mundo.`} A plaquinha balança, brilha, vira… e letra por letra, reflexo por reflexo, o nome se monta:</p>
+      <p style="text-align:center; font-size:1.3rem;"><strong>B A R Ã O</strong></p>
+      <p>E aí acontece uma coisa que ninguém esperava: uma voz baixinha e rouca vem do corredor.</p>
+      <p><span class="fala">"…Barão?"</span></p>
+      <p>A <strong>Lilica</strong> está na porta da sala. Saiu do quarto sozinha, no passo devagar dela, os olhos arregalados de um jeito que nenhum gato desta casa viu antes. Ela atravessa até a janela, sobe com uma ajudinha discreta do Lourinho (que ela aceita fingindo que não precisava) e olha o gato cinzento do muro por um longo, longo tempo.</p>
+      <p><span class="fala">"Eu conheço esse gato."</span></p>
+    `,
+    escolhas: [
+      { t: "Ouvir a história — a casa inteira se junta", f: () => irPara("muro_lilica") },
+      { t: "Perguntar: amigo ou inimigo?", f: () => irPara("muro_lilica") },
+      { t: "Olhar do Barão para a Lilica e da Lilica para o Barão (entendendo tudo)", f: () => irPara("muro_lilica") },
+    ],
+  }),
+
+  muro_lilica: () => ({
+    texto: `
+      <p>A casa inteira se ajeita pelo chão da sala. Até o Sebastião acorda (parcialmente). História da Lilica é evento raro.</p>
+      <p><span class="fala">"Anos atrás — vocês nem eram nascidos, quase nenhum — aquela casa em frente tinha quintal cheio de vida, e o rei daquele muro era ele. <em>Barão</em>. O único gato deste bairro que me enfrentou de igual para igual. Guerra de encarada que durava tarde inteira. Nem ele descia, nem eu. Empate. Sempre empate. Ele era… um adversário à altura."</span> Ela faz uma pausa, e a voz amolece meio tom: <span class="fala">"O único que valia a briga."</span></p>
+      <p><span class="fala">"Aí a família dele se mudou. Levaram ele. E o muro de lá nunca mais teve rei."</span></p>
+      <p>Ela olha de novo para o vulto cinzento, imóvel sobre o quintal vazio: <span class="fala">"Se o Barão voltou depois de todos esses anos, velho desse jeito… ele veio se despedir de alguma coisa. E gato velho não devia se despedir sozinho."</span></p>
+    `,
+    escolhas: [
+      { t: "Perguntar como falar com um gato surdo", f: () => irPara("muro_lingua") },
+      { t: "Levar comida para ele no murinho", f: () => irPara("muro_comida") },
+      { t: "Vigiar o que ele faz antes de agir", f: () => irPara("muro_vigiar") },
+    ],
+  }),
+
+  muro_lingua: () => ({
+    texto: `
+      <p><span class="fala">"Som é a menor parte da conversa"</span>, diz a Lilica. <span class="fala">"Gato fala com o corpo. E o mestre disso aqui de casa vocês sabem quem é."</span></p>
+      <p>Todos olham para o <em>Mimi</em> — o gato que nunca precisou de miado. ${pc("mimi") ? "Você já está subindo no murinho." : "Ele desce do parapeito e vai para o murinho da frente com a calma de embaixador."}</p>
+      <p>Do murinho, a mensagem é enviada no idioma universal: sentar de lado (não sou ameaça), olhar suave, e a <em>piscada lenta</em> — a mais antiga palavra de paz que os gatos conhecem.</p>
+      <p>O Barão, pela primeira vez desde o amanhecer, <strong>se mexe</strong>. A cabeça grande e cinzenta vira. Os olhos velhos encontram os do mensageiro. Um tempo comprido. E então… ele pisca de volta. Devagar. E desce um degrau do muro, mais perto da rua, mais perto de vocês.</p>
+    `,
+    aoEntrar: () => { S.flags.ponte = true; },
+    escolhas: [
+      { t: "Agora sim: levar comida e água para a beira do muro", f: () => irPara("muro_encontro") },
+      { t: "Deixar a Lilica ir até a garagem — os dois reis precisam se ver", f: () => irPara("muro_encontro") },
+      { t: "Piscar devagar também, todos juntos, da janela (coro de paz)", f: () => irPara("muro_encontro") },
+    ],
+  }),
+
+  muro_comida: () => ({
+    texto: `
+      <p>Um pires de ração (e um caneco de água) é posicionado no murinho da frente, operação conjunta gatos-humanas — a Ana desconfiada, <span class="fala">"vocês estão alimentando quem, exatamente?"</span>, mas cooperando, porque é assim que essa casa funciona.</p>
+      <p>O Barão olha o pires. Dá para ver a fome no jeito que ele olha. Mas ele não desce. Orgulho de rei velho: aceitar comida de território alheio é assinar rendição, e ele não veio se render.</p>
+      <p>Só que aí ele faz uma coisa que muda tudo: desvia do pires e olha de novo para o quintal vazio da casa dele — e a <em>Tiquena</em> traduz baixinho, para quem não entendeu: <span class="fala">"Não é fome de comida que trouxe ele de tão longe."</span></p>
+    `,
+    escolhas: [
+      { t: "Mandar a mensagem no idioma certo: a piscada lenta", f: () => irPara("muro_lingua") },
+      { t: "Deixar a Lilica assumir — isso é conversa de reis", f: () => irPara("muro_encontro") },
+      { t: "Vigiar o que ele faz em seguida", f: () => irPara("muro_vigiar") },
+    ],
+  }),
+
+  muro_vigiar: () => ({
+    texto: `
+      <p>Vocês montam vigília na janela, revezando. O Barão passa horas no mesmo lugar, mudando só com a sombra, sempre de frente para o quintal que já foi dele. O sol vai caindo. Dona Cida recolhe a roupa do varal. O bairro amorna.</p>
+      <p>E aí, no fim da tarde, ele tenta descer — <em>para dentro</em> do quintal vazio. E o pulo que o Barão de anos atrás fazia dormindo… falha. A pata velha escorrega na beirada, ele desliza desajeitado pelo muro e aterrissa em pé (gato é gato, até velho), mas fica lá embaixo, na calçada, <em>exausto</em>, os flancos subindo e descendo, sem força para subir de volta.</p>
+      <p>Um rei encalhado na calçada do próprio passado. A casa inteira prende a respiração.</p>
+    `,
+    aoEntrar: () => { S.flags.urgencia = true; },
+    escolhas: [
+      { t: "Hora da Lilica: abrir caminho até a garagem, os dois precisam se encontrar", f: () => irPara("muro_encontro") },
+      { t: "Alertar as humanas AGORA (miado de emergência / grito)", f: () => irPara("muro_encontro") },
+      { t: "Mandar a piscada lenta lá de cima: aguenta, estamos aqui", f: () => { S.flags.ponte = true; irPara("muro_encontro"); } },
+    ],
+  }),
+
+  muro_encontro: () => ({
+    texto: `
+      <p>E então acontece o evento mais raro do ano: a <strong>Lilica atravessa a casa</strong>. Sala, corredor, a portinha para a garagem — no passo devagar dela, e a casa inteira abrindo caminho em silêncio, como se afasta cortina para deixar o sol entrar.</p>
+      <p>Ela vai até o portão da garagem e senta. Do outro lado da rua, o Barão${S.flags.urgencia ? ", ainda na calçada, junta as forças que restam e" : ""} atravessa devagar — olhando para os dois lados, porque velho e surdo, mas não bobo — e senta do lado de fora do portão. A grade entre os dois.</p>
+      <p>Duas piscadas lentas. Uma de cada lado.</p>
+      <p>E aí os dois reis fazem a coisa mais simples do mundo: <em>encostam a testa na grade, um de cada lado, ao mesmo tempo</em>. Sem som nenhum — que ele não ouviria mesmo, e ela nunca precisou. A guerra de anos atrás, os muros, os empates de tarde inteira: tudo isso, os dois estão dizendo, era só o jeito antigo de dizer <em>eu te respeito</em>.</p>
+      <p>De perto dá para ver tudo: magro mas escovado — <em>tem gente que cuida dele</em>. As almofadinhas gastas de andar longe. Ele fugiu de algum lugar para vir aqui. E agora está perdido demais, cansado demais, para voltar.</p>
+    `,
+    escolhas: [
+      { t: "Fazer as humanas verem a plaquinha da coleira — tem que ter um telefone ali", f: () => irPara("muro_humanas") },
+      { t: "Trazer o pires até o portão: agora, de rei para rei, ele aceita", f: () => irPara("muro_humanas") },
+      { t: "Deixar os dois velhos mais um tempo em paz (o telefone pode esperar dez minutos)", f: () => irPara("muro_humanas") },
+    ],
+  }),
+
+  muro_humanas: () => ({
+    texto: `
+      <p>${ehHumana()
+        ? "Você já entendeu tudo faz tempo — onze gatos ensinam a ler cena de longe. Você se agacha devagarinho junto ao portão, deixa o Barão farejar sua mão, e vira a plaquinha da coleira:"
+        : `Missão: fazer humana enxergar. O <em>Mimi</em> executa a técnica registrada dele: senta na frente da Ana, encara ela, encara o portão, encara ela, encara o portão — o pêndulo de olhar que ele usa para mover humanos pelo mundo. A Ana segue o olhar, vê a cena do portão, entende na hora. <span class="fala">"Flávia! Vem cá! E traz um sachê!"</span></p>
+      <p>A Flávia se agacha devagarinho junto ao portão, deixa o Barão farejar a mão dela, e vira a plaquinha da coleira:`}</p>
+      <p><span class="fala">"BARÃO"</span> de um lado. E do outro, meio apagado mas legível, <em>um número de telefone</em>.</p>
+      <p>A ligação é feita ali mesmo, da calçada. Dois toques. Uma voz de senhora atende — e dá para ouvir, mesmo sem viva-voz, o tamanho do alívio: <span class="fala">"O BARÃO? Vocês estão com o Barão? Ai, meu Deus, eu já estou indo, moça, NÃO DEIXA ele sair daí, eu imploro—"</span></p>
+    `,
+    escolhas: [
+      { t: "Esperar com ele no portão (ele ganha o sachê da paz)", f: () => irPara("muro_ivone") },
+      { t: "Formar comitê de recepção na janela", f: () => irPara("muro_ivone") },
+      { t: "Ficar de guarda para ele não tentar outra escalada", f: () => irPara("muro_ivone") },
+    ],
+  }),
+
+  muro_ivone: () => ({
+    texto: `
+      <p>Dez minutos depois, um fusca azul-desbotado dobra a esquina fazendo o barulho de fusca. Dele desce <em>dona Ivone</em>, senhora de óculos pendurado no pescoço, que atravessa a rua já chorando: <span class="fala">"BARÃO! Seu FUJÃO! Seu velho TEIMOSO!"</span> — e o Barão, que não ouve nada, sente o cheiro dela chegando e, pela primeira vez o dia inteiro, <em>mia</em>. Um miado rouco, enferrujado, guardado só para ela.</p>
+      <p>A história sai entre lágrimas e agradecimentos: eles moravam na casa em frente, se mudaram para o outro lado do bairro faz anos, e desde que ficou surdo o Barão foge <em>toda semana</em> — sempre para cá, sempre para o muro dele. <span class="fala">"Ele deixou o coração nesse quintal, e eu não sei mais o que fazer…"</span></p>
+      <p>Quem resolve é a <em>dona Cida</em>, que obviamente já estava na calçada com o Bilú e o bolo de fubá (raio de fofoca dela: quarteirão inteiro): <span class="fala">"Dona Ivone, faz assim: traz ele de visita. Todo domingo. Ele passa a tarde no meu quintal, que é colado no antigo, eu vigio, a senhora busca no fim do dia. Velho não se muda de coração, a gente é que dá um jeito na logística."</span></p>
+      <p>Assinado, selado, celebrado com bolo de fubá. O Barão ganhou as tardes de domingo de volta.</p>
+    `,
+    escolhas: [
+      { t: "Celebrar o acordo (miado coletivo / fatia de bolo)", f: () => irPara("muro_final") },
+      { t: "Olhar para a Lilica — o que a rainha achou de tudo isso?", f: () => irPara("muro_final") },
+      { t: "Registrar o Zé assistindo tudo da janela, sem rosnar nenhuma vez", f: () => irPara("muro_final") },
+    ],
+  }),
+
+  muro_final: () => ({
+    fim: true,
+    texto: `
+      <p>Domingo seguinte, fim de tarde. O fusca azul chega, dona Ivone abre a portinha, e o <em>Barão</em> sobe no muro da dona Cida com uma escadinha de caixotes que ela montou "por acaso" no canto do quintal. De lá, ele vê tudo: o quintal antigo, a rua, o bairro inteiro dele.</p>
+      <p>E na janela da casa dos 11, o <em>Zé</em> assume o posto: cabeça pra fora, bunda balançando. Os dois se encaram por cima da rua — o rei velho no muro, o rei novo na janela. Ninguém rosna. Ninguém pisca primeiro. Até que piscam: <em>os dois ao mesmo tempo, devagar</em>. O pacto dos reis: cada um no seu posto, vigiando o mesmo bairro. Quem viu, viu. Ninguém viu nada.</p>
+      <p>Lá dentro, a <em>Lilica</em> ouve o relatório completo da Tiquena e ronrona baixinho, no quentinho do quarto da Flávia. O adversário à altura está bem. Tem gente que cuida dele. E agora tem domingo.</p>
+      <p>O <em>Tiqueno</em> grita por sachê. A <em>Popoia</em> corre sem motivo. A <em>Marrie</em> ignora a caixa de areia com elegância renovada. O <em>Sebastião</em> dorme a soneca 14 das 14 previstas. O <em>Mimi</em> e o <em>Branquinho</em> dividem a mesma almofada, como sempre, e o <em>Jaime</em>… o Jaime está na garagem, pela brecha, olhando a rua pela grade. Alguém tem que aprender com os mais velhos o ofício de ter um muro no coração.</p>
+      <p><strong>Os 11 do bairro. Todos em casa. Todos juntos. E o bairro um pouquinho maior, de novo.</strong></p>
+      ${epilogoCurto()}
+      <p style="text-align:center; font-size:1.4rem; margin-top:18px;">🐾 FIM 🐾</p>
+    `,
+    escolhas: [
+      { t: "Jogar de novo com outro personagem (ou outra aventura)", f: () => { S = null; telaInicial(); } },
+    ],
+  }),
 };
 
 function epilogoDoPersonagem() {
@@ -957,6 +1330,25 @@ function epilogoDoPersonagem() {
     tiquena: "Você, Tiquena, se arrasta para o seu canto com a satisfação silenciosa de quem montou o plano inteiro. Ninguém esperava. Você sempre espera. É por isso que sempre acontece.",
     flavia: "Você, Flávia, confere a Lilica uma última vez antes de dormir, com a Popoia no colo e o Sebastião ocupando a cama. Onze gatos, um resgate e uma vizinha nova. Dia comum, no fim das contas.",
     ana: "Você, Ana, adormece esmagada pelo Mimi e lambida pelo Branquinho, exatamente como todas as noites — só que hoje com a sensação boa de um bairro um pouquinho maior. Amanhã: café. Muito café.",
+  };
+  return `<p style="margin-top:14px;"><em>${ep[S.pc] || ""}</em></p>`;
+}
+
+function epilogoCurto() {
+  const ep = {
+    lilica: "Você, Lilica, encerra o dia como encerra todos: sabendo de tudo, mandando em tudo, amada por todos — mesmo pelos que ainda fingem medo, por respeito às tradições.",
+    lourinho: "Você, Lourinho, teve medo umas catorze vezes hoje e mesmo assim esteve presente em todas as horas importantes. É disso que coração de urso de pelúcia é feito.",
+    popoia: "Você, Popoia, não entendeu tudo o que aconteceu hoje, mas participou intensamente de cada parte, inclusive das que não existiram. Dia perfeito.",
+    jaime: "Você, Jaime, esteve lá. Provavelmente. Você lembra de quase tudo, o que para os seus padrões é um recorde. A brecha da janela te espera para a soneca.",
+    ze: "Você, Zé, reassume a janela. A casa está segura, o bairro está vigiado, e se alguém te viu sendo menos valentão hoje… ninguém viu nada.",
+    sebastiao: "Você, Sebastião, participou da aventura nos intervalos das sonecas — e ainda assim, de algum jeito, esteve presente na hora que importava. Talento.",
+    marrie: "Você, Marrie, atravessou o dia inteiro com a pose impecável e encerra a noite a dez centímetros da caixa de areia. Uma dama não muda seus princípios.",
+    mimi: "Você, Mimi, mais uma vez resolveu o que precisava ser resolvido sem gastar um único miado. A Ana te espera para ser esmagada com amor.",
+    branquinho: "Você, Branquinho, distribuiu lambidas em todos os momentos emocionantes do dia, que foram muitos. A Ana está devidamente amada. Missão de sempre: cumprida.",
+    tiqueno: "Você, Tiqueno, aprontou, gritou, participou e cobrou sachê ao final, como manda o protocolo. Amanhã tem mais, no pé da cama, sem piedade.",
+    tiquena: "Você, Tiquena, entendeu tudo antes de todo mundo, como sempre. Se arrastou até seu cantinho e dorme com a satisfação silenciosa dos que enxergam longe.",
+    flavia: "Você, Flávia, fecha a casa, confere a Lilica, distribui os últimos carinhos e vai dormir com a Popoia no colo. Onze gatos. Nenhum tédio. Nunca.",
+    ana: "Você, Ana, se deita e aguarda. Três segundos depois, o peso conhecido do Mimi se instala em cima de você e a língua do Branquinho encontra seu cotovelo. Tudo em ordem no mundo.",
   };
   return `<p style="margin-top:14px;"><em>${ep[S.pc] || ""}</em></p>`;
 }
@@ -1033,7 +1425,7 @@ function telaInicial() {
     const carta = document.createElement("button");
     carta.className = "carta-gato" + (p.humana ? " humanas" : "");
     carta.innerHTML = `<span class="emoji">${p.emoji}</span><span class="nome">${p.nome}${p.humana ? " (humana)" : ""}</span><span class="desc">${p.desc}</span>`;
-    carta.onclick = () => { S = novoEstado(id); irPara("manha"); };
+    carta.onclick = () => { S = novoEstado(id); irPara("escolha_aventura"); };
     grade.appendChild(carta);
   }
   palco.appendChild(grade);

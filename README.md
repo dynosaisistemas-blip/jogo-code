@@ -6,7 +6,9 @@ Ruas de paralelepípedo, quintais com pé de manga, cheiro de café passado, o T
 
 ## 🎮 Como jogar
 
-O jogo é um único arquivo HTML, sem dependências. Basta abrir no navegador:
+**Jogue online:** https://dynosaisistemas-blip.github.io/jogo-code/
+
+Ou localmente — o jogo é um único arquivo HTML, sem dependências. Basta abrir no navegador:
 
 ```bash
 # abra diretamente
@@ -19,9 +21,13 @@ python3 -m http.server 8000
 ```
 
 1. Escolha quem você quer ser: um dos 11 gatos ou uma das humanas (Flávia ou Ana).
-2. Leia a cena e escolha uma das **3 opções numeradas** — ou digite uma **ação livre** na caixa de texto.
-3. Suas escolhas importam: consultar a Tiquena revela pistas, acordar o Sebastião é uma missão por si só, provocar o Zé tem consequências...
-4. Eventos aleatórios do bairro acontecem entre as cenas (a Popoia sendo a Popoia, o carro do sachê, a Marrie e a caixa de areia...).
+2. Escolha a aventura do dia:
+   - 🗑️ **O Mistério do Lixo Derrubado** — quem anda derrubando a lixeira da garagem de madrugada?
+   - 🧺 **O Dia do Veterinário** — a caixa de transporte apareceu... e é dia de consulta da Lilica.
+   - 🐈‍⬛ **O Gato Desconhecido do Muro** — um estranho imóvel no muro em frente, e nem o Zé consegue explicar.
+3. Leia a cena e escolha uma das **3 opções numeradas** — ou digite uma **ação livre** na caixa de texto.
+4. Suas escolhas importam: consultar a Tiquena revela pistas, acordar o Sebastião é uma missão por si só, provocar o Zé tem consequências...
+5. Eventos aleatórios do bairro acontecem entre as cenas (a Popoia sendo a Popoia, o carro do sachê, a Marrie e a caixa de areia...).
 
 **Regra de ouro:** nenhum gato morre nem se machuca gravemente. Todos os 11 sempre voltam para casa, juntos. ❤️
 
