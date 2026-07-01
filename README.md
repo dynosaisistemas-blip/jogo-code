@@ -1,14 +1,14 @@
 # 🐾 Os 11 do Bairro
 
-Um jogo interativo de aventura e vida cotidiana ambientado em um bairro tranquilo de uma cidade do interior do Brasil — na casa onde vivem **11 gatos**, cada um com personalidade, história e manias próprias, e as duas humanas que cuidam de todos eles.
+Um jogo de aventura ambientado em um bairro tranquilo de uma cidade do interior do Brasil — na casa onde vivem **11 gatos**, cada um com personalidade, cores, história e manias próprias, e as duas humanas que cuidam de todos eles.
 
-Ruas de paralelepípedo, quintais com pé de manga, cheiro de café passado, o Tiqueno gritando por sachê no pé da cama... e um mistério rondando o muro da garagem.
+Ruas de paralelepípedo, quintais com pé de manga, cheiro de café passado, o Tiqueno gritando por sachê no pé da cama... e um mistério rondando a garagem.
 
 ## 🎮 Como jogar
 
 **Jogue online:** https://dynosaisistemas-blip.github.io/jogo-code/
 
-Ou localmente — o jogo é um único arquivo HTML, sem dependências. Basta abrir no navegador:
+Ou localmente — tudo em HTML puro, sem dependências. Basta abrir no navegador:
 
 ```bash
 # abra diretamente
@@ -20,16 +20,21 @@ python3 -m http.server 8000
 # e acesse http://localhost:8000
 ```
 
-1. Escolha quem você quer ser: um dos 11 gatos ou uma das humanas (Flávia ou Ana).
-2. Escolha a aventura do dia:
-   - 🗑️ **O Mistério do Lixo Derrubado** — quem anda derrubando a lixeira da garagem de madrugada?
-   - 🧺 **O Dia do Veterinário** — a caixa de transporte apareceu... e é dia de consulta da Lilica.
-   - 🐈‍⬛ **O Gato Desconhecido do Muro** — um estranho imóvel no muro em frente, e nem o Zé consegue explicar.
-3. Leia a cena e escolha uma das **3 opções numeradas** — ou digite uma **ação livre** na caixa de texto.
-4. Suas escolhas importam: consultar a Tiquena revela pistas, acordar o Sebastião é uma missão por si só, provocar o Zé tem consequências...
-5. Eventos aleatórios do bairro acontecem entre as cenas (a Popoia sendo a Popoia, o carro do sachê, a Marrie e a caixa de areia...).
+### 🕹️ Modo aventura (`index.html`)
 
-**Regra de ouro:** nenhum gato morre nem se machuca gravemente. Todos os 11 sempre voltam para casa, juntos. ❤️
+Você **controla um dos 11 gatos** e explora a casa toda: garagem, sala, cozinha, os dois quartos, a área de serviço e o quintal.
+
+- **Andar:** setas do teclado ou WASD (no celular: botões de toque ▲▼◀▶)
+- **Agir/conversar:** tecla **E**, Espaço ou Enter (no celular: botão 🐾)
+- **Missão:** investigue a lixeira derrubada, junte as pistas com a Tiquena, consiga o sachê (o Tiqueno vai reclamar), sobreviva à tempestade, empurre a caixa e resgate a Paçoca!
+- Converse com os outros 10 gatos e as humanas pela casa — cada um responde do seu jeito
+- Colete os 8 petiscos 🍪 escondidos pelos cômodos
+
+### 📖 Modo história (`historia.html`)
+
+Aventura de texto com escolhas: você escolhe um dos 11 gatos (ou a Flávia/Ana), escolhe a aventura do dia — 🗑️ O Mistério do Lixo Derrubado, 🧺 O Dia do Veterinário ou 🐈‍⬛ O Gato Desconhecido do Muro — e vive a história por 3 opções numeradas + ações livres digitadas.
+
+**Regra de ouro (nos dois modos):** nenhum gato morre nem se machuca gravemente. Todos os 11 sempre voltam para casa, juntos. ❤️
 
 ## 🐈 O elenco
 
