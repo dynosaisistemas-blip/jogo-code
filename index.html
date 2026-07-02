@@ -284,11 +284,12 @@
       <p><strong>Escolha o seu gato!</strong> Uma manhã comum virou mistério: um <em>CRASH</em> veio da garagem de madrugada… Siga a <strong>setinha dourada</strong> para nunca se perder na missão.</p>
       <div class="comandos">
         <span>🕹️ <b>Setas / WASD</b> andar</span>
+        <span>💨 <b>Shift</b> correr (zoomies!)</span>
         <span>🐾 <b>E / Espaço</b> agir e conversar</span>
         <span>🎵 <b>M</b> miar (todo mundo reage!)</span>
-        <span>⤴️ <b>P</b> pular (pegue borboletas e a lagartixa!)</span>
+        <span>⤴️ <b>P</b> pular e caçar</span>
       </div>
-      <p style="font-size:0.85rem; color:#8a7a68; margin-top:10px;">Aventuras extras: colete os 8 petiscos 🍪, capture as 3 borboletas 🦋, pegue a lagartixa 🦎 e tente <em>acordar o Sebastião</em> miando do lado dele. 😴 · Prefere ler e escolher? O <a href="historia.html">modo história</a> continua disponível. 📖</p>
+      <p style="font-size:0.85rem; color:#8a7a68; margin-top:10px;">Cace o rato de brinquedo 🐭, o passarinho 🐦 e a lagartixa 🦎, capture as borboletas 🦋, brinque de <em>pique-pega com a Popoia</em>, acorde o Sebastião miando 😴 — tudo vale <strong>pontos</strong> ⭐. E cuidado: se provocar o <em>Zé</em>, ele vem atrás de você! 😾 · Prefere ler? O <a href="historia.html">modo história</a> continua disponível. 📖</p>
     </div>
     <div class="grade-gatos" id="grade"></div>
   </div>
@@ -302,6 +303,7 @@
         <span id="barra"><i id="barra-fill"></i></span>
       </span>
       <span class="chips">
+        <span class="chip" id="chip-pontos">⭐ 0</span>
         <span class="chip" id="petiscos">🍪 0/8</span>
         <span class="chip" id="chip-borboletas">🦋 0/3</span>
         <button class="chip" id="btn-som" title="ligar/desligar som">🔊</button>
@@ -319,7 +321,7 @@
       </div>
       <div id="fim-overlay"><div class="caixa-fim" id="caixa-fim"></div></div>
     </div>
-    <p id="legenda">🕹️ <b>setas/WASD</b> andar · <b>E</b> agir · <b>M</b> miar · <b>P</b> pular</p>
+    <p id="legenda">🕹️ <b>setas/WASD</b> andar · <b>Shift</b> correr · <b>E</b> agir · <b>M</b> miar · <b>P</b> pular</p>
     <div id="controles">
       <div id="dpad">
         <button class="vazio"></button><button data-k="up">▲</button><button class="vazio"></button>
@@ -459,10 +461,11 @@ const BORBOLETAS_BASE = [
 const NPCS_BASE = [
   { id: "lilica",     x: 90,  y: 200, falas: ["Aproxime-se. Eu já sei do barulho da garagem — eu sempre sei.", "Comida vence medo. Lembre-se disso hoje.", "Anos de reinado ensinam a ouvir a casa inteira daqui."] },
   { id: "sebastiao",  x: 148, y: 212, falas: ["…zzz… (o Sebastião dorme na cama da Flávia)", "…zzz… sachê…? …zzz…", "Ele abre meio olho, avalia você, e volta a dormir. Pose fotogênica: mantida."] },
-  { id: "mimi",       x: 100, y: 400, falas: ["O Mimi te encara com os olhos azul-claro. Você entende tudo: ele JÁ montou o caso na cabeça.", "O olhar dele aponta para a garagem. Depois para você. 'Vai', diz o olhar.", "O Mimi pisca devagar. É o jeito dele de dizer que confia em você."] },
-  { id: "branquinho", x: 146, y: 408, falas: ["O Branquinho te dá uma lambida na testa. Você não pediu. Ele não perguntou.", "Onde está o Mimi, está o Branquinho. Lei da física.", "Ele lambe a Ana, lambe o Mimi, lambe você. Amor em forma de língua."] },
+  { id: "mimi",       x: 110, y: 465, falas: ["O Mimi te encara com os olhos azul-claro. Você entende tudo: ele JÁ montou o caso na cabeça.", "O olhar dele aponta para a garagem. Depois para você. 'Vai', diz o olhar.", "O Mimi pisca devagar. É o jeito dele de dizer que confia em você."] },
+  { id: "branquinho", x: 155, y: 470, falas: ["O Branquinho te dá uma lambida na testa. Você não pediu. Ele não perguntou.", "Onde está o Mimi, está o Branquinho. Lei da física.", "Ele lambe a Ana, lambe o Mimi, lambe você. Amor em forma de língua."] },
   { id: "ze",         x: 330, y: 168, falas: ["GRRR. O Zé vigia a janela. 'Tem coisa estranha rondando o MEU portão', ele rosna.", "'Quando eu descobrir quem derrubou aquela lixeira…' — a bunda dele balança, ameaçadora.", "O Zé finge que não se importa com o filhote. A orelha virada para a garagem diz o contrário."] },
   { id: "lourinho",   x: 330, y: 285, falas: ["O Lourinho treme: 'Ouviu isso?! Eu ouvi. Era GRANDE. Tipo… um pepino gigante.'", "'Eu iria com você na garagem, mas… é que… olha, hoje não dá.'", "Ele é o maior coração da casa dentro do maior medo da casa."] },
+  { id: "popoia",     x: 430, y: 240, falas: ["'OI! OI! OI! Você viu meu rabo? Ele tava me SEGUINDO de novo!'", "A Popoia para no meio de uma corrida sem motivo. 'Eu tava correndo por quê?'", "'BORA BRINCAR! Bora bora bora bora—' ela já saiu correndo antes de terminar."] },
   { id: "jaime",      x: 570, y: 465, falas: ["O Jaime olha para o nada. 'Oi. Eu tava… o que eu tava fazendo?'", "'Na garagem tem um cheiro novo. Eu sinto pela minha brecha.' — ele aponta a janela com a cabeça.", "'Se o Zé vier, me avisa. Aliás, me avisa ANTES.'"] },
   { id: "marrie",     x: 760, y: 462, falas: ["A Marrie está sentada A DEZ CENTÍMETROS da caixa de areia limpa. Não pergunte.", "'Uma lady não dá explicações', diz o olhar dela.", "Ela te avalia da cabeça ao rabo. Você foi aprovado. Por pouco."] },
   { id: "tiqueno",    x: 660, y: 195, falas: ["'SACHÊ! Você veio trazer SACHÊ?' — o Tiqueno faz plantão no balcão.", "'Se tocar no meu sachê, eu grito. Eu grito MUITO. Você sabe que eu grito.'", "O mais sapeca da casa te olha com uma ideia nova brilhando nos olhos. Perigo."] },
@@ -487,6 +490,17 @@ const FALAS_SEBASTIAO_ACORDADO = [
   "'Tá bom, tá bom, eu acordei. Isso vai custar caro em sonecas atrasadas.'",
   "Ele boceja majestoso e ajeita o pelo. 'Se tiver aventura, me chamem… depois do lanche.'",
 ];
+
+// pensamentos aleatórios que deixam a casa viva
+const PENSAMENTOS = ["…sachê?", "*se lambe*", "☀️ soneca…", "🐟?", "*encara o nada*", "miau baixinho", "*afia as unhas*", "💤", "*ouve um barulho*", "🦎…?"];
+
+// áreas onde cada gato passeia (dentro do próprio cômodo, longe dos móveis fixos)
+const VAGUEIA = {
+  lourinho:   { x: 280, y: 240, w: 300, h: 220 },
+  jaime:      { x: 280, y: 400, w: 300, h: 80 },
+  marrie:     { x: 640, y: 400, w: 200, h: 80 },
+  mimi:       { x: 40,  y: 448, w: 185, h: 38 },
+};
 
 /* ============================================================
    MISSÃO
@@ -519,7 +533,7 @@ function novoJogo(pcId) {
     petiscos: PETISCOS.map((p) => ({ ...p, pego: false })),
     caixa: { x: 600, y: 555, w: 40, h: 40 },
     caixaNaZona: false,
-    npcs: NPCS_BASE.filter((n) => n.id !== pcId).map((n) => ({ ...n, fala: 0, reacao: null, acordado: false })),
+    npcs: NPCS_BASE.filter((n) => n.id !== pcId).map((n) => ({ ...n, fala: 0, reacao: null, acordado: false, casa: { x: n.x, y: n.y }, modo: "posto", modoT: 0, alvoW: null, pausa: 60 + Math.random() * 120 })),
     humanas: HUMANAS.map((h) => ({ ...h, fala: 0, reacao: null })),
     dialogo: null, // { quem, textos, i, aoFechar, retrato }
     fim: false,
@@ -533,6 +547,19 @@ function novoJogo(pcId) {
     lagartixa: { x: 600, y: 80, alvoX: 300, alvoY: 60, troca: 0, pega: false },
     particulas: [],
     inicio: Date.now(),
+    // ação e pontuação
+    pontos: 0,
+    correTempo: 0,
+    shake: 0,
+    rato: { x: 435, y: 250, vx: 1, vy: 0.6, sumido: 0 },
+    ratoPegos: 0,
+    passarinho: null,
+    passarinhoT: 1200,
+    passarinhoPego: false,
+    pega: { ativo: false, t: 0, toques: 0, vitoria: false, toqueCool: 0 },
+    zeCool: 300,
+    zeBopVisto: false,
+    zeFugas: 0,
   };
 }
 
@@ -610,11 +637,25 @@ function particula(x, y, texto, opts = {}) {
   });
 }
 
+/* ---------- pontuação ---------- */
+function ganhar(n, x, y) {
+  J.pontos = Math.max(0, J.pontos + n);
+  particula(x, y - 22, (n > 0 ? "+" : "") + n + "⭐", { vy: -1, vida: 60, tam: 13 });
+  pulsarChip("#chip-pontos");
+  atualizarHUD();
+}
+
 /* ---------- movimento + empurrar caixa ---------- */
+function estaCorrendo() {
+  return !!teclas.run || (ehToque() && J.correTempo > 50);
+}
 function mover(dx, dy) {
-  const vel = 3.2;
+  const vel = estaCorrendo() ? 4.7 : 3.2;
   if (dx && dy) { dx *= 0.7071; dy *= 0.7071; } // diagonal não é mais rápida
   dx *= vel; dy *= vel;
+  if ((dx || dy) && estaCorrendo() && J.passo % 7 === 0) {
+    particula(J.x - 14 * J.dir, J.y + 8, "·", { vx: -J.dir * 0.8, vy: -0.2, vida: 18, tam: 16 });
+  }
   if (dx) { J.dir = dx > 0 ? 1 : -1; }
   if (dx || dy) { J.dirY = dy; J.andando = true; J.passo++; } else { J.andando = false; }
 
@@ -645,7 +686,38 @@ function mover(dx, dy) {
       som("petisco");
       for (let i = 0; i < 5; i++) particula(p.x, p.y, "✨");
       pulsarChip("#petiscos");
-      atualizarHUD();
+      ganhar(10, p.x, p.y);
+    }
+  }
+
+  // pique-pega: encostou na Popoia?
+  if (J.pega.ativo) {
+    const pop = J.npcs.find((n) => n.id === "popoia");
+    if (J.pega.toqueCool > 0) J.pega.toqueCool--;
+    if (pop && J.pega.toqueCool <= 0 && Math.hypot(J.x - pop.x, J.y - pop.y) < 30) {
+      J.pega.toques++;
+      J.pega.toqueCool = 40;
+      som("petisco");
+      particula(pop.x, pop.y - 20, "PEGA! " + J.pega.toques + "/3", { vy: -1, vida: 50, tam: 13 });
+      // Popoia dá um pique para longe
+      for (let tent = 0; tent < 12; tent++) {
+        const a = Math.random() * Math.PI * 2;
+        const nx = pop.x + Math.cos(a) * 110, ny = pop.y + Math.sin(a) * 110;
+        if (nx > 30 && nx < 930 && ny > 30 && ny < 610 && !solidos().some((s) => colide({ x: nx - 13, y: ny - 8, w: 26, h: 16 }, s))) {
+          pop.x = nx; pop.y = ny;
+          break;
+        }
+      }
+      if (J.pega.toques >= 3) {
+        J.pega.ativo = false;
+        J.pega.vitoria = true;
+        som("vitoria");
+        ganhar(100, J.x, J.y);
+        dialogo("Popoia", [
+          "'TRÊS! Você me pegou TRÊS VEZES! Ninguém NUNCA tinha conseguido!'",
+          "A Popoia deita de barriga pra cima, exausta e felicíssima. Você é oficialmente o novo ídolo dela. (+100 ⭐)",
+        ], null, "popoia");
+      }
     }
   }
 
@@ -676,6 +748,12 @@ function miar() {
     }
   }
 
+  // provocou o Zé? Ele VEM.
+  const ze = J.npcs.find((n) => n.id === "ze");
+  if (ze && ze.modo === "posto" && Math.hypot(J.x - ze.x, J.y - ze.y) < 160) {
+    iniciarCacadaZe(ze);
+  }
+
   // aventura extra: acordar o Sebastião com 3 miados de perto
   const seb = J.npcs.find((n) => n.id === "sebastiao");
   if (seb && !J.extras.sebastiao && Math.hypot(J.x - seb.x, J.y - seb.y) < 120) {
@@ -686,6 +764,7 @@ function miar() {
       seb.falas = FALAS_SEBASTIAO_ACORDADO.slice();
       seb.reacao = { t: 100, texto: "😳 acordei?!" };
       som("vitoria");
+      ganhar(50, seb.x, seb.y);
       for (let i = 0; i < 8; i++) particula(seb.x, seb.y - 10, "✨");
       dialogo("😴→😺", [
         "MILAGRE NA CASA DOS 11! Com três miados bem dados, o SEBASTIÃO ACORDOU.",
@@ -713,7 +792,7 @@ function aterrissar() {
       som("petisco");
       for (let i = 0; i < 6; i++) particula(b.x, b.y, "✨");
       pulsarChip("#chip-borboletas");
-      atualizarHUD();
+      ganhar(25, b.x, b.y);
       const total = J.borboletas.filter((x) => x.pega).length;
       if (total === J.borboletas.length) {
         dialogo("🦋", ["Você capturou as TRÊS borboletas do quintal! A Popoia, oficialmente, está com inveja."]);
@@ -727,10 +806,39 @@ function aterrissar() {
     L.pega = true;
     J.extras.lagartixa = true;
     som("vitoria");
+    ganhar(50, L.x, L.y);
     for (let i = 0; i < 8; i++) particula(L.x, L.y, "✨");
     dialogo("🦎", [
       "PEGOU! A lagartixa mais veloz do quintal, capturada num pulo digno de documentário.",
-      "Você a solta no muro (regra de ouro: ninguém se machuca). Ela foge indignada. A Popoia vai PIRAR quando souber.",
+      "Você a solta no muro (regra de ouro: ninguém se machuca). Ela foge indignada. A Popoia vai PIRAR quando souber. (+50 ⭐)",
+    ]);
+  }
+
+  // pegar o rato de brinquedo no pulo
+  const R = J.rato;
+  if (R.sumido <= 0 && Math.hypot(J.x - R.x, J.y - R.y) < 46) {
+    R.sumido = 780; // reaparece em outro canto depois
+    J.ratoPegos++;
+    som("petisco");
+    ganhar(50, R.x, R.y);
+    for (let i = 0; i < 6; i++) particula(R.x, R.y, "✨");
+    if (J.ratoPegos === 1) {
+      dialogo("🐭", ["CAÇADA PERFEITA! O rato de brinquedo guincha, derrotado. Daqui a pouco alguém chuta ele pra outro cômodo — aí a caçada recomeça. (+50 ⭐ por captura!)"]);
+    }
+  }
+
+  // pegar o passarinho no pulo (e soltar, claro)
+  const P = J.passarinho;
+  if (P && P.estado === "pousado" && Math.hypot(J.x - P.x, J.y - P.y) < 46) {
+    J.passarinho = null;
+    J.passarinhoT = 1800 + Math.random() * 1200;
+    J.passarinhoPego = true;
+    som("vitoria");
+    ganhar(80, P.x, P.y);
+    for (let i = 0; i < 8; i++) particula(P.x, P.y, "🪶", { vida: 60 });
+    dialogo("🐦", [
+      "INACREDITÁVEL! Você pegou o passarinho no pulo — a lenda do bairro é real.",
+      "Você abre a boca com todo o cuidado e ele sai voando, ileso e ofendidíssimo. Regra de ouro é regra de ouro. (+80 ⭐)",
     ]);
   }
 }
@@ -851,6 +959,17 @@ function alvosInteracao() {
   // NPCs (conversa)
   for (const n of J.npcs) {
     if (n.id === detetiveId) continue; // já tratado
+    if (n.id === "popoia" && !J.pega.vitoria && !J.pega.ativo) {
+      // a Popoia quer brincar de pique-pega!
+      alvos.push({
+        id: "popoia", x: n.x, y: n.y, rotulo: "Brincar de pique-pega com a Popoia",
+        acao: () => dialogo("Popoia", [
+          "'PIQUE-PEGA! VAMO! Você NUNCA vai me pegar, eu sou a mais rápida do MUNDO!'",
+          "Regras dela: me encoste 3 VEZES em 25 segundos. Dica: segure SHIFT para CORRER. Valendo… JÁ!",
+        ], () => { J.pega.ativo = true; J.pega.t = 1500; J.pega.toques = 0; }, "popoia"),
+      });
+      continue;
+    }
     alvos.push({ id: n.id, x: n.x, y: n.y, rotulo: "Falar com " + GATOS[n.id].nome, acao: () => falaNPC(n, GATOS[n.id].nome, n.id) });
   }
   for (const h of J.humanas) {
@@ -934,6 +1053,7 @@ function atualizarHUD() {
   $("#petiscos").textContent = `🍪 ${pegos}/${J.petiscos.length}`;
   const borbs = J.borboletas.filter((b) => b.pega).length;
   $("#chip-borboletas").textContent = `🦋 ${borbs}/${J.borboletas.length}`;
+  $("#chip-pontos").textContent = `⭐ ${J.pontos}`;
 }
 
 /* ---------- alvo da missão (guia visual) ---------- */
@@ -966,10 +1086,21 @@ function finalizar() {
   const pegos = J.petiscos.filter((p) => p.pego).length;
   const borbs = J.borboletas.filter((b) => b.pega).length;
   const minutos = Math.max(1, Math.round((Date.now() - J.inicio) / 60000));
+  ganhar(200, J.x, J.y); // bônus por salvar a Paçoca
+  let recorde = 0;
+  try {
+    recorde = Math.max(J.pontos, Number(localStorage.getItem("os11-recorde") || 0));
+    localStorage.setItem("os11-recorde", String(recorde));
+  } catch (e) { recorde = J.pontos; }
   const conquistas = [
+    `⭐ Pontos: <strong>${J.pontos}</strong> (+200 por salvar a Paçoca!) · Recorde: <strong>${recorde}</strong>`,
     `🍪 Petiscos encontrados: <strong>${pegos}/${J.petiscos.length}</strong>`,
     `🦋 Borboletas capturadas: <strong>${borbs}/${J.borboletas.length}</strong>`,
+    `🐭 Rato de brinquedo caçado: <strong>${J.ratoPegos}x</strong>`,
     J.extras.lagartixa ? "🦎 <strong>Pegou a lagartixa do quintal!</strong>" : "🦎 A lagartixa do quintal escapou… (pule perto dela!)",
+    J.passarinhoPego ? "🐦 <strong>Pegou (e soltou) o passarinho!</strong>" : "🐦 O passarinho segue livre… (chegue devagar e pule!)",
+    J.pc === "popoia" ? null : (J.pega.vitoria ? "🏃 <strong>Venceu a Popoia no pique-pega!</strong>" : "🏃 A Popoia ainda é a campeã do pique-pega… (fale com ela!)"),
+    J.pc === "ze" ? null : (J.zeFugas > 0 ? `💨 <strong>Despistou o Zé ${J.zeFugas}x!</strong>` : "💨 Você nunca provocou o Zé… medo? 😼"),
     J.pc === "sebastiao" ? null : (J.extras.sebastiao ? "😴→😺 <strong>Acordou o Sebastião no miado!</strong>" : "😴 O Sebastião dormiu o dia inteiro… (mie 3x do lado dele)"),
     `⏱️ Tempo de aventura: <strong>${minutos} min</strong>`,
   ].filter(Boolean);
@@ -986,6 +1117,231 @@ function finalizar() {
   $("#fim-overlay").style.display = "flex";
   $("#btn-continuar").onclick = () => { $("#fim-overlay").style.display = "none"; J.livre = true; };
   $("#btn-denovo").onclick = () => { $("#fim-overlay").style.display = "none"; telaSelecao(); };
+}
+
+/* ============================================================
+   VIDA DA CASA (NPCs que se mexem, Zé caçador, rato, passarinho)
+   ============================================================ */
+function moverEnt(n, dx, dy) {
+  let mexeu = false;
+  for (const [ddx, ddy] of [[dx, 0], [0, dy]]) {
+    if (!ddx && !ddy) continue;
+    const corpo = { x: n.x + ddx - 13, y: n.y + ddy - 8, w: 26, h: 16 };
+    if (!solidos().some((s) => colide(corpo, s))) {
+      n.x += ddx; n.y += ddy;
+      mexeu = true;
+    }
+  }
+  return mexeu;
+}
+
+function iniciarCacadaZe(ze) {
+  if (J.zeCool > 0 || ze.modo !== "posto") return;
+  ze.modo = "cacando";
+  ze.modoT = 300;
+  ze.reacao = { t: 70, texto: "AGORA VOCÊ ME PAGA!" };
+  som("miau");
+}
+
+function atualizarNPCs() {
+  if (J.zeCool > 0) J.zeCool--;
+
+  for (const n of J.npcs) {
+    // ----- Zé: posto de vigia, caçada e volta -----
+    if (n.id === "ze") {
+      if (n.modo === "posto") {
+        // chegou perto demais do valentão?
+        if (J.zeCool <= 0 && Math.hypot(J.x - n.x, J.y - n.y) < 60) iniciarCacadaZe(n);
+      } else if (n.modo === "cacando") {
+        n.modoT--;
+        const d = Math.hypot(J.x - n.x, J.y - n.y);
+        const ang = Math.atan2(J.y - n.y, J.x - n.x);
+        moverEnt(n, Math.cos(ang) * 3.0, Math.sin(ang) * 3.0);
+        n.dirDesenho = J.x > n.x ? 1 : -1;
+        if (d < 28) {
+          // TE PEGOU!
+          J.shake = 14;
+          som("trovao");
+          ganhar(-20, J.x, J.y);
+          n.reacao = { t: 80, texto: "pra aprender." };
+          // empurrão pra longe
+          const fx = Math.cos(ang), fy = Math.sin(ang);
+          for (let i = 0; i < 10; i++) {
+            const corpo = corpoJogador(J.x + fx * 5, J.y + fy * 5);
+            if (solidos().some((s) => colide(corpo, s))) break;
+            J.x += fx * 5; J.y += fy * 5;
+          }
+          n.modo = "voltando";
+          J.zeCool = 700;
+          if (!J.zeBopVisto) {
+            J.zeBopVisto = true;
+            dialogo("Zé", [
+              "POF! Uma patada (sem unha — ele tem honra) te manda rolando pelo chão. '-20 ⭐ e NÃO CHEGA PERTO DA MINHA JANELA.'",
+              "Dica: quando o Zé vier, CORRA segurando Shift e fuja por uma porta. Despistar o valentão vale pontos!",
+            ], null, "ze");
+          }
+        } else if (n.modoT <= 0 || d > 320) {
+          // despistado!
+          n.modo = "voltando";
+          n.reacao = { t: 80, texto: "grr… hoje foi sorte." };
+          J.zeCool = 700;
+          J.zeFugas++;
+          ganhar(30, J.x, J.y);
+          particula(J.x, J.y - 34, "DESPISTOU! 💨", { vy: -0.8, vida: 60, tam: 13 });
+        }
+      } else if (n.modo === "voltando") {
+        const d = Math.hypot(n.casa.x - n.x, n.casa.y - n.y);
+        if (d < 6) {
+          n.x = n.casa.x; n.y = n.casa.y;
+          n.modo = "posto";
+          n.dirDesenho = -1; // volta a vigiar a janela
+        } else {
+          const ang = Math.atan2(n.casa.y - n.y, n.casa.x - n.x);
+          if (!moverEnt(n, Math.cos(ang) * 1.6, Math.sin(ang) * 1.6)) {
+            n.modoT++;
+            if (n.modoT > 90) { n.x = n.casa.x; n.y = n.casa.y; n.modo = "posto"; n.modoT = 0; }
+          }
+        }
+      }
+      continue;
+    }
+
+    // ----- Popoia em modo pique-pega: FOGE de você -----
+    if (n.id === "popoia" && J.pega.ativo) {
+      const ang = Math.atan2(n.y - J.y, n.x - J.x) + Math.sin(tempo * 0.06) * 0.5;
+      if (!moverEnt(n, Math.cos(ang) * 3.6, Math.sin(ang) * 3.6)) {
+        // encurralada: dispara pro lado
+        moverEnt(n, Math.sin(ang) * 3.6, -Math.cos(ang) * 3.6);
+      }
+      n.x = Math.min(Math.max(n.x, 28), 932);
+      n.y = Math.min(Math.max(n.y, 28), 612);
+      continue;
+    }
+
+    // ----- Jaime tem PÂNICO se você for o Zé -----
+    if (n.id === "jaime" && J.pc === "ze" && Math.hypot(J.x - n.x, J.y - n.y) < 90) {
+      const ang = Math.atan2(n.y - J.y, n.x - J.x);
+      moverEnt(n, Math.cos(ang) * 3.2, Math.sin(ang) * 3.2);
+      if (tempo % 30 === 0) n.reacao = { t: 40, texto: "😱!!!" };
+      continue;
+    }
+
+    // ----- gatos que passeiam pelo cômodo -----
+    const area = VAGUEIA[n.id];
+    if (area) {
+      if (n.pausa > 0) { n.pausa--; continue; }
+      if (!n.alvoW) {
+        n.alvoW = { x: area.x + Math.random() * area.w, y: area.y + Math.random() * area.h };
+      }
+      const d = Math.hypot(n.alvoW.x - n.x, n.alvoW.y - n.y);
+      if (d < 6) {
+        n.alvoW = null;
+        n.pausa = 100 + Math.random() * 300;
+      } else {
+        const ang = Math.atan2(n.alvoW.y - n.y, n.alvoW.x - n.x);
+        n.dirDesenho = Math.cos(ang) > 0 ? 1 : -1;
+        n.vagando = true;
+        if (!moverEnt(n, Math.cos(ang) * 0.6, Math.sin(ang) * 0.6)) {
+          n.alvoW = null;
+          n.pausa = 60;
+        }
+      }
+    }
+  }
+
+  // ----- Branquinho segue o Mimi (lei da física) -----
+  const mimi = J.npcs.find((n) => n.id === "mimi");
+  const bran = J.npcs.find((n) => n.id === "branquinho");
+  if (mimi && bran) {
+    const d = Math.hypot(mimi.x - bran.x, mimi.y - bran.y);
+    if (d > 46) {
+      const ang = Math.atan2(mimi.y - bran.y, mimi.x - bran.x);
+      moverEnt(bran, Math.cos(ang) * 0.8, Math.sin(ang) * 0.8);
+      bran.dirDesenho = Math.cos(ang) > 0 ? 1 : -1;
+    }
+  }
+
+  // ----- pique-pega: relógio -----
+  if (J.pega.ativo) {
+    J.pega.t--;
+    if (J.pega.t <= 0) {
+      J.pega.ativo = false;
+      const pop = J.npcs.find((n) => n.id === "popoia");
+      if (pop) pop.reacao = { t: 100, texto: "hihi! sou RÁPIDA demais!" };
+    }
+  }
+
+  // ----- rato de brinquedo: foge de você -----
+  const R = J.rato;
+  if (R.sumido > 0) {
+    R.sumido--;
+    if (R.sumido === 0) {
+      const pontosSpawn = [[435, 250], [130, 290], [130, 470], [660, 290], [700, 430], [480, 570], [450, 460]];
+      const p = pontosSpawn[Math.floor(Math.random() * pontosSpawn.length)];
+      R.x = p[0]; R.y = p[1];
+      R.vx = 1; R.vy = 0.6;
+      particula(R.x, R.y - 14, "🐭!", { vy: -0.8, vida: 50 });
+    }
+  } else {
+    const d = Math.hypot(J.x - R.x, J.y - R.y);
+    let vx = R.vx, vy = R.vy;
+    if (d < 130) {
+      const ang = Math.atan2(R.y - J.y, R.x - J.x) + Math.sin(tempo * 0.08) * 0.4;
+      vx = Math.cos(ang) * 3.8; vy = Math.sin(ang) * 3.8;
+    } else if (tempo % 90 === 0) {
+      const ang = Math.random() * Math.PI * 2;
+      R.vx = Math.cos(ang) * 1.1; R.vy = Math.sin(ang) * 1.1;
+      vx = R.vx; vy = R.vy;
+    }
+    const corpoX = { x: R.x + vx - 7, y: R.y - 5, w: 14, h: 10 };
+    if (solidos().some((s) => colide(corpoX, s))) { R.vx = -R.vx; vx = 0; }
+    const corpoY = { x: R.x - 7, y: R.y + vy - 5, w: 14, h: 10 };
+    if (solidos().some((s) => colide(corpoY, s))) { R.vy = -R.vy; vy = 0; }
+    R.x += vx; R.y += vy;
+    R.x = Math.min(Math.max(R.x, 24), 936);
+    R.y = Math.min(Math.max(R.y, 24), 616);
+  }
+
+  // ----- passarinho do quintal -----
+  if (!J.passarinho && !J.chuva) {
+    J.passarinhoT--;
+    if (J.passarinhoT <= 0) {
+      J.passarinho = { x: 80 + Math.random() * 800, y: 40 + Math.random() * 85, estado: "pousado", sustos: 0, alvo: null };
+      particula(J.passarinho.x, J.passarinho.y - 14, "🐦!", { vy: -0.8, vida: 50 });
+    }
+  }
+  const P = J.passarinho;
+  if (P) {
+    if (J.chuva) { J.passarinho = null; J.passarinhoT = 1800; }
+    else if (P.estado === "pousado") {
+      // um gato no ar é invisível para passarinhos: o bote perfeito
+      if (J.pulo <= 0 && Math.hypot(J.x - P.x, J.y - P.y) < 80) {
+        P.sustos++;
+        if (P.sustos >= 3) {
+          P.estado = "fugindo"; P.t = 50;
+          for (let i = 0; i < 4; i++) particula(P.x, P.y, "🪶", { vida: 50 });
+        } else {
+          P.alvo = { x: Math.min(Math.max(P.x + (Math.random() - 0.5) * 220, 40), 900), y: 35 + Math.random() * 90 };
+          P.estado = "pulinho";
+        }
+      }
+    } else if (P.estado === "pulinho") {
+      P.x += (P.alvo.x - P.x) * 0.18;
+      P.y += (P.alvo.y - P.y) * 0.18;
+      if (Math.hypot(P.alvo.x - P.x, P.alvo.y - P.y) < 4) P.estado = "pousado";
+    } else if (P.estado === "fugindo") {
+      P.y -= 3; P.x += 1.5; P.t--;
+      if (P.t <= 0) { J.passarinho = null; J.passarinhoT = 1500 + Math.random() * 1500; }
+    }
+  }
+
+  // ----- pensamentos aleatórios (a casa está viva) -----
+  if (tempo % 420 === 0 && J.npcs.length) {
+    const n = J.npcs[Math.floor(Math.random() * J.npcs.length)];
+    if (!n.reacao || n.reacao.t <= 0) {
+      n.reacao = { t: 90, texto: PENSAMENTOS[Math.floor(Math.random() * PENSAMENTOS.length)] };
+    }
+  }
 }
 
 /* ============================================================
@@ -1595,6 +1951,11 @@ function balaoFala(x, y, texto) {
 let tempo = 0;
 function desenhar() {
   tempo++;
+  ctx.save();
+  if (J.shake > 0) {
+    J.shake--;
+    ctx.translate((Math.random() - 0.5) * J.shake, (Math.random() - 0.5) * J.shake);
+  }
   ctx.drawImage(fundo, 0, 0);
 
   // zona da caixa (missão)
@@ -1657,6 +2018,33 @@ function desenhar() {
     ctx.fillText("🦋", 0, 5);
     ctx.restore();
   }
+  // rato de brinquedo
+  const R = J.rato;
+  if (R.sumido <= 0) {
+    ctx.fillStyle = "rgba(40,30,20,0.2)";
+    ctx.beginPath(); ctx.ellipse(R.x, R.y + 6, 8, 3, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.font = "14px serif";
+    ctx.textAlign = "center";
+    ctx.save();
+    ctx.translate(R.x, R.y);
+    ctx.scale(R.vx < 0 ? 1 : -1, 1);
+    ctx.fillText("🐭", 0, 5);
+    ctx.restore();
+  }
+
+  // passarinho
+  const Pb = J.passarinho;
+  if (Pb) {
+    if (Pb.estado !== "fugindo") {
+      ctx.fillStyle = "rgba(40,30,20,0.2)";
+      ctx.beginPath(); ctx.ellipse(Pb.x, Pb.y + 6, 7, 2.5, 0, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.font = "14px serif";
+    ctx.textAlign = "center";
+    const salto = Pb.estado === "pousado" ? Math.abs(Math.sin(tempo * 0.1)) * 2 : 0;
+    ctx.fillText("🐦", Pb.x, Pb.y + 5 - salto);
+  }
+
   const L = J.lagartixa;
   if (!L.pega) {
     L.troca--;
@@ -1685,7 +2073,16 @@ function desenhar() {
       draw: () => {
         const cfg = GATOS[n.id];
         const cfgFinal = n.acordado && cfg.sonolento ? { ...cfg, sonolento: false } : cfg;
-        desenharGatoCanvas(n.x, n.y, cfgFinal, n.id === "ze" ? -1 : 1, tempo + n.x, n.id === "popoia", cfg.nome);
+        const dir = n.dirDesenho || (n.id === "ze" ? -1 : 1);
+        const andando = n.id === "popoia" || n.vagando || (n.id === "ze" && n.modo !== "posto");
+        n.vagando = false;
+        desenharGatoCanvas(n.x, n.y, cfgFinal, dir, tempo + n.x, andando, cfg.nome);
+        if (n.id === "ze" && n.modo === "cacando") {
+          balaoFala(n.x, n.y - 44, "😾 VEM CÁ!");
+        }
+        if (n.id === "popoia" && J.pega.ativo) {
+          balaoFala(n.x, n.y - 44, `pique-pega! ${J.pega.toques}/3 · ${Math.ceil(J.pega.t / 60)}s`);
+        }
       },
     });
   }
@@ -1732,9 +2129,9 @@ function desenhar() {
     particula(seb.x + 10, seb.y - 24, "z", { vy: -0.5, vida: 70, tam: 12 });
   }
 
-  // popoia corre em círculos
+  // popoia corre em círculos (quando não está fugindo no pique-pega)
   const pop = J.npcs.find((n) => n.id === "popoia");
-  if (pop) {
+  if (pop && !J.pega.ativo) {
     pop.x = 430 + Math.cos(tempo * 0.02) * 80;
     pop.y = 240 + Math.sin(tempo * 0.04) * 40;
   }
@@ -1819,7 +2216,7 @@ function desenhar() {
     }
     // relâmpago
     if (tempo % 240 < 6) {
-      if (tempo % 240 === 0) som("trovao");
+      if (tempo % 240 === 0) { som("trovao"); J.shake = 10; }
       ctx.fillStyle = "rgba(255,255,255,0.28)";
       ctx.fillRect(0, 0, 960, 640);
       const bx = 200 + srand(Math.floor(tempo / 240)) * 560;
@@ -1835,6 +2232,7 @@ function desenhar() {
   }
 
   ctx.drawImage(vinheta, 0, 0);
+  ctx.restore();
 }
 
 /* ---------- laço principal ---------- */
@@ -1847,7 +2245,9 @@ function quadro() {
     if (teclas.right) dx += 1;
     if (teclas.up) dy -= 1;
     if (teclas.down) dy += 1;
+    J.correTempo = (dx || dy) ? J.correTempo + 1 : 0; // no celular, andar sem parar vira corrida
     mover(dx, dy);
+    atualizarNPCs();
   } else {
     J.andando = false;
   }
@@ -1893,10 +2293,12 @@ document.addEventListener("keydown", (e) => {
   }
   if (e.key === "m" || e.key === "M") { e.preventDefault(); miar(); }
   if (e.key === "p" || e.key === "P") { e.preventDefault(); pular(); }
+  if (e.key === "Shift") teclas.run = true;
 });
 document.addEventListener("keyup", (e) => {
   const k = MAPA_TECLAS[e.key];
   if (k) teclas[k] = false;
+  if (e.key === "Shift") teclas.run = false;
 });
 $("#dialogo").addEventListener("click", avancarDialogo);
 $("#btn-som").addEventListener("click", () => {
@@ -1942,10 +2344,9 @@ function iniciarJogo(pcId) {
   $("#dialogo").style.display = "none";
   atualizarHUD();
   dialogo("🌅", [
-    `Bom dia, ${GATOS[pcId].nome}! O cheiro de café já toma a cozinha e o Tiqueno já gritou por sachê três vezes.`,
-    "Mas hoje tem coisa estranha: um CRASH veio da garagem de madrugada. A lixeira está tombada…",
-    "Comandos: setas/WASD para ANDAR, E ou Espaço para AGIR, M para MIAR (todo mundo reage!) e P para PULAR.",
-    "Siga a SETINHA DOURADA para não se perder. E fique de olho no quintal: dizem que tem borboletas… e uma lagartixa rápida demais. Comece pela LIXEIRA da garagem!",
+    `Bom dia, ${GATOS[pcId].nome}! Um CRASH veio da garagem de madrugada e a lixeira está tombada. MISTÉRIO!`,
+    "Comandos: setas ANDAM, SHIFT corre, E age, M MIA e P PULA. Siga a SETINHA DOURADA até a lixeira!",
+    "Pelo caminho: cace o rato 🐭, pule na lagartixa 🦎 e nas borboletas 🦋, desafie a Popoia no pique-pega… e NÃO chegue perto do Zé. Sério. ⭐ Tudo vale pontos!",
   ], null, pcId);
   requestAnimationFrame(quadro);
 }
