@@ -22,13 +22,30 @@ python3 -m http.server 8000
 
 ### 🕹️ Modo aventura (`index.html`)
 
-Você **controla um dos 11 gatos** e explora a casa toda: garagem, sala, cozinha, os dois quartos, a área de serviço e o quintal.
+Você **controla um dos 11 gatos** e explora a casa toda: garagem, sala, cozinha, os dois quartos, a área de serviço e o quintal — agora com cenário todo ilustrado (pisos, móveis, pé de manga, varal, janela do Zé…), efeitos sonoros, tempestade com raio e uma **setinha dourada** que sempre aponta o próximo objetivo.
 
 - **Andar:** setas do teclado ou WASD (no celular: botões de toque ▲▼◀▶)
+- **Correr (zoomies!):** segure **Shift** (no celular: continue andando que o gato engata a corrida)
 - **Agir/conversar:** tecla **E**, Espaço ou Enter (no celular: botão 🐾)
+- **Miar:** tecla **M** (no celular: botão 🎵) — todos os gatos e as humanas reagem ao seu miado, cada um do seu jeito
+- **Pular:** tecla **P** (no celular: botão ⤴️) — o bote felino que captura bichinhos
 - **Missão:** investigue a lixeira derrubada, junte as pistas com a Tiquena, consiga o sachê (o Tiqueno vai reclamar), sobreviva à tempestade, empurre a caixa e resgate a Paçoca!
-- Converse com os outros 10 gatos e as humanas pela casa — cada um responde do seu jeito
-- Colete os 8 petiscos 🍪 escondidos pelos cômodos
+- Converse com os outros 10 gatos e as humanas — os gatos passeiam pela casa, pensam alto e reagem a você
+
+**Tudo vale pontos ⭐** (com recorde salvo no navegador) e vira conquista na tela final:
+
+- 🍪 Colete os 8 petiscos escondidos pelos cômodos (+10)
+- 🐭 Cace o rato de brinquedo — ele foge de você e reaparece em outro cômodo (+50 por captura)
+- 🦋 Capture as 3 borboletas do quintal pulando (+25)
+- 🦎 Pegue a lagartixa mais veloz do bairro (+50)
+- 🐦 O bote lendário: chegue devagar no passarinho e pule — no ar, ele não te vê (+80, e ele sai ileso: regra de ouro)
+- 🏃 Desafie a Popoia no **pique-pega**: encoste nela 3 vezes em 25 segundos (+100)
+- 😴 Acorde o Sebastião miando 3 vezes do lado da cama — um milagre doméstico (+50)
+- 😾 **Cuidado com o Zé!** Chegue perto da janela dele (ou mie) e ele te caça pela sala. Fuja correndo por uma porta para despistá-lo (+30)… ou leve uma patada (−20)
+- ✉️ **Recados:** de tempos em tempos um gato tem um recado para outro — pegue e entregue em 30 segundos para o bônus expresso (+60; fora do prazo, +40). Missões-relâmpago infinitas!
+- 🌿 **Erva-do-gato:** aparece escondida pela casa — pegue e ganhe 8 segundos de ZOOMIES (velocidade máxima com rastro verde)
+
+O jogo tem música de fundo suave e efeitos sonoros, tudo sintetizado no navegador (botão 🔊 para silenciar). Os avisos de conquista aparecem como faixas rápidas no topo da tela, sem interromper a ação.
 
 ### 📖 Modo história (`historia.html`)
 
