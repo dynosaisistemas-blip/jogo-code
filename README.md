@@ -22,13 +22,21 @@ python3 -m http.server 8000
 
 ### 🕹️ Modo aventura (`index.html`)
 
-Você **controla um dos 11 gatos** e explora a casa toda: garagem, sala, cozinha, os dois quartos, a área de serviço e o quintal.
+Você **controla um dos 11 gatos** e explora a casa toda: garagem, sala, cozinha, os dois quartos, a área de serviço e o quintal — agora com cenário todo ilustrado (pisos, móveis, pé de manga, varal, janela do Zé…), efeitos sonoros, tempestade com raio e uma **setinha dourada** que sempre aponta o próximo objetivo.
 
 - **Andar:** setas do teclado ou WASD (no celular: botões de toque ▲▼◀▶)
 - **Agir/conversar:** tecla **E**, Espaço ou Enter (no celular: botão 🐾)
+- **Miar:** tecla **M** (no celular: botão 🎵) — todos os gatos e as humanas reagem ao seu miado, cada um do seu jeito
+- **Pular:** tecla **P** (no celular: botão ⤴️) — pule para capturar bichinhos do quintal
 - **Missão:** investigue a lixeira derrubada, junte as pistas com a Tiquena, consiga o sachê (o Tiqueno vai reclamar), sobreviva à tempestade, empurre a caixa e resgate a Paçoca!
 - Converse com os outros 10 gatos e as humanas pela casa — cada um responde do seu jeito
-- Colete os 8 petiscos 🍪 escondidos pelos cômodos
+
+**Aventuras extras** (valem conquistas na tela final):
+
+- 🍪 Colete os 8 petiscos escondidos pelos cômodos
+- 🦋 Capture as 3 borboletas do quintal (pulando!)
+- 🦎 Pegue a lagartixa mais veloz do bairro (pule perto dela)
+- 😴 Acorde o Sebastião miando 3 vezes do lado da cama — um milagre doméstico
 
 ### 📖 Modo história (`historia.html`)
 

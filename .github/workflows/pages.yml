@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - claude/os-11-bairro-game-m6l8rg
+      - claude/game-graphics-presentation-lf4nsu
   workflow_dispatch:
 
 permissions:
