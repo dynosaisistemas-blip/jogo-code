@@ -289,7 +289,7 @@
         <span>🎵 <b>M</b> miar (todo mundo reage!)</span>
         <span>⤴️ <b>P</b> pular e caçar</span>
       </div>
-      <p style="font-size:0.85rem; color:#8a7a68; margin-top:10px;">Cace o rato de brinquedo 🐭, o passarinho 🐦 e a lagartixa 🦎, capture as borboletas 🦋, brinque de <em>pique-pega com a Popoia</em>, acorde o Sebastião miando 😴 — tudo vale <strong>pontos</strong> ⭐. E cuidado: se provocar o <em>Zé</em>, ele vem atrás de você! 😾 · Prefere ler? O <a href="historia.html">modo história</a> continua disponível. 📖</p>
+      <p style="font-size:0.85rem; color:#8a7a68; margin-top:10px;">Cace o rato 🐭, o passarinho 🐦 e a lagartixa 🦎, capture borboletas 🦋, vença o <em>pique-pega da Popoia</em> 🏃, entregue <em>recados</em> entre os gatos ✉️, ache a <em>erva-do-gato</em> 🌿 (ZOOMIES!), acorde o Sebastião 😴 — tudo vale <strong>pontos</strong> ⭐ com recorde salvo. E se provocar o <em>Zé</em>, ele vem atrás de você! 😾 · Prefere ler? O <a href="historia.html">modo história</a> continua disponível. 📖</p>
     </div>
     <div class="grade-gatos" id="grade"></div>
   </div>
@@ -494,6 +494,19 @@ const FALAS_SEBASTIAO_ACORDADO = [
 // pensamentos aleatórios que deixam a casa viva
 const PENSAMENTOS = ["…sachê?", "*se lambe*", "☀️ soneca…", "🐟?", "*encara o nada*", "miau baixinho", "*afia as unhas*", "💤", "*ouve um barulho*", "🦎…?"];
 
+// recados que os gatos mandam uns para os outros
+const RECADOS = [
+  "'A reunião do sofá mudou para as três da tarde. Não se atrase DE NOVO.'",
+  "'Devolve o petisco que você escondeu atrás da estante. Eu VI.'",
+  "'Te vi treinando pose de valentão no reflexo da geladeira.'",
+  "'O sol da janela das duas é MEU. Assinado: eu.'",
+  "'Tem lagartixa nova no quintal. Passa lá. Leva reforço.'",
+  "'Miau. Só isso. Miau.'",
+  "'A caixa nova da sala é minha. A de cima também. Todas são.'",
+  "'Alguém contou pra Flávia do vaso quebrado. Não fui eu. Repassa.'",
+  "'Hoje à noite: plantão da janela. Traz petisco e não conta pro Zé.'",
+];
+
 // áreas onde cada gato passeia (dentro do próprio cômodo, longe dos móveis fixos)
 const VAGUEIA = {
   lourinho:   { x: 280, y: 240, w: 300, h: 220 },
@@ -560,7 +573,22 @@ function novoJogo(pcId) {
     zeCool: 300,
     zeBopVisto: false,
     zeFugas: 0,
+    // recados e erva-do-gato
+    recado: null, // { de, para, fase: "pegar"|"entregar", t, texto }
+    recadoCool: 1400,
+    recadosEntregues: 0,
+    erva: null, // {x,y} quando aparece
+    ervaT: 2200,
+    zoom: 0, // frames restantes de zoomies da erva
+    toasts: [], // avisos rápidos que não interrompem o jogo
   };
+}
+
+/* ---------- toasts: avisos sem parar a ação ---------- */
+function toast(texto, cor) {
+  if (!J) return;
+  J.toasts.push({ texto, cor: cor || "#9c4423", t: 170 });
+  if (J.toasts.length > 3) J.toasts.shift();
 }
 
 const teclas = {};
@@ -606,8 +634,32 @@ function som(tipo) {
       nota(520, 0.05, "square", 0.03, t);
     } else if (tipo === "vitoria") {
       [523, 659, 784, 1047].forEach((f, i) => nota(f, 0.22, "triangle", 0.09, t + i * 0.13));
+    } else if (tipo === "recado") {
+      nota(700, 0.07, "square", 0.05, t);
+      nota(940, 0.1, "square", 0.05, t + 0.07);
+    } else if (tipo === "erva") {
+      [392, 523, 659, 784].forEach((f, i) => nota(f, 0.1, "triangle", 0.08, t + i * 0.06));
     }
   } catch (e) { /* sem áudio, sem problema */ }
+}
+
+/* ---------- música de fundo (sintetizada, bem suave) ---------- */
+let musProx = 0, musI = 0, musTimer = null;
+const MUS_NOTAS = [262, 294, 330, 392, 440, 523];
+const MUS_MELODIA = [0, 2, 4, 3, 2, 4, 5, 4, 3, 1, 2, 0, 4, 3, 2, 1];
+function musica() {
+  if (mudo || !J || !audioCtx || audioCtx.state !== "running") return;
+  try {
+    const agora = audioCtx.currentTime;
+    if (musProx < agora) musProx = agora + 0.1;
+    while (musProx < agora + 0.4) {
+      const grau = MUS_MELODIA[musI % MUS_MELODIA.length];
+      if (musI % 2 === 0) nota(MUS_NOTAS[grau], 0.26, "triangle", 0.02, musProx);
+      if (musI % 4 === 0) nota(musI % 8 === 0 ? 131 : 98, 0.5, "sine", 0.035, musProx);
+      musI++;
+      musProx += 0.24;
+    }
+  } catch (e) { /* silêncio */ }
 }
 
 /* ---------- colisão ---------- */
@@ -634,6 +686,7 @@ function particula(x, y, texto, opts = {}) {
     vida: opts.vida ?? 50,
     max: opts.vida ?? 50,
     tam: opts.tam ?? 14,
+    cor: opts.cor || "#8a6a2a",
   });
 }
 
@@ -650,10 +703,12 @@ function estaCorrendo() {
   return !!teclas.run || (ehToque() && J.correTempo > 50);
 }
 function mover(dx, dy) {
-  const vel = estaCorrendo() ? 4.7 : 3.2;
+  const vel = J.zoom > 0 ? 6.2 : estaCorrendo() ? 4.7 : 3.2;
   if (dx && dy) { dx *= 0.7071; dy *= 0.7071; } // diagonal não é mais rápida
   dx *= vel; dy *= vel;
-  if ((dx || dy) && estaCorrendo() && J.passo % 7 === 0) {
+  if ((dx || dy) && J.zoom > 0 && J.passo % 3 === 0) {
+    particula(J.x - 12 * J.dir, J.y + 4, "✦", { vx: -J.dir * 1.2, vy: (Math.random() - 0.5), vida: 24, tam: 13, cor: "#5c9c48" });
+  } else if ((dx || dy) && estaCorrendo() && J.passo % 7 === 0) {
     particula(J.x - 14 * J.dir, J.y + 8, "·", { vx: -J.dir * 0.8, vy: -0.2, vida: 18, tam: 16 });
   }
   if (dx) { J.dir = dx > 0 ? 1 : -1; }
@@ -713,10 +768,8 @@ function mover(dx, dy) {
         J.pega.vitoria = true;
         som("vitoria");
         ganhar(100, J.x, J.y);
-        dialogo("Popoia", [
-          "'TRÊS! Você me pegou TRÊS VEZES! Ninguém NUNCA tinha conseguido!'",
-          "A Popoia deita de barriga pra cima, exausta e felicíssima. Você é oficialmente o novo ídolo dela. (+100 ⭐)",
-        ], null, "popoia");
+        pop.reacao = { t: 140, texto: "ninguém NUNCA tinha conseguido!! 🤩" };
+        toast("🏆 Você venceu a Popoia no pique-pega! +100 ⭐");
       }
     }
   }
@@ -766,10 +819,7 @@ function miar() {
       som("vitoria");
       ganhar(50, seb.x, seb.y);
       for (let i = 0; i < 8; i++) particula(seb.x, seb.y - 10, "✨");
-      dialogo("😴→😺", [
-        "MILAGRE NA CASA DOS 11! Com três miados bem dados, o SEBASTIÃO ACORDOU.",
-        "Ele senta, boceja em câmera lenta e olha em volta como quem chega de outra dimensão. Conquista desbloqueada!",
-      ], null, "sebastiao");
+      toast("😴→😺 MILAGRE! O Sebastião ACORDOU com seus miados! +50 ⭐");
     } else {
       seb.reacao = { t: 70, texto: J.sebasMiados === 1 ? "…zzz…" : "…mrrr… cinco minutinhos…" };
     }
@@ -795,7 +845,7 @@ function aterrissar() {
       ganhar(25, b.x, b.y);
       const total = J.borboletas.filter((x) => x.pega).length;
       if (total === J.borboletas.length) {
-        dialogo("🦋", ["Você capturou as TRÊS borboletas do quintal! A Popoia, oficialmente, está com inveja."]);
+        toast("🦋 As TRÊS borboletas capturadas! A Popoia está com inveja.");
       }
     }
   }
@@ -808,10 +858,7 @@ function aterrissar() {
     som("vitoria");
     ganhar(50, L.x, L.y);
     for (let i = 0; i < 8; i++) particula(L.x, L.y, "✨");
-    dialogo("🦎", [
-      "PEGOU! A lagartixa mais veloz do quintal, capturada num pulo digno de documentário.",
-      "Você a solta no muro (regra de ouro: ninguém se machuca). Ela foge indignada. A Popoia vai PIRAR quando souber. (+50 ⭐)",
-    ]);
+    toast("🦎 PEGOU a lagartixa num bote de documentário! (ela sai ilesa)");
   }
 
   // pegar o rato de brinquedo no pulo
@@ -822,9 +869,7 @@ function aterrissar() {
     som("petisco");
     ganhar(50, R.x, R.y);
     for (let i = 0; i < 6; i++) particula(R.x, R.y, "✨");
-    if (J.ratoPegos === 1) {
-      dialogo("🐭", ["CAÇADA PERFEITA! O rato de brinquedo guincha, derrotado. Daqui a pouco alguém chuta ele pra outro cômodo — aí a caçada recomeça. (+50 ⭐ por captura!)"]);
-    }
+    toast(J.ratoPegos === 1 ? "🐭 CAÇADA PERFEITA! O rato reaparece em outro cômodo — caçada infinita!" : `🐭 De novo! ${J.ratoPegos} capturas!`);
   }
 
   // pegar o passarinho no pulo (e soltar, claro)
@@ -836,10 +881,7 @@ function aterrissar() {
     som("vitoria");
     ganhar(80, P.x, P.y);
     for (let i = 0; i < 8; i++) particula(P.x, P.y, "🪶", { vida: 60 });
-    dialogo("🐦", [
-      "INACREDITÁVEL! Você pegou o passarinho no pulo — a lenda do bairro é real.",
-      "Você abre a boca com todo o cuidado e ele sai voando, ileso e ofendidíssimo. Regra de ouro é regra de ouro. (+80 ⭐)",
-    ]);
+    toast("🐦 O BOTE LENDÁRIO! Você pega e solta o passarinho, ileso e ofendidíssimo.");
   }
 }
 
@@ -854,17 +896,14 @@ function alvosInteracao() {
     acao: () => {
       if (J.etapa === 0) {
         dialogo("🗑️", [
-          "A lixeira está tombada e o saco, rasgado com desespero. Restos espalhados pelo cimento.",
-          "Você encontra: pegadas pequeninas de lama (uma pisando torto) e um tufinho de pelo COR DE FAROFA preso no portão.",
-          "Alguém pequeno, faminto e assustado esteve aqui. A " + (J.pc === "tiquena" ? "casa precisa saber. O Mimi" : "Tiquena") + " vai saber ler essas pistas…",
+          "Lixeira tombada, saco rasgado… e as pistas: pegadas pequeninas de lama (uma pisando torto) e um tufinho de pelo COR DE FAROFA no portão!",
+          "Alguém pequeno, faminto e assustado esteve aqui. " + (J.pc === "tiquena" ? "O Mimi" : "A Tiquena") + " sabe ler essas pistas — corra até lá!",
         ], () => setEtapa(1));
       } else if (J.etapa === 3 && J.temSache) {
         J.temSache = false;
         dialogo("🌩️", [
-          "Você deixa o sachê aberto num cantinho seco, perto do ninho de jornal atrás da lixeira.",
-          "No mesmo instante, o céu ESCURECE. Um trovão estala em cima da caixa d'água — e a chuva desaba de uma vez!",
-          "Um choro fininho corta o barulho: no ALTO DA ESTANTE da garagem, encharcado e apavorado, está um FILHOTE cor de farofa!",
-          "Ele subiu em pânico com o trovão e não consegue descer. Você precisa chegar lá em cima… Empurre a CAIXA DE MADEIRA até a marca ao lado da estante!",
+          "Você deixa o sachê no ninho de jornal — e o céu DESABA! Trovão, chuva grossa… e um choro fininho vem do ALTO DA ESTANTE: um FILHOTE cor de farofa, encharcado!",
+          "Ele não consegue descer! EMPURRE a caixa de madeira até a marca brilhante ao lado da estante!",
         ], () => { J.chuva = true; som("trovao"); J.pacoca = { x: 892, y: 512 }; setEtapa(4); });
       } else {
         dialogo("🗑️", ["A lixeira tombada. As pistas já foram recolhidas — o mistério continua em outro lugar."]);
@@ -881,13 +920,11 @@ function alvosInteracao() {
         if (J.etapa === 1) {
           const quem = GATOS[detetiveId].nome;
           dialogo(quem, detetiveId === "tiquena" ? [
-            "'Pelo cor de farofa… pegada pequena pisando torto… saquinho rasgado VAZIO.'",
-            "'É um FILHOTE. Perdido, faminto, com medo. Ele volta quando escurece, pela fresta do portão.'",
-            "'Fome vence medo. Pegue um SACHÊ no balcão da cozinha e deixe perto da lixeira. E aí a gente espera.'",
+            "'Pelo cor de farofa, pegada pisando torto, saquinho VAZIO… é um FILHOTE! Perdido, faminto e com medo.'",
+            "'Fome vence medo: pegue um SACHÊ no balcão da cozinha e deixe perto da lixeira. VAI!'",
           ] : [
-            "O Mimi examina o tufinho de pelo com os olhos azul-claro. O olhar dele conta tudo:",
-            "É um FILHOTE. Perdido, faminto. Ele veio para cá porque casa com cheiro de muitos gatos, para um filhote, é cheiro de mãe.",
-            "O olhar dele aponta: pegue um SACHÊ no balcão da cozinha e deixe perto da lixeira. Fome vence medo.",
+            "O Mimi examina o tufinho. O olhar dele conta tudo: é um FILHOTE perdido e faminto, atraído pelo cheiro de casa cheia de gatos.",
+            "O olhar aponta: pegue um SACHÊ no balcão da cozinha e deixe perto da lixeira. Fome vence medo!",
           ], () => setEtapa(2), detetiveId);
         } else {
           falaNPC(det, GATOS[detetiveId].nome, detetiveId);
@@ -904,16 +941,13 @@ function alvosInteracao() {
         const guarda = J.npcs.find((n) => n.id === "tiqueno");
         const linhas = [];
         if (J.pc === "tiqueno") {
-          linhas.push("É o SEU sachê. Doar o próprio sachê… seu coração sapeca range como sua patinha torta.");
-          linhas.push("'…tá BOM. Metade. E o filhote vai ficar me devendo pra sempre', você decide, dramático.");
+          linhas.push("Doar o próprio sachê… seu coração sapeca range. '…tá BOM. Metade. E o filhote fica me devendo PRA SEMPRE', você decide, dramático.");
         } else if (guarda) {
-          linhas.push("'EI! O sachê é MEU!' — o Tiqueno bloqueia o balcão com o corpinho todo.");
-          linhas.push("Você explica: é para um filhote perdido, faminto, sozinho na chuva que vem…");
-          linhas.push("O Tiqueno olha para um lado. Para o outro. Para o teto. '…tá BOM. METADE. E vocês todos me devem.'");
+          linhas.push("'EI! O sachê é MEU!' — mas ao ouvir do filhote perdido na chuva que vem, o Tiqueno cede: '…tá BOM. METADE. E vocês todos me devem.'");
         } else {
-          linhas.push("Você pega um sachê do balcão. O barulhinho do plástico ecoa pela casa como um chamado sagrado.");
+          linhas.push("Você pega um sachê. O barulhinho do plástico ecoa pela casa como um chamado sagrado.");
         }
-        linhas.push("Você pegou o SACHÊ! Agora leve até a lixeira da garagem, onde fica o ninho do visitante.");
+        linhas.push("SACHÊ garantido! Corra até a lixeira da garagem!");
         dialogo("🍗", linhas, () => { J.temSache = true; setEtapa(3); });
       } else {
         dialogo("🍗", ["O balcão sagrado dos sachês. O Tiqueno montou guarda aqui a vida inteira. Mexer sem motivo seria declaração de guerra."]);
@@ -927,11 +961,8 @@ function alvosInteracao() {
     acao: () => {
       if (J.etapa === 5 && J.caixaNaZona) {
         dialogo("⛈️", [
-          "Você sobe na caixa, se estica na chuva barulhenta… e alcança a prateleira alta.",
-          "O filhote se espreme contra a parede, tremendo. Você deita, devagarinho, sem pressa, sem ameaça. E pisca devagar.",
-          "Aos pouquinhos, o pequeno se achega. Encosta em você. E desce nos seus passos, degrau por degrau, caixa, chão…",
-          "RESGATADA! É uma filhotinha cor de farofa. Na coleirinha desbotada, um nome: PAÇOCA.",
-          "Ela está tremendo de frio. Leve a Paçoca até a COZINHA, no quentinho!",
+          "Você sobe na caixa, se estica na chuva… alcança a prateleira. O filhote treme. Você deita, sem pressa, e pisca devagar… até ele se achegar e descer nos seus passos.",
+          "RESGATADA! Na coleirinha desbotada, um nome: PAÇOCA. Ela treme de frio — leve até a COZINHA, no quentinho!",
         ], () => { J.pacocaSegue = true; J.pacoca = { x: J.x + 30, y: J.y }; setEtapa(6); });
       } else if (J.etapa === 4 || J.etapa === 5) {
         dialogo("⛈️", ["A estante é alta demais para pular direto. Empurre a CAIXA DE MADEIRA até a marca brilhante ao lado dela!"]);
@@ -959,14 +990,45 @@ function alvosInteracao() {
   // NPCs (conversa)
   for (const n of J.npcs) {
     if (n.id === detetiveId) continue; // já tratado
-    if (n.id === "popoia" && !J.pega.vitoria && !J.pega.ativo) {
-      // a Popoia quer brincar de pique-pega!
+    if (J.recado && J.recado.fase === "pegar" && n.id === J.recado.de) {
       alvos.push({
-        id: "popoia", x: n.x, y: n.y, rotulo: "Brincar de pique-pega com a Popoia",
-        acao: () => dialogo("Popoia", [
-          "'PIQUE-PEGA! VAMO! Você NUNCA vai me pegar, eu sou a mais rápida do MUNDO!'",
-          "Regras dela: me encoste 3 VEZES em 25 segundos. Dica: segure SHIFT para CORRER. Valendo… JÁ!",
-        ], () => { J.pega.ativo = true; J.pega.t = 1500; J.pega.toques = 0; }, "popoia"),
+        id: n.id, x: n.x, y: n.y, rotulo: "Pegar o recado de " + GATOS[n.id].nome,
+        acao: () => {
+          J.recado.fase = "entregar";
+          J.recado.t = 1800;
+          n.reacao = { t: 140, texto: J.recado.texto };
+          toast(`✉️ Leve o recado até ${GATOS[J.recado.para].nome} — 30s para entrega expressa!`, "#4a7a96");
+          som("recado");
+        },
+      });
+      continue;
+    }
+    if (J.recado && J.recado.fase === "entregar" && n.id === J.recado.para) {
+      alvos.push({
+        id: n.id, x: n.x, y: n.y, rotulo: "Entregar o recado a " + GATOS[n.id].nome,
+        acao: () => {
+          const expresso = J.recado.t > 0;
+          n.reacao = { t: 120, texto: expresso ? "recado EXPRESSO! 😺" : "ah, o recado. valeu!" };
+          J.recadosEntregues++;
+          ganhar(expresso ? 60 : 40, n.x, n.y);
+          toast(expresso ? "✉️ Entrega expressa! +60 ⭐" : "✉️ Recado entregue! +40 ⭐", "#5c7d54");
+          som("vitoria");
+          J.recado = null;
+          J.recadoCool = 900 + Math.random() * 900;
+        },
+      });
+      continue;
+    }
+    if (n.id === "popoia" && !J.pega.vitoria && !J.pega.ativo) {
+      // a Popoia quer brincar de pique-pega — começa NA HORA!
+      alvos.push({
+        id: "popoia", x: n.x, y: n.y, rotulo: "Pique-pega com a Popoia!",
+        acao: () => {
+          J.pega.ativo = true; J.pega.t = 1500; J.pega.toques = 0;
+          n.reacao = { t: 100, texto: "VALENDO! pega eu! 😝" };
+          toast("🏃 PIQUE-PEGA! Encoste 3x nela em 25s — corra com SHIFT!", "#4a7a96");
+          som("recado");
+        },
       });
       continue;
     }
@@ -1102,6 +1164,7 @@ function finalizar() {
     J.pc === "popoia" ? null : (J.pega.vitoria ? "🏃 <strong>Venceu a Popoia no pique-pega!</strong>" : "🏃 A Popoia ainda é a campeã do pique-pega… (fale com ela!)"),
     J.pc === "ze" ? null : (J.zeFugas > 0 ? `💨 <strong>Despistou o Zé ${J.zeFugas}x!</strong>` : "💨 Você nunca provocou o Zé… medo? 😼"),
     J.pc === "sebastiao" ? null : (J.extras.sebastiao ? "😴→😺 <strong>Acordou o Sebastião no miado!</strong>" : "😴 O Sebastião dormiu o dia inteiro… (mie 3x do lado dele)"),
+    `✉️ Recados entregues: <strong>${J.recadosEntregues}</strong>`,
     `⏱️ Tempo de aventura: <strong>${minutos} min</strong>`,
   ].filter(Boolean);
   $("#caixa-fim").innerHTML = `
@@ -1175,10 +1238,9 @@ function atualizarNPCs() {
           J.zeCool = 700;
           if (!J.zeBopVisto) {
             J.zeBopVisto = true;
-            dialogo("Zé", [
-              "POF! Uma patada (sem unha — ele tem honra) te manda rolando pelo chão. '-20 ⭐ e NÃO CHEGA PERTO DA MINHA JANELA.'",
-              "Dica: quando o Zé vier, CORRA segurando Shift e fuja por uma porta. Despistar o valentão vale pontos!",
-            ], null, "ze");
+            toast("😾 PATADA DO ZÉ! −20 ⭐ · Fuja CORRENDO (Shift) por uma porta!", "#c1372e");
+          } else {
+            toast("😾 PATADA! −20 ⭐", "#c1372e");
           }
         } else if (n.modoT <= 0 || d > 320) {
           // despistado!
@@ -1342,6 +1404,47 @@ function atualizarNPCs() {
       n.reacao = { t: 90, texto: PENSAMENTOS[Math.floor(Math.random() * PENSAMENTOS.length)] };
     }
   }
+
+  // ----- recados entre os gatos (missões-relâmpago) -----
+  const detetiveId = J.pc === "tiquena" ? "mimi" : "tiquena";
+  if (!J.recado && J.etapa >= 2) {
+    J.recadoCool--;
+    if (J.recadoCool <= 0) {
+      const cands = J.npcs.filter((n) => n.id !== "popoia" && n.id !== detetiveId && !(n.id === "ze" && n.modo !== "posto"));
+      if (cands.length >= 2) {
+        const de = cands[Math.floor(Math.random() * cands.length)];
+        const outros = cands.filter((n) => n.id !== de.id);
+        const para = outros[Math.floor(Math.random() * outros.length)];
+        J.recado = { de: de.id, para: para.id, fase: "pegar", t: 0, texto: RECADOS[Math.floor(Math.random() * RECADOS.length)] };
+        toast(`✉️ ${GATOS[de.id].nome} tem um recado para mandar!`, "#4a7a96");
+        som("recado");
+      } else {
+        J.recadoCool = 600;
+      }
+    }
+  }
+  if (J.recado && J.recado.fase === "entregar" && J.recado.t > 0) J.recado.t--;
+
+  // ----- erva-do-gato (zoomies!) -----
+  if (J.zoom > 0) J.zoom--;
+  if (!J.erva && J.zoom <= 0) {
+    J.ervaT--;
+    if (J.ervaT <= 0) {
+      const pts = [[200, 90], [540, 240], [130, 470], [700, 280], [480, 590], [340, 460], [700, 470]];
+      const p = pts[Math.floor(Math.random() * pts.length)];
+      J.erva = { x: p[0], y: p[1] };
+      toast("🌿 Erva-do-gato apareceu em algum lugar da casa!", "#5c7d54");
+      som("recado");
+    }
+  } else if (J.erva && Math.hypot(J.x - J.erva.x, J.y - J.erva.y) < 24) {
+    J.zoom = 480;
+    ganhar(15, J.erva.x, J.erva.y);
+    for (let i = 0; i < 8; i++) particula(J.erva.x, J.erva.y, "✦", { cor: "#5c9c48" });
+    J.erva = null;
+    J.ervaT = 3000 + Math.random() * 1800;
+    toast("🌿 ZOOOOMIES! Velocidade máxima por 8 segundos!", "#5c7d54");
+    som("erva");
+  }
 }
 
 /* ============================================================
@@ -1354,8 +1457,8 @@ function srand(i) {
 
 function pisoGrama(g, c) {
   const grad = g.createLinearGradient(0, c.y, 0, c.y + c.h);
-  grad.addColorStop(0, "#93bd70");
-  grad.addColorStop(1, "#7ca75d");
+  grad.addColorStop(0, "#9bc973");
+  grad.addColorStop(1, "#7fb15c");
   g.fillStyle = grad;
   g.fillRect(c.x, c.y, c.w, c.h);
   for (let i = 0; i < 300; i++) {
@@ -1722,6 +1825,28 @@ function desenharDecoracao(g) {
   rrect(g, 385, 486, 50, 12, 3, "#b59a6a", "#96794a", 1.5);
   // capacho na porta da cozinha/quintal
   rrect(g, 756, 152, 48, 12, 3, "#b59a6a", "#96794a", 1.5);
+
+  // raios de sol no quintal
+  g.fillStyle = "rgba(255,246,190,0.15)";
+  for (const sx of [160, 430, 700]) {
+    g.beginPath();
+    g.moveTo(sx, 12);
+    g.lineTo(sx + 70, 12);
+    g.lineTo(sx + 110, 140);
+    g.lineTo(sx + 40, 140);
+    g.closePath();
+    g.fill();
+  }
+
+  // mancha de sol entrando pela janela do Zé
+  g.fillStyle = "rgba(255,232,150,0.28)";
+  g.beginPath();
+  g.moveTo(306, 156);
+  g.lineTo(360, 156);
+  g.lineTo(392, 236);
+  g.lineTo(322, 236);
+  g.closePath();
+  g.fill();
 }
 
 function desenharParedes(g) {
@@ -1757,10 +1882,10 @@ function prepararCenario() {
   const g = fundo.getContext("2d");
   for (const c of COMODOS) {
     if (c.piso === "grama") pisoGrama(g, c);
-    else if (c.piso === "madeira") pisoMadeira(g, c, "#d9b98a", "rgba(140,105,60,0.4)");
-    else if (c.piso === "madeiraClara") pisoMadeira(g, c, "#e6cda4", "rgba(150,115,70,0.35)");
-    else if (c.piso === "azulejo") pisoAzulejo(g, c, "#f2e7c8", "#e4d4a8", 26);
-    else if (c.piso === "azulejoCinza") pisoAzulejo(g, c, "#d8d3c4", "#c9c4b4", 33);
+    else if (c.piso === "madeira") pisoMadeira(g, c, "#ddb886", "rgba(140,105,60,0.4)");
+    else if (c.piso === "madeiraClara") pisoMadeira(g, c, "#ecd2a6", "rgba(150,115,70,0.35)");
+    else if (c.piso === "azulejo") pisoAzulejo(g, c, "#f7ebc9", "#eddaa5", 26);
+    else if (c.piso === "azulejoCinza") pisoAzulejo(g, c, "#dcd8ca", "#ccc8b8", 33);
     else if (c.piso === "concreto") pisoConcreto(g, c);
   }
   desenharDecoracao(g);
@@ -1774,7 +1899,7 @@ function prepararCenario() {
   const v = vinheta.getContext("2d");
   const grad = v.createRadialGradient(480, 320, 300, 480, 320, 620);
   grad.addColorStop(0, "rgba(0,0,0,0)");
-  grad.addColorStop(1, "rgba(30,20,10,0.22)");
+  grad.addColorStop(1, "rgba(30,20,10,0.17)");
   v.fillStyle = grad;
   v.fillRect(0, 0, 960, 640);
 }
@@ -2018,6 +2143,19 @@ function desenhar() {
     ctx.fillText("🦋", 0, 5);
     ctx.restore();
   }
+  // erva-do-gato
+  if (J.erva) {
+    const puls = 1 + Math.sin(tempo * 0.15) * 0.2;
+    const halo = ctx.createRadialGradient(J.erva.x, J.erva.y, 2, J.erva.x, J.erva.y, 18);
+    halo.addColorStop(0, "rgba(120,220,110,0.5)");
+    halo.addColorStop(1, "rgba(120,220,110,0)");
+    ctx.fillStyle = halo;
+    ctx.beginPath(); ctx.arc(J.erva.x, J.erva.y, 18, 0, Math.PI * 2); ctx.fill();
+    ctx.font = `${15 * puls}px serif`;
+    ctx.textAlign = "center";
+    ctx.fillText("🌿", J.erva.x, J.erva.y + 5);
+  }
+
   // rato de brinquedo
   const R = J.rato;
   if (R.sumido <= 0) {
@@ -2144,9 +2282,40 @@ function desenhar() {
     ctx.globalAlpha = Math.min(1, p.vida / (p.max * 0.5));
     ctx.font = `${p.tam}px serif`;
     ctx.textAlign = "center";
-    ctx.fillStyle = "#8a6a2a";
+    ctx.fillStyle = p.cor;
     ctx.fillText(p.texto, p.x, p.y);
     ctx.globalAlpha = 1;
+  }
+
+  // recado: envelope sobre o gato certo + setinha azul
+  if (J.recado && !J.dialogo) {
+    const alvoR = J.npcs.find((n) => n.id === (J.recado.fase === "pegar" ? J.recado.de : J.recado.para));
+    if (alvoR) {
+      ctx.font = "16px serif";
+      ctx.textAlign = "center";
+      ctx.fillText("✉️", alvoR.x, alvoR.y - 48 + Math.sin(tempo * 0.15) * 3);
+      if (J.recado.fase === "entregar" && J.recado.t > 0) {
+        ctx.font = "bold 11px Georgia";
+        ctx.fillStyle = J.recado.t < 360 ? "#c1372e" : "#2d5a78";
+        ctx.fillText(`${Math.ceil(J.recado.t / 60)}s`, alvoR.x, alvoR.y - 62);
+      }
+      const distR = Math.hypot(alvoR.x - J.x, alvoR.y - J.y);
+      if (distR > 150) {
+        const ang = Math.atan2(alvoR.y - J.y, alvoR.x - J.x);
+        const r = 28 + Math.sin(tempo * 0.15) * 3;
+        ctx.save();
+        ctx.translate(J.x + Math.cos(ang) * r, J.y + Math.sin(ang) * r);
+        ctx.rotate(ang);
+        ctx.fillStyle = "rgba(90,160,215,0.95)";
+        ctx.strokeStyle = "rgba(35,80,120,0.9)";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(8, 0); ctx.lineTo(-5, -5); ctx.lineTo(-2, 0); ctx.lineTo(-5, 5);
+        ctx.closePath();
+        ctx.fill(); ctx.stroke();
+        ctx.restore();
+      }
+    }
   }
 
   // marcador da missão + setinha-guia
@@ -2232,6 +2401,32 @@ function desenhar() {
   }
 
   ctx.drawImage(vinheta, 0, 0);
+
+  // toasts (avisos que não param o jogo)
+  let ty = 22;
+  for (let i = J.toasts.length - 1; i >= 0; i--) {
+    const tst = J.toasts[i];
+    tst.t--;
+    if (tst.t <= 0) { J.toasts.splice(i, 1); continue; }
+  }
+  ctx.font = "bold 13px Georgia";
+  ctx.textAlign = "center";
+  for (const tst of J.toasts) {
+    const alfa = Math.min(1, tst.t / 30, (170 - tst.t) / 8 + 0.2);
+    const larg = ctx.measureText(tst.texto).width + 26;
+    ctx.globalAlpha = alfa;
+    ctx.fillStyle = "rgba(255,252,240,0.95)";
+    ctx.strokeStyle = tst.cor;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.roundRect(480 - larg / 2, ty, larg, 24, 12);
+    ctx.fill(); ctx.stroke();
+    ctx.fillStyle = tst.cor;
+    ctx.fillText(tst.texto, 480, ty + 16);
+    ctx.globalAlpha = 1;
+    ty += 30;
+  }
+
   ctx.restore();
 }
 
@@ -2344,10 +2539,10 @@ function iniciarJogo(pcId) {
   $("#dialogo").style.display = "none";
   atualizarHUD();
   dialogo("🌅", [
-    `Bom dia, ${GATOS[pcId].nome}! Um CRASH veio da garagem de madrugada e a lixeira está tombada. MISTÉRIO!`,
-    "Comandos: setas ANDAM, SHIFT corre, E age, M MIA e P PULA. Siga a SETINHA DOURADA até a lixeira!",
-    "Pelo caminho: cace o rato 🐭, pule na lagartixa 🦎 e nas borboletas 🦋, desafie a Popoia no pique-pega… e NÃO chegue perto do Zé. Sério. ⭐ Tudo vale pontos!",
+    `${GATOS[pcId].nome}, um CRASH veio da garagem! Siga a SETINHA DOURADA. Setas andam, SHIFT corre, E age, M mia, P pula!`,
+    "Cace o rato 🐭, pule nos bichinhos, entregue recados ✉️, ache a erva-do-gato 🌿 — tudo vale ⭐. E NÃO provoque o Zé. Sério.",
   ], null, pcId);
+  if (!musTimer) musTimer = setInterval(musica, 150);
   requestAnimationFrame(quadro);
 }
 
