@@ -289,7 +289,7 @@
         <span>🎵 <b>M</b> miar (todo mundo reage!)</span>
         <span>⤴️ <b>P</b> pular e caçar</span>
       </div>
-      <p style="font-size:0.85rem; color:#8a7a68; margin-top:10px;">Cace o rato 🐭, o passarinho 🐦 e a lagartixa 🦎, capture borboletas 🦋, vença o <em>pique-pega da Popoia</em> 🏃, entregue <em>recados</em> entre os gatos ✉️, ache a <em>erva-do-gato</em> 🌿 (ZOOMIES!), acorde o Sebastião 😴 — tudo vale <strong>pontos</strong> ⭐ com recorde salvo. E se provocar o <em>Zé</em>, ele vem atrás de você! 😾 · Prefere ler? O <a href="historia.html">modo história</a> continua disponível. 📖</p>
+      <p style="font-size:0.85rem; color:#8a7a68; margin-top:10px;">Cace o rato 🐭, o passarinho 🐦 e a lagartixa 🦎, capture borboletas 🦋, vença o <em>pique-pega da Popoia</em> 🏃, entregue <em>recados</em> entre os gatos ✉️, ache a <em>erva-do-gato</em> 🌿 (ZOOMIES!), acorde o Sebastian 😴 — tudo vale <strong>pontos</strong> ⭐ com recorde salvo. E se provocar o <em>Zé</em>, ele vem atrás de você! 😾 · Prefere ler? O <a href="historia.html">modo história</a> continua disponível. 📖</p>
     </div>
     <div class="grade-gatos" id="grade"></div>
   </div>
@@ -352,7 +352,7 @@ const GATOS = {
   popoia:     { nome: "Popoia",     desc: "Marronzinha de olhos azuis. Elétrica, doida, imprevisível.", base: "#b08a63", muzzle: "#e9d6c3", olhos: "#5fa8d3", escala: 0.85, rx: 26, ry: 24 },
   jaime:      { nome: "Jaime",      desc: "Marrom com branco, olhos azuis. Mundo da lua. Pânico do Zé.", base: "#8f6b4c", muzzle: "#fdf6ec", patch: "#fdf6ec", olhos: "#5fa8d3", escala: 0.85, rx: 26, ry: 24 },
   ze:         { nome: "Zé",         desc: "Amarelo claro, o MAIOR da casa. O valentão da janela.", base: "#f1d99f", muzzle: "#fbf3dd", olhos: "#d9a01a", escala: 1.25, bravo: true, rx: 34, ry: 29 },
-  sebastiao:  { nome: "Sebastião",  desc: "Branco de pelo longo, olhos azuis. A vida dele é dormir.", base: "#fdfdf8", olhos: "#5fa8d3", escala: 1.05, longo: true, sonolento: true, rx: 30, ry: 27 },
+  sebastiao:  { nome: "Sebastian",  desc: "Branco de pelo longo, olhos azuis. Mora na cama — de barriga para cima.", base: "#fdfdf8", olhos: "#5fa8d3", escala: 1.05, longo: true, sonolento: true, rx: 30, ry: 27 },
   marrie:     { nome: "Marrie",     desc: "Branca de pelo longo, olhos azuis. Uma lady (com um segredo na caixa de areia).", base: "#fdfdf8", olhos: "#5fa8d3", escala: 1.1, longo: true, cilios: true, rx: 31, ry: 27 },
   mimi:       { nome: "Mimi",       desc: "Branco, ENORME, olhos azul-claro. O detetive que fala com o olhar.", base: "#fdfdf8", olhos: "#8ec7e8", escala: 1.3, rx: 35, ry: 30 },
   branquinho: { nome: "Branquinho", desc: "Amarelo claro como o Zé, menor e mais gordinho. Olhos azuis. Grudado no Mimi.", base: "#f1d99f", muzzle: "#fbf3dd", olhos: "#5fa8d3", escala: 1.0, gordinho: true, rx: 30, ry: 28 },
@@ -460,7 +460,7 @@ const BORBOLETAS_BASE = [
    ============================================================ */
 const NPCS_BASE = [
   { id: "lilica",     x: 90,  y: 200, falas: ["Aproxime-se. Eu já sei do barulho da garagem — eu sempre sei.", "Comida vence medo. Lembre-se disso hoje.", "Anos de reinado ensinam a ouvir a casa inteira daqui."] },
-  { id: "sebastiao",  x: 148, y: 212, falas: ["…zzz… (o Sebastião dorme na cama da Flávia)", "…zzz… sachê…? …zzz…", "Ele abre meio olho, avalia você, e volta a dormir. Pose fotogênica: mantida."] },
+  { id: "sebastiao",  x: 148, y: 212, falas: ["…zzz… (o Sebastian dorme de barriga para cima, as quatro patas para o alto)", "…zzz… sachê…? …zzz…", "Ele abre meio olho, avalia você de cabeça para baixo, e volta a dormir. Pose fotogênica: mantida."] },
   { id: "mimi",       x: 110, y: 465, falas: ["O Mimi te encara com os olhos azul-claro. Você entende tudo: ele JÁ montou o caso na cabeça.", "O olhar dele aponta para a garagem. Depois para você. 'Vai', diz o olhar.", "O Mimi pisca devagar. É o jeito dele de dizer que confia em você."] },
   { id: "branquinho", x: 155, y: 470, falas: ["O Branquinho te dá uma lambida na testa. Você não pediu. Ele não perguntou.", "Onde está o Mimi, está o Branquinho. Lei da física.", "Ele lambe a Ana, lambe o Mimi, lambe você. Amor em forma de língua."] },
   { id: "ze",         x: 330, y: 168, falas: ["GRRR. O Zé vigia a janela. 'Tem coisa estranha rondando o MEU portão', ele rosna.", "'Quando eu descobrir quem derrubou aquela lixeira…' — a bunda dele balança, ameaçadora.", "O Zé finge que não se importa com o filhote. A orelha virada para a garagem diz o contrário."] },
@@ -486,7 +486,7 @@ const REACAO_MIAU = {
 };
 
 const FALAS_SEBASTIAO_ACORDADO = [
-  "O Sebastião está SENTADO. Acordado. Testemunhas serão necessárias.",
+  "O Sebastian está SENTADO. Acordado. Testemunhas serão necessárias.",
   "'Tá bom, tá bom, eu acordei. Isso vai custar caro em sonecas atrasadas.'",
   "Ele boceja majestoso e ajeita o pelo. 'Se tiver aventura, me chamem… depois do lanche.'",
 ];
@@ -546,7 +546,7 @@ function novoJogo(pcId) {
     petiscos: PETISCOS.map((p) => ({ ...p, pego: false })),
     caixa: { x: 600, y: 555, w: 40, h: 40 },
     caixaNaZona: false,
-    npcs: NPCS_BASE.filter((n) => n.id !== pcId).map((n) => ({ ...n, fala: 0, reacao: null, acordado: false, casa: { x: n.x, y: n.y }, modo: "posto", modoT: 0, alvoW: null, pausa: 60 + Math.random() * 120 })),
+    npcs: NPCS_BASE.filter((n) => n.id !== pcId).map((n) => ({ ...n, fala: 0, reacao: null, acordado: false, casa: { x: n.x, y: n.y }, modo: "posto", modoT: 0, alvoW: null, pausa: 60 + Math.random() * 120, fugaZe: 0 })),
     humanas: HUMANAS.map((h) => ({ ...h, fala: 0, reacao: null })),
     dialogo: null, // { quem, textos, i, aoFechar, retrato }
     fim: false,
@@ -573,6 +573,7 @@ function novoJogo(pcId) {
     zeCool: 300,
     zeBopVisto: false,
     zeFugas: 0,
+    zePopoiaT: 1500, // tempo até o Zé partir pra cima da Popoia
     // recados e erva-do-gato
     recado: null, // { de, para, fase: "pegar"|"entregar", t, texto }
     recadoCool: 1400,
@@ -645,6 +646,9 @@ function som(tipo) {
       nota(940, 0.1, "square", 0.05, t + 0.07);
     } else if (tipo === "erva") {
       [392, 523, 659, 784].forEach((f, i) => nota(f, 0.1, "triangle", 0.08, t + i * 0.06));
+    } else if (tipo === "grito") {
+      nota(1250, 0.3, "sawtooth", 0.07, t, 480);
+      nota(1500, 0.22, "square", 0.04, t + 0.06, 700);
     }
   } catch (e) { /* sem áudio, sem problema */ }
 }
@@ -813,7 +817,7 @@ function miar() {
     iniciarCacadaZe(ze);
   }
 
-  // aventura extra: acordar o Sebastião com 3 miados de perto
+  // aventura extra: acordar o Sebastian com 3 miados de perto
   const seb = J.npcs.find((n) => n.id === "sebastiao");
   if (seb && !J.extras.sebastiao && Math.hypot(J.x - seb.x, J.y - seb.y) < 120) {
     J.sebasMiados++;
@@ -825,7 +829,7 @@ function miar() {
       som("vitoria");
       ganhar(50, seb.x, seb.y);
       for (let i = 0; i < 8; i++) particula(seb.x, seb.y - 10, "✨");
-      toast("😴→😺 MILAGRE! O Sebastião ACORDOU com seus miados! +50 ⭐");
+      toast("😴→😺 MILAGRE! O Sebastian ACORDOU com seus miados! +50 ⭐");
     } else {
       seb.reacao = { t: 70, texto: J.sebasMiados === 1 ? "…zzz…" : "…mrrr… cinco minutinhos…" };
     }
@@ -926,7 +930,7 @@ function alvosInteracao() {
         J.temSache = false;
         dialogo("🌩️", [
           "Você deixa o sachê no ninho de jornal — e o céu DESABA! Trovão, chuva grossa… e um choro fininho vem do ALTO DA ESTANTE: um FILHOTE cor de farofa, encharcado!",
-          "Ele não consegue descer! EMPURRE a caixa de madeira até a marca brilhante ao lado da estante!",
+          "Ele não consegue descer! ANDE CONTRA a caixa de madeira para empurrá-la (siga a linha tracejada) até a marca AQUI! ao lado da estante — depois aperte E na estante para subir!",
         ], () => { J.chuva = true; som("trovao"); J.pacoca = { x: 892, y: 512 }; setEtapa(4); });
       } else {
         dialogo("🗑️", ["A lixeira tombada. As pistas já foram recolhidas — o mistério continua em outro lugar."]);
@@ -998,7 +1002,7 @@ function alvosInteracao() {
           "RESGATADA! Na coleirinha desbotada, um nome: PAÇOCA. Ela treme de frio — leve até a COZINHA, no quentinho!",
         ], () => { J.pacocaSegue = true; J.pacoca = { x: J.x + 30, y: J.y }; setEtapa(6); });
       } else if (J.etapa === 4 || J.etapa === 5) {
-        dialogo("⛈️", ["A estante é alta demais para pular direto. Empurre a CAIXA DE MADEIRA até a marca brilhante ao lado dela!"]);
+        dialogo("⛈️", ["A estante é alta demais para pular direto. ANDE CONTRA a caixa de madeira para empurrá-la até a marca AQUI! ao lado da estante — aí sim você sobe apertando E."]);
       } else {
         dialogo("🪜", ["A estante alta da garagem: caixas velhas, a bicicleta que ninguém usa, poeira histórica."]);
       }
@@ -1343,7 +1347,7 @@ function finalizar() {
     J.passarinhoPego ? "🐦 <strong>Pegou (e soltou) o passarinho!</strong>" : "🐦 O passarinho segue livre… (chegue devagar e pule!)",
     J.pc === "popoia" ? null : (J.pega.vitoria ? "🏃 <strong>Venceu a Popoia no pique-pega!</strong>" : "🏃 A Popoia ainda é a campeã do pique-pega… (fale com ela!)"),
     J.pc === "ze" ? null : (J.zeFugas > 0 ? `💨 <strong>Despistou o Zé ${J.zeFugas}x!</strong>` : "💨 Você nunca provocou o Zé… medo? 😼"),
-    J.pc === "sebastiao" ? null : (J.extras.sebastiao ? "😴→😺 <strong>Acordou o Sebastião no miado!</strong>" : "😴 O Sebastião dormiu o dia inteiro… (mie 3x do lado dele)"),
+    J.pc === "sebastiao" ? null : (J.extras.sebastiao ? "😴→😺 <strong>Acordou o Sebastian no miado!</strong>" : "😴 O Sebastian dormiu o dia inteiro… (mie 3x do lado dele)"),
     `✉️ Recados entregues: <strong>${J.recadosEntregues}</strong>`,
     `⏱️ Tempo de aventura: <strong>${minutos} min</strong>`,
   ].filter(Boolean);
@@ -1453,6 +1457,23 @@ function atualizarNPCs() {
           ganhar(30, J.x, J.y);
           particula(J.x, J.y - 34, "DESPISTOU! 💨", { vy: -0.8, vida: 60, tam: 13 });
         }
+      } else if (n.modo === "cacaPopoia") {
+        n.modoT--;
+        const alvoP = J.npcs.find((p) => p.id === "popoia");
+        if (!alvoP) {
+          n.modo = "voltando";
+        } else {
+          const d = Math.hypot(alvoP.x - n.x, alvoP.y - n.y);
+          const ang = Math.atan2(alvoP.y - n.y, alvoP.x - n.x);
+          moverEnt(n, Math.cos(ang) * 2.9, Math.sin(ang) * 2.9);
+          n.dirDesenho = alvoP.x > n.x ? 1 : -1;
+          if (d < 55 || n.modoT <= 0) {
+            n.reacao = { t: 80, texto: "pra aprender." };
+            alvoP.reacao = { t: 110, texto: "MÃEEE! ELE NEM ENCOSTOU E JÁ DOEU!!" };
+            som("grito");
+            n.modo = "voltando";
+          }
+        }
       } else if (n.modo === "voltando") {
         const d = Math.hypot(n.casa.x - n.x, n.casa.y - n.y);
         if (d < 6) {
@@ -1467,6 +1488,23 @@ function atualizarNPCs() {
           }
         }
       }
+      continue;
+    }
+
+    // ----- Popoia fugindo do Zé: grita MUITO antes dele chegar perto -----
+    if (n.id === "popoia" && n.fugaZe > 0) {
+      n.fugaZe--;
+      const zeP = J.npcs.find((z) => z.id === "ze");
+      if (zeP) {
+        const ang = Math.atan2(n.y - zeP.y, n.x - zeP.x) + Math.sin(tempo * 0.05) * 0.4;
+        moverEnt(n, Math.cos(ang) * 3.4, Math.sin(ang) * 3.4);
+      }
+      if (n.fugaZe % 55 === 0) {
+        n.reacao = { t: 50, texto: ["AAAAAAAH!!", "SOCORRO!!", "FLÁVIA!! FLÁVIAAA!!", "EU NÃO FIZ NADA!!"][Math.floor(Math.random() * 4)] };
+        som("grito");
+      }
+      n.x = Math.min(Math.max(n.x, 28), 932);
+      n.y = Math.min(Math.max(n.y, 28), 612);
       continue;
     }
 
@@ -1585,6 +1623,24 @@ function atualizarNPCs() {
     } else if (P.estado === "fugindo") {
       P.y -= 3; P.x += 1.5; P.t--;
       if (P.t <= 0) { J.passarinho = null; J.passarinhoT = 1500 + Math.random() * 1500; }
+    }
+  }
+
+  // ----- evento clássico da casa: o Zé corre para bater na Popoia -----
+  const zeEv = J.npcs.find((n) => n.id === "ze");
+  const popEv = J.npcs.find((n) => n.id === "popoia");
+  if (zeEv && popEv && !J.pega.ativo) {
+    J.zePopoiaT--;
+    if (J.zePopoiaT <= 0) {
+      if (zeEv.modo === "posto") {
+        zeEv.modo = "cacaPopoia";
+        zeEv.modoT = 280;
+        popEv.fugaZe = 330;
+        popEv.reacao = { t: 80, texto: "AAAAAAAH!! ELE VEM AÍ!!" };
+        som("grito");
+        toast("😾 O Zé partiu pra cima da Popoia! (ela grita antes dele chegar)", "#c1372e");
+      }
+      J.zePopoiaT = 2200 + Math.random() * 2000;
     }
   }
 
@@ -2206,6 +2262,97 @@ function desenharGatoCanvas(x, y, cfg, dir, passo, andando, nome, alturaPulo = 0
   }
 }
 
+/* o Zé de guarda: cabeça na janela, bundinha balançando para dentro de casa */
+function desenharZeNaJanela(n) {
+  const cfg = GATOS.ze;
+  const sway = Math.sin(tempo * 0.07) * 5; // a bundinha balança, ameaçadora
+  const x = n.x, y = n.y;
+  ctx.fillStyle = "rgba(40,30,20,0.25)";
+  ctx.beginPath(); ctx.ellipse(x, y + 12, 15, 5, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.save();
+  ctx.translate(x, y);
+  // rabo levantado, balançando junto
+  ctx.strokeStyle = cfg.base;
+  ctx.lineWidth = 6;
+  ctx.lineCap = "round";
+  ctx.beginPath();
+  ctx.moveTo(6, 2);
+  ctx.quadraticCurveTo(15 + sway, -12, 10 + sway * 1.4, -27);
+  ctx.stroke();
+  // corpo alongado até a janela (visto de costas)
+  ctx.fillStyle = cfg.base;
+  ctx.strokeStyle = "rgba(90,74,58,0.5)";
+  ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.ellipse(sway * 0.2, -14, 9, 16, sway * 0.008, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+  // a bundinha (duas ancas) para dentro de casa
+  ctx.beginPath(); ctx.ellipse(-5 + sway * 0.5, 2, 8.5, 7.5, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+  ctx.beginPath(); ctx.ellipse(6 + sway * 0.5, 2, 8.5, 7.5, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+  // patinhas traseiras
+  ctx.strokeStyle = cfg.base;
+  ctx.lineWidth = 4;
+  ctx.beginPath(); ctx.moveTo(-6 + sway * 0.5, 8); ctx.lineTo(-6 + sway * 0.5, 13); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(7 + sway * 0.5, 8); ctx.lineTo(7 + sway * 0.5, 13); ctx.stroke();
+  // nuca enfiada na janela (só se vê a parte de trás da cabeça)
+  ctx.fillStyle = cfg.base;
+  ctx.strokeStyle = "rgba(90,74,58,0.5)";
+  ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.arc(sway * 0.1, -30, 7, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+  // orelhas de costas
+  ctx.beginPath(); ctx.moveTo(-6, -33); ctx.lineTo(-4, -41); ctx.lineTo(0, -35); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(6, -33); ctx.lineTo(4, -41); ctx.lineTo(0, -35); ctx.closePath(); ctx.fill();
+  ctx.restore();
+  ctx.fillStyle = "rgba(58,46,38,0.75)";
+  ctx.font = "11px Georgia";
+  ctx.textAlign = "center";
+  ctx.fillText("Zé (de guarda)", x, y + 27);
+}
+
+/* o Sebastian: só fica na cama, de barriga para cima, patas para o alto */
+function desenharSebastianDeBarriga(n) {
+  const cfg = GATOS.sebastiao;
+  const x = n.x, y = n.y;
+  const resp = Math.sin(tempo * 0.05); // respiração tranquila
+  ctx.save();
+  ctx.translate(x, y);
+  // rabo esparramado na cama
+  ctx.strokeStyle = cfg.base;
+  ctx.lineWidth = 6;
+  ctx.lineCap = "round";
+  ctx.beginPath(); ctx.moveTo(-16, 4); ctx.quadraticCurveTo(-28, 10, -34, 4); ctx.stroke();
+  // corpo fofo de barriga para cima
+  ctx.fillStyle = cfg.base;
+  ctx.strokeStyle = "rgba(90,74,58,0.45)";
+  ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.ellipse(0, 0, 19, 12 + resp * 0.5, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+  // barriga clarinha
+  ctx.fillStyle = "rgba(255,255,255,0.9)";
+  ctx.beginPath(); ctx.ellipse(0, -1, 11, 6.5 + resp * 0.4, 0, 0, Math.PI * 2); ctx.fill();
+  // as quatro patinhas para o alto
+  ctx.strokeStyle = cfg.base;
+  ctx.lineWidth = 4.5;
+  ctx.lineCap = "round";
+  const wig = resp * 1.5;
+  [[-12, -8, -13, -18 + wig], [-5, -10, -5, -20], [3, -10, 3, -20 - wig], [10, -8, 11, -18]].forEach(([x1, y1, x2, y2]) => {
+    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+  });
+  // cabeça tombada para o lado, dormindo
+  ctx.fillStyle = cfg.base;
+  ctx.strokeStyle = "rgba(90,74,58,0.45)";
+  ctx.beginPath(); ctx.arc(19, -3, 9, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(24, -10); ctx.lineTo(29, -17); ctx.lineTo(28, -7); ctx.closePath(); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(16, -11); ctx.lineTo(17, -19); ctx.lineTo(22, -12); ctx.closePath(); ctx.fill();
+  // olhinhos fechados
+  ctx.strokeStyle = "#5a4a3a";
+  ctx.lineWidth = 1.4;
+  ctx.beginPath(); ctx.arc(17, -4, 2.2, 0.15 * Math.PI, 0.85 * Math.PI); ctx.stroke();
+  ctx.beginPath(); ctx.arc(22, -4, 2.2, 0.15 * Math.PI, 0.85 * Math.PI); ctx.stroke();
+  ctx.restore();
+  ctx.fillStyle = "rgba(58,46,38,0.75)";
+  ctx.font = "11px Georgia";
+  ctx.textAlign = "center";
+  ctx.fillText("Sebastian", x, y - 30);
+}
+
 function desenharHumana(h) {
   ctx.fillStyle = "rgba(40,30,20,0.25)";
   ctx.beginPath(); ctx.ellipse(h.x, h.y + 20, 12, 4, 0, 0, Math.PI * 2); ctx.fill();
@@ -2287,6 +2434,19 @@ function desenhar() {
     ctx.font = "bold 10px Georgia";
     ctx.textAlign = "center";
     ctx.fillText("AQUI!", ZONA_CAIXA.x + ZONA_CAIXA.w / 2, ZONA_CAIXA.y - 4);
+    // caminho tracejado da caixa até a marca (empurre andando contra ela!)
+    if (!J.caixaNaZona) {
+      ctx.strokeStyle = "rgba(255,196,40,0.55)";
+      ctx.lineWidth = 2.5;
+      ctx.setLineDash([9, 7]);
+      ctx.lineDashOffset = -(tempo * 0.4) % 16;
+      ctx.beginPath();
+      ctx.moveTo(J.caixa.x + J.caixa.w / 2, J.caixa.y + J.caixa.h / 2);
+      ctx.lineTo(ZONA_CAIXA.x + ZONA_CAIXA.w / 2, ZONA_CAIXA.y + ZONA_CAIXA.h / 2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.lineDashOffset = 0;
+    }
   }
 
   // caixa empurrável
@@ -2425,6 +2585,8 @@ function desenhar() {
       y: n.y,
       draw: () => {
         const cfg = GATOS[n.id];
+        if (n.id === "ze" && n.modo === "posto") { desenharZeNaJanela(n); return; }
+        if (n.id === "sebastiao" && !n.acordado) { desenharSebastianDeBarriga(n); return; }
         const cfgFinal = n.acordado && cfg.sonolento ? { ...cfg, sonolento: false } : cfg;
         const dir = n.dirDesenho || (n.id === "ze" ? -1 : 1);
         const andando = n.id === "popoia" || n.vagando || (n.id === "ze" && n.modo !== "posto");
@@ -2476,15 +2638,15 @@ function desenhar() {
     }
   }
 
-  // zzz do Sebastião dormindo
+  // zzz do Sebastian dormindo
   const seb = J.npcs.find((n) => n.id === "sebastiao");
   if (seb && !seb.acordado && tempo % 110 === 0) {
     particula(seb.x + 10, seb.y - 24, "z", { vy: -0.5, vida: 70, tam: 12 });
   }
 
-  // popoia corre em círculos (quando não está fugindo no pique-pega)
+  // popoia corre em círculos (quando não está fugindo de ninguém)
   const pop = J.npcs.find((n) => n.id === "popoia");
-  if (pop && !J.pega.ativo) {
+  if (pop && !J.pega.ativo && !(pop.fugaZe > 0)) {
     pop.x = 430 + Math.cos(tempo * 0.02) * 80;
     pop.y = 240 + Math.sin(tempo * 0.04) * 40;
   }

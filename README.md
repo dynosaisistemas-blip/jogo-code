@@ -47,7 +47,7 @@ Ao terminar uma fase, aperte o botão **▶** na tela de vitória — ou fale co
 - 🦎 Pegue a lagartixa mais veloz do bairro (+50)
 - 🐦 O bote lendário: chegue devagar no passarinho e pule — no ar, ele não te vê (+80, e ele sai ileso: regra de ouro)
 - 🏃 Desafie a Popoia no **pique-pega**: encoste nela 3 vezes em 25 segundos (+100)
-- 😴 Acorde o Sebastião miando 3 vezes do lado da cama — um milagre doméstico (+50)
+- 😴 Acorde o Sebastian miando 3 vezes do lado da cama — um milagre doméstico (+50)
 - 😾 **Cuidado com o Zé!** Chegue perto da janela dele (ou mie) e ele te caça pela sala. Fuja correndo por uma porta para despistá-lo (+30)… ou leve uma patada (−20)
 - ✉️ **Recados:** de tempos em tempos um gato tem um recado para outro — pegue e entregue em 30 segundos para o bônus expresso (+60; fora do prazo, +40). Missões-relâmpago infinitas!
 - 🌿 **Erva-do-gato:** aparece escondida pela casa — pegue e ganhe 8 segundos de ZOOMIES (velocidade máxima com rastro verde)
@@ -69,14 +69,14 @@ Aventura de texto com escolhas: você escolhe um dos 11 gatos (ou a Flávia/Ana)
 | **Pomporita (Popoia)** 🌀 | Elétrica, doida e manhosa. Nem ela sabe o que vai fazer em seguida. |
 | **Jaime** 🌙 | Magrelo do mundo da lua. Pânico do Zé. Único que passa pela brecha da janela. |
 | **Zé** 😾 | O valentão da janela (cabeça pra fora, bunda balançando). Será que tem um lado que ninguém conhece? |
-| **Sebastião** 😴 | Vida = cama. Acordá-lo exige criatividade (dica: sachê). |
+| **Sebastian** 😴 | Vida = cama. Acordá-lo exige criatividade (dica: sachê). |
 | **Marrie** 💅 | Uma lady elegante com um único defeito escandaloso: só faz cocô FORA da caixa. |
 | **Mimi** 🔎 | Enorme, branco, olhos azuis. O detetive da casa: fala com o olhar. |
 | **Branquinho** 💛 | Amarelo claro (ninguém explica o nome). Inseparável do Mimi. Lambe a Ana de amor. |
 | **Tiqueno** ⚡ | Aleijado das patas da frente e o mais sapeca de todos. Só come sachê. |
 | **Tiquena** 🧠 | Não anda, se arrasta — e vai aonde quer. A mais sabidinha: sempre tem a solução. |
 
-E as humanas: **Flávia** ☕ (quarto com Sebastião, Popoia e a Lilica, que ela cuida de perto) e **Ana** 🫖 (dorme esmagada pelo Mimi e lambida pelo Branquinho).
+E as humanas: **Flávia** ☕ (quarto com Sebastian, Popoia e a Lilica, que ela cuida de perto) e **Ana** 🫖 (dorme esmagada pelo Mimi e lambida pelo Branquinho).
 
 ## 🤖 Jogar com um mestre de IA
 
