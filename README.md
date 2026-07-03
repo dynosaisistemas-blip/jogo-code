@@ -29,8 +29,15 @@ Você **controla um dos 11 gatos** e explora a casa toda: garagem, sala, cozinha
 - **Agir/conversar:** tecla **E**, Espaço ou Enter (no celular: botão 🐾)
 - **Miar:** tecla **M** (no celular: botão 🎵) — todos os gatos e as humanas reagem ao seu miado, cada um do seu jeito
 - **Pular:** tecla **P** (no celular: botão ⤴️) — o bote felino que captura bichinhos
-- **Missão:** investigue a lixeira derrubada, junte as pistas com a Tiquena, consiga o sachê (o Tiqueno vai reclamar), sobreviva à tempestade, empurre a caixa e resgate a Paçoca!
 - Converse com os outros 10 gatos e as humanas — os gatos passeiam pela casa, pensam alto e reagem a você
+
+**O jogo tem 3 fases:**
+
+1. **🗑️ O Mistério da Garagem** — investigue a lixeira, junte as pistas, consiga o sachê, sobreviva à tempestade e resgate a **Paçoca**
+2. **🐭 A Invasão dos Ratos** — 5 ratos de brinquedo soltos pela casa: capture todos com o pulo, contra o relógio (bônus se fizer em até 90s!)
+3. **🍽 O Banquete dos 11** — hora do jantar: pegue a comida no balcão e sirva cada um dos gatos da casa, um por um
+
+Ao terminar uma fase, aperte o botão **▶** na tela de vitória — ou fale com a **Paçoca** (ela fica na cozinha) para começar a próxima!
 
 **Tudo vale pontos ⭐** (com recorde salvo no navegador) e vira conquista na tela final:
 

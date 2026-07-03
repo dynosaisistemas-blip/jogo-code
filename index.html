@@ -581,6 +581,12 @@ function novoJogo(pcId) {
     ervaT: 2200,
     zoom: 0, // frames restantes de zoomies da erva
     toasts: [], // avisos rápidos que não interrompem o jogo
+    // fases
+    fase: 1,
+    f2: null, // { ratos: [...], pegos, inicio }
+    f3: null, // { fila, alvo, comida, entregues, total }
+    f2Feita: false,
+    f3Feita: false,
   };
 }
 
@@ -861,6 +867,23 @@ function aterrissar() {
     toast("🦎 PEGOU a lagartixa num bote de documentário! (ela sai ilesa)");
   }
 
+  // FASE 2: capturar os ratos da invasão
+  if (J.fase === 2 && J.f2) {
+    for (let i = J.f2.ratos.length - 1; i >= 0; i--) {
+      const r = J.f2.ratos[i];
+      if (Math.hypot(J.x - r.x, J.y - r.y) < 46) {
+        J.f2.ratos.splice(i, 1);
+        J.f2.pegos++;
+        som("petisco");
+        ganhar(50, r.x, r.y);
+        for (let k = 0; k < 6; k++) particula(r.x, r.y, "✨");
+        toast(`🐭 ${J.f2.pegos}/5 capturados!`);
+        atualizarHUD();
+      }
+    }
+    if (J.f2 && J.f2.pegos >= 5) concluirFase2();
+  }
+
   // pegar o rato de brinquedo no pulo
   const R = J.rato;
   if (R.sumido <= 0 && Math.hypot(J.x - R.x, J.y - R.y) < 46) {
@@ -935,8 +958,18 @@ function alvosInteracao() {
 
   // balcão dos sachês
   alvos.push({
-    id: "balcao", x: 672, y: 190, rotulo: "Pegar um sachê",
+    id: "balcao", x: 672, y: 190,
+    rotulo: J.fase === 3 && J.f3 && !J.f3.comida && J.f3.alvo ? `Pegar o jantar de ${GATOS[J.f3.alvo].nome}` : "Pegar um sachê",
     acao: () => {
+      if (J.fase === 3 && J.f3 && J.f3.alvo) {
+        if (!J.f3.comida) {
+          J.f3.comida = true;
+          som("recado");
+          toast(`🍽 Jantar na pata! Leve até ${GATOS[J.f3.alvo].nome}!`, "#5c7d54");
+          atualizarHUD();
+        }
+        return;
+      }
       if (J.etapa === 2) {
         const guarda = J.npcs.find((n) => n.id === "tiqueno");
         const linhas = [];
@@ -987,8 +1020,47 @@ function alvosInteracao() {
     ]),
   });
 
+  // Paçoca: depois da missão, é ela quem chama as próximas fases!
+  if (J.fim && J.fase === 1 && J.pacoca) {
+    const rotuloP = !J.f2Feita ? "Paçoca: ▶ FASE 2 — A Invasão dos Ratos!" : (!J.f3Feita ? "Paçoca: ▶ FASE 3 — O Banquete dos 11!" : "Fazer carinho na Paçoca");
+    alvos.push({
+      id: "pacoca", x: J.pacoca.x, y: J.pacoca.y, rotulo: rotuloP,
+      acao: () => {
+        if (!J.f2Feita) { iniciarFase2(); }
+        else if (!J.f3Feita) { iniciarFase3(); }
+        else {
+          for (let i = 0; i < 4; i++) particula(J.pacoca.x, J.pacoca.y - 14, "💕", { vida: 45 });
+          som("petisco");
+        }
+      },
+    });
+  }
+
   // NPCs (conversa)
   for (const n of J.npcs) {
+    if (J.fase === 3 && J.f3 && J.f3.comida && n.id === J.f3.alvo) {
+      // servir o jantar!
+      alvos.push({
+        id: n.id, x: n.x, y: n.y, rotulo: "Servir o jantar de " + GATOS[n.id].nome,
+        acao: () => {
+          J.f3.comida = false;
+          J.f3.entregues++;
+          n.reacao = { t: 110, texto: n.id === "ze" ? "…obrigado. NINGUÉM VIU NADA." : (n.id === "tiqueno" ? "SACHÊÊÊ! 🤩" : "😋 obrigado!") };
+          ganhar(30, n.x, n.y);
+          som("petisco");
+          for (let k = 0; k < 4; k++) particula(n.x, n.y - 14, "😋", { vida: 40 });
+          J.f3.fila.shift();
+          J.f3.alvo = J.f3.fila[0] || null;
+          atualizarHUD();
+          if (!J.f3.alvo) {
+            concluirFase3();
+          } else {
+            toast(`🍽 ${J.f3.entregues}/${J.f3.total}! Agora o jantar de ${GATOS[J.f3.alvo].nome} — volte ao balcão!`, "#5c7d54");
+          }
+        },
+      });
+      continue;
+    }
     if (n.id === detetiveId) continue; // já tratado
     if (J.recado && J.recado.fase === "pegar" && n.id === J.recado.de) {
       alvos.push({
@@ -1107,10 +1179,23 @@ function pulsarChip(sel) {
   el.classList.add("pulsar");
 }
 function atualizarHUD() {
-  const detetive = J.pc === "tiquena" ? "Mimi" : "Tiquena";
-  $("#objetivo-texto").textContent = OBJETIVOS[J.etapa].replace("{DETETIVE}", detetive);
-  $("#etapa-num").textContent = `${Math.min(J.etapa + 1, 7)}/7`;
-  $("#barra-fill").style.width = `${Math.min(J.etapa / 7, 1) * 100}%`;
+  if (J.fase === 2 && J.f2) {
+    $("#etapa-num").textContent = "FASE 2";
+    $("#objetivo-texto").textContent = `A Invasão dos Ratos! Capture todos com o pulo: ${J.f2.pegos}/5 🐭`;
+    $("#barra-fill").style.width = `${(J.f2.pegos / 5) * 100}%`;
+  } else if (J.fase === 3 && J.f3) {
+    $("#etapa-num").textContent = "FASE 3";
+    const nome = J.f3.alvo ? GATOS[J.f3.alvo].nome : "";
+    $("#objetivo-texto").textContent = J.f3.comida
+      ? `O Banquete: leve o jantar para ${nome}! (${J.f3.entregues}/${J.f3.total})`
+      : `O Banquete: pegue o jantar de ${nome} no balcão (${J.f3.entregues}/${J.f3.total})`;
+    $("#barra-fill").style.width = `${(J.f3.entregues / J.f3.total) * 100}%`;
+  } else {
+    const detetive = J.pc === "tiquena" ? "Mimi" : "Tiquena";
+    $("#objetivo-texto").textContent = OBJETIVOS[J.etapa].replace("{DETETIVE}", detetive);
+    $("#etapa-num").textContent = `${Math.min(J.etapa + 1, 7)}/7`;
+    $("#barra-fill").style.width = `${Math.min(J.etapa / 7, 1) * 100}%`;
+  }
   const pegos = J.petiscos.filter((p) => p.pego).length;
   $("#petiscos").textContent = `🍪 ${pegos}/${J.petiscos.length}`;
   const borbs = J.borboletas.filter((b) => b.pega).length;
@@ -1118,8 +1203,103 @@ function atualizarHUD() {
   $("#chip-pontos").textContent = `⭐ ${J.pontos}`;
 }
 
+/* ============================================================
+   FASES 2 E 3
+   ============================================================ */
+function atualizarRecorde() {
+  try {
+    const r = Math.max(J.pontos, Number(localStorage.getItem("os11-recorde") || 0));
+    localStorage.setItem("os11-recorde", String(r));
+    return r;
+  } catch (e) { return J.pontos; }
+}
+
+function iniciarFase2() {
+  J.fase = 2;
+  J.livre = true;
+  $("#fim-overlay").style.display = "none";
+  J.rato.sumido = 99999; // o rato "oficial" se esconde da invasão
+  const pontos2 = [[200, 80], [130, 290], [700, 260], [480, 580], [340, 460]];
+  J.f2 = { ratos: pontos2.map((p) => ({ x: p[0], y: p[1], vx: 1, vy: 0.6 })), pegos: 0, inicio: Date.now() };
+  toast("🐭🐭🐭 FASE 2: A INVASÃO DOS RATOS! Capture os 5 com o PULO!", "#9c4423");
+  som("recado");
+  atualizarHUD();
+}
+
+function concluirFase2() {
+  const seg = Math.max(1, Math.round((Date.now() - J.f2.inicio) / 1000));
+  const bonus = seg <= 90 ? 150 : 75;
+  ganhar(bonus, J.x, J.y);
+  som("vitoria");
+  J.f2 = null;
+  J.fase = 1;
+  J.f2Feita = true;
+  J.rato.sumido = 600;
+  atualizarRecorde();
+  atualizarHUD();
+  $("#caixa-fim").innerHTML = `
+    <h2>🐭 Fase 2 concluída!</h2>
+    <p style="text-align:center;">Você capturou os 5 ratos da invasão em <strong>${seg} segundos</strong>!<br>Bônus: <strong>+${bonus} ⭐</strong> ${seg <= 90 ? "(caçada relâmpago!)" : ""}</p>
+    <div class="botoes">
+      <button id="btn-f3">▶ Fase 3: O Banquete dos 11</button>
+      <button id="btn-livre2" class="sec">Explorar livre</button>
+    </div>`;
+  $("#fim-overlay").style.display = "flex";
+  $("#btn-f3").onclick = iniciarFase3;
+  $("#btn-livre2").onclick = () => { $("#fim-overlay").style.display = "none"; };
+}
+
+function iniciarFase3() {
+  J.fase = 3;
+  J.livre = true;
+  $("#fim-overlay").style.display = "none";
+  const fila = J.npcs.map((n) => n.id).sort(() => Math.random() - 0.5);
+  J.f3 = { fila, alvo: fila[0], comida: false, entregues: 0, total: fila.length };
+  toast("🍽 FASE 3: O BANQUETE! Pegue o jantar no balcão e sirva cada gato!", "#5c7d54");
+  som("recado");
+  atualizarHUD();
+}
+
+function concluirFase3() {
+  ganhar(200, J.x, J.y);
+  som("vitoria");
+  J.shake = 8;
+  for (let i = 0; i < 24; i++) {
+    particula(120 + Math.random() * 720, 200 + Math.random() * 240, ["🎉", "✨", "🎊"][i % 3], { vida: 90 });
+  }
+  J.f3 = null;
+  J.fase = 1;
+  J.f3Feita = true;
+  const recorde = atualizarRecorde();
+  atualizarHUD();
+  $("#caixa-fim").innerHTML = `
+    <h2>🎉 O Banquete dos 11! 🎉</h2>
+    <p style="text-align:center;">Todos os gatos servidos e ronronando — até o Zé (que jura que ninguém viu). A Paçoca janta de convidada de honra.<br><strong>Os 11 do bairro. Barriga cheia. Todos juntos.</strong></p>
+    <p style="text-align:center;">Bônus: <strong>+200 ⭐</strong> · Pontos: <strong>${J.pontos}</strong> · Recorde: <strong>${recorde}</strong></p>
+    <div class="botoes">
+      <button id="btn-livre3" class="sec">Explorar livre</button>
+      <button id="btn-denovo3">Jogar de novo</button>
+    </div>`;
+  $("#fim-overlay").style.display = "flex";
+  $("#btn-livre3").onclick = () => { $("#fim-overlay").style.display = "none"; };
+  $("#btn-denovo3").onclick = () => { $("#fim-overlay").style.display = "none"; telaSelecao(); };
+}
+
 /* ---------- alvo da missão (guia visual) ---------- */
 function alvoMissao() {
+  if (J.fase === 2 && J.f2) {
+    let melhor = null, md = 1e9;
+    for (const r of J.f2.ratos) {
+      const d = Math.hypot(J.x - r.x, J.y - r.y);
+      if (d < md) { md = d; melhor = r; }
+    }
+    return melhor;
+  }
+  if (J.fase === 3 && J.f3) {
+    if (!J.f3.comida) return { x: 672, y: 190 };
+    const n = J.npcs.find((x) => x.id === J.f3.alvo);
+    return n ? { x: n.x, y: n.y } : null;
+  }
   switch (J.etapa) {
     case 0: case 3: return { x: 76, y: 558 };
     case 1: {
@@ -1174,10 +1354,12 @@ function finalizar() {
     <p style="text-align:center;"><strong>Os 11 do bairro. Todos em casa. Todos juntos. Como sempre. Como tem que ser.</strong></p>
     <ul class="conquistas">${conquistas.map((c) => `<li>${c}</li>`).join("")}</ul>
     <div class="botoes">
-      <button id="btn-continuar" class="sec">Continuar explorando a casa</button>
-      <button id="btn-denovo">Jogar de novo</button>
+      <button id="btn-fase2">▶ Fase 2: A Invasão dos Ratos!</button>
+      <button id="btn-continuar" class="sec">Explorar livre</button>
+      <button id="btn-denovo" class="sec">Jogar de novo</button>
     </div>`;
   $("#fim-overlay").style.display = "flex";
+  $("#btn-fase2").onclick = iniciarFase2;
   $("#btn-continuar").onclick = () => { $("#fim-overlay").style.display = "none"; J.livre = true; };
   $("#btn-denovo").onclick = () => { $("#fim-overlay").style.display = "none"; telaSelecao(); };
 }
@@ -1196,6 +1378,26 @@ function moverEnt(n, dx, dy) {
     }
   }
   return mexeu;
+}
+
+function atualizarRatoLivre(R) {
+  const d = Math.hypot(J.x - R.x, J.y - R.y);
+  let vx = R.vx, vy = R.vy;
+  if (d < 130) {
+    const ang = Math.atan2(R.y - J.y, R.x - J.x) + Math.sin(tempo * 0.08) * 0.4;
+    vx = Math.cos(ang) * 3.8; vy = Math.sin(ang) * 3.8;
+  } else if (tempo % 90 === 0) {
+    const ang = Math.random() * Math.PI * 2;
+    R.vx = Math.cos(ang) * 1.1; R.vy = Math.sin(ang) * 1.1;
+    vx = R.vx; vy = R.vy;
+  }
+  const corpoX = { x: R.x + vx - 7, y: R.y - 5, w: 14, h: 10 };
+  if (solidos().some((s) => colide(corpoX, s))) { R.vx = -R.vx; vx = 0; }
+  const corpoY = { x: R.x - 7, y: R.y + vy - 5, w: 14, h: 10 };
+  if (solidos().some((s) => colide(corpoY, s))) { R.vy = -R.vy; vy = 0; }
+  R.x += vx; R.y += vy;
+  R.x = Math.min(Math.max(R.x, 24), 936);
+  R.y = Math.min(Math.max(R.y, 24), 616);
 }
 
 function iniciarCacadaZe(ze) {
@@ -1345,23 +1547,12 @@ function atualizarNPCs() {
       particula(R.x, R.y - 14, "🐭!", { vy: -0.8, vida: 50 });
     }
   } else {
-    const d = Math.hypot(J.x - R.x, J.y - R.y);
-    let vx = R.vx, vy = R.vy;
-    if (d < 130) {
-      const ang = Math.atan2(R.y - J.y, R.x - J.x) + Math.sin(tempo * 0.08) * 0.4;
-      vx = Math.cos(ang) * 3.8; vy = Math.sin(ang) * 3.8;
-    } else if (tempo % 90 === 0) {
-      const ang = Math.random() * Math.PI * 2;
-      R.vx = Math.cos(ang) * 1.1; R.vy = Math.sin(ang) * 1.1;
-      vx = R.vx; vy = R.vy;
-    }
-    const corpoX = { x: R.x + vx - 7, y: R.y - 5, w: 14, h: 10 };
-    if (solidos().some((s) => colide(corpoX, s))) { R.vx = -R.vx; vx = 0; }
-    const corpoY = { x: R.x - 7, y: R.y + vy - 5, w: 14, h: 10 };
-    if (solidos().some((s) => colide(corpoY, s))) { R.vy = -R.vy; vy = 0; }
-    R.x += vx; R.y += vy;
-    R.x = Math.min(Math.max(R.x, 24), 936);
-    R.y = Math.min(Math.max(R.y, 24), 616);
+    atualizarRatoLivre(R);
+  }
+
+  // ----- FASE 2: os ratos da invasão fogem também -----
+  if (J.fase === 2 && J.f2) {
+    for (const r of J.f2.ratos) atualizarRatoLivre(r);
   }
 
   // ----- passarinho do quintal -----
@@ -2170,6 +2361,30 @@ function desenhar() {
     ctx.restore();
   }
 
+  // FASE 2: ratos da invasão
+  if (J.fase === 2 && J.f2) {
+    for (const r of J.f2.ratos) {
+      ctx.fillStyle = "rgba(40,30,20,0.2)";
+      ctx.beginPath(); ctx.ellipse(r.x, r.y + 6, 8, 3, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.font = "14px serif";
+      ctx.textAlign = "center";
+      ctx.save();
+      ctx.translate(r.x, r.y);
+      ctx.scale(r.vx < 0 ? 1 : -1, 1);
+      ctx.fillText("🐭", 0, 5);
+      ctx.restore();
+    }
+    // cronômetro da fase
+    const seg = Math.floor((Date.now() - J.f2.inicio) / 1000);
+    ctx.font = "bold 14px Georgia";
+    ctx.textAlign = "right";
+    ctx.fillStyle = "rgba(255,252,240,0.9)";
+    ctx.strokeStyle = "rgba(90,60,20,0.8)";
+    ctx.lineWidth = 3;
+    ctx.strokeText(`⏱ ${seg}s`, 936, 34);
+    ctx.fillText(`⏱ ${seg}s`, 936, 34);
+  }
+
   // passarinho
   const Pb = J.passarinho;
   if (Pb) {
@@ -2242,7 +2457,7 @@ function desenhar() {
     y: J.y,
     draw: () => {
       desenharGatoCanvas(J.x, J.y, GATOS[J.pc], J.dir, J.passo, J.andando, GATOS[J.pc].nome + " (você)", alturaPulo);
-      if (J.temSache) {
+      if (J.temSache || (J.fase === 3 && J.f3 && J.f3.comida)) {
         ctx.font = "14px serif";
         ctx.textAlign = "center";
         ctx.fillText("🍗", J.x + 18 * J.dir, J.y - 20 - alturaPulo);
@@ -2285,6 +2500,16 @@ function desenhar() {
     ctx.fillStyle = p.cor;
     ctx.fillText(p.texto, p.x, p.y);
     ctx.globalAlpha = 1;
+  }
+
+  // FASE 3: prato sobre o gato da vez
+  if (J.fase === 3 && J.f3 && J.f3.alvo && !J.dialogo) {
+    const alvoF3 = J.npcs.find((n) => n.id === J.f3.alvo);
+    if (alvoF3) {
+      ctx.font = "16px serif";
+      ctx.textAlign = "center";
+      ctx.fillText("🍽", alvoF3.x, alvoF3.y - 48 + Math.sin(tempo * 0.15) * 3);
+    }
   }
 
   // recado: envelope sobre o gato certo + setinha azul
@@ -2559,6 +2784,8 @@ window.JOGO = {
   caixaParaZona: () => { if (J) { J.caixa.x = ZONA_CAIXA.x + 2; J.caixa.y = ZONA_CAIXA.y + 2; J.caixaNaZona = true; if (J.etapa === 4) setEtapa(5); } },
   miar,
   pular,
+  fase2: iniciarFase2,
+  fase3: iniciarFase3,
 };
 
 telaSelecao();
