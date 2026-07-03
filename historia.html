@@ -169,13 +169,13 @@ const PERSONAGENS = {
   popoia:    { nome: "Pomporita (Popoia)", emoji: "🌀", humana: false, desc: "Magrinha, elétrica e completamente doida. Manhosa em excesso. Nem ela sabe o que vai fazer em seguida." },
   jaime:     { nome: "Jaime",      emoji: "🌙", humana: false, desc: "Magro, avoado, mundo da lua. PÂNICO do Zé. Único que passa pela brecha da janela para a garagem." },
   ze:        { nome: "Zé",         emoji: "😾", humana: false, desc: "O valentão da casa. Vigia a rua com a cabeça pra fora da janela e a bunda balançando. Rival do Lourinho." },
-  sebastiao: { nome: "Sebastião",  emoji: "😴", humana: false, desc: "Trigêmeo branco de pelo longo. A vida dele é a cama. Acordá-lo é uma missão por si só." },
+  sebastiao: { nome: "Sebastian",  emoji: "😴", humana: false, desc: "Trigêmeo branco de pelo longo. A vida dele é a cama. Acordá-lo é uma missão por si só." },
   marrie:    { nome: "Marrie",     emoji: "💅", humana: false, desc: "Trigêmea branca, uma lady elegante… com um único defeito escandaloso: só faz cocô FORA da caixa." },
   mimi:      { nome: "Mimi",       emoji: "🔎", humana: false, desc: "Enorme, branquinho, olhos azuis. O mais inteligente: fala com o olhar. Ama a frente da casa. Dorme EM CIMA da Ana." },
   branquinho:{ nome: "Branquinho", emoji: "💛", humana: false, desc: "Amarelo claro (ninguém explica o nome), olhos azuis. Melhor amigo do Mimi. Demonstra amor lambendo a Ana sem parar." },
   tiqueno:   { nome: "Tiqueno",    emoji: "⚡", humana: false, desc: "Aleijado das patas da frente, mas o mais sapeca de todos. Só come sachê e acorda os humanos sem piedade." },
   tiquena:   { nome: "Tiquena",    emoji: "🧠", humana: false, desc: "Mãe do Tiqueno. Não anda, se arrasta — e vai aonde quer. Sabidinha: observa tudo, entende tudo." },
-  flavia:    { nome: "Flávia",     emoji: "☕", humana: true,  desc: "Humana. Divide o quarto com Sebastião, Popoia e agora a Lilica, que ela cuida de perto." },
+  flavia:    { nome: "Flávia",     emoji: "☕", humana: true,  desc: "Humana. Divide o quarto com Sebastian, Popoia e agora a Lilica, que ela cuida de perto." },
   ana:       { nome: "Ana",        emoji: "🫖", humana: true,  desc: "Humana. Dorme (tenta dormir) sob todos os quilos do Mimi, com o Branquinho lambendo ela de amor." },
 };
 
@@ -209,7 +209,7 @@ const ABERTURAS = {
   branquinho: "Você acorda e faz a única coisa sensata a se fazer de manhã: lamber a Ana. Na testa, no braço, no cabelo. Ela resmunga 'Branquinho, para', o que na sua língua significa 'continue, por favor'. Do seu lado, a montanha branca do Mimi ainda dorme.",
   tiqueno: "Você acorda com fome. Fome de SACHÊ. Você se levanta nas suas patinhas do seu jeito e parte em missão, atravessando a casa como um foguetinho torto, direto para o quarto das humanas. Alguém vai acordar. Alguém VAI abrir um sachê.",
   tiquena: "Você acorda no seu cantinho da sala e fica um tempo só observando, com seu tremorzinho de cabeça, do jeito que você gosta: antes de se arrastar para qualquer lugar, você já sabe onde todo mundo está e o que cada um vai fazer. Quase tudo. Hoje tem uma coisa que você ainda não entendeu.",
-  flavia: "Você acorda com a Popoia pisando na sua cara, o Sebastião ocupando dois terços da cama e a Lilica enroladinha junto ao seu braço — você confere, com carinho, se ela está bem. Está. Do corredor vem o grito inconfundível do Tiqueno: hora do sachê.",
+  flavia: "Você acorda com a Popoia pisando na sua cara, o Sebastian ocupando dois terços da cama e a Lilica enroladinha junto ao seu braço — você confere, com carinho, se ela está bem. Está. Do corredor vem o grito inconfundível do Tiqueno: hora do sachê.",
   ana: "Você acorda esmagada. Não é novidade: o Mimi dorme EM CIMA de você, todos os quilos dele, sem cerimônia. O Branquinho lambe seu cotovelo com devoção. Você precisa de café. Mas primeiro precisa sobreviver à operação 'sair de baixo do Mimi'.",
 };
 
@@ -262,7 +262,7 @@ function talvezInterludio(proximaCena) {
 /* ---------- respostas para ação livre ---------- */
 const RESPOSTAS_LIVRES = [
   { re: /mia|miau|miar/i, r: () => ehHumana() ? "Você mia para os gatos. Onze pares de olhos te encaram, entre a piedade e a vergonha alheia. O Mimi pisca devagar, como quem diz: 'boa tentativa'." : "Você mia bem alto. A Popoia mia de volta, animadíssima, sem nenhum dos dois saber sobre o quê. Comunicação felina em sua forma mais pura." },
-  { re: /dormir|soneca|cochil/i, r: () => "Uma soneca é sempre tentadora — o Sebastião aprovaria com todas as patas. Mas algo te diz que hoje não é dia de dormir: tem mistério no ar." },
+  { re: /dormir|soneca|cochil/i, r: () => "Uma soneca é sempre tentadora — o Sebastian aprovaria com todas as patas. Mas algo te diz que hoje não é dia de dormir: tem mistério no ar." },
   { re: /sach[eê]|comida|ração|racao|comer/i, r: () => "Só de pensar em sachê, sua barriga responde. Em algum lugar da casa, o Tiqueno sente uma perturbação na força e mia. Mas a comida vai ter que esperar um pouquinho." },
   { re: /caf[eé]/i, r: () => ehHumana() ? "Você toma um gole do café, ainda quentinho. O dia fica 40% mais possível." : "O cheiro do café é bom, mas gato não toma café. Você já é elétrico o suficiente — pergunte à Popoia." },
   { re: /lilica/i, r: () => pc("lilica") ? "Você é a Lilica. E a Lilica sabe o que faz." : "Você pensa na Lilica, quietinha no quarto da Flávia. A velha rainha da casa. Se alguém sabe das coisas por aqui, é ela." },
@@ -554,12 +554,12 @@ const CENAS = {
     const feitos = [];
     if (S.flags.tiquena) feitos.push("a sabedoria da Tiquena");
     if (S.flags.mimi) feitos.push("o faro de detetive do Mimi");
-    if (S.flags.sebastiao) feitos.push("o Sebastião acordado (milagre)");
+    if (S.flags.sebastiao) feitos.push("o Sebastian acordado (milagre)");
     if (S.flags.lilica) feitos.push("a bênção da Lilica");
     const escolhas = [];
     if (!S.flags.tiquena) escolhas.push({ t: "Consultar a Tiquena — ela sempre vê o que ninguém viu", f: () => irPara("consulta_tiquena") });
     if (!S.flags.mimi) escolhas.push({ t: "Chamar o Mimi (e o Branquinho, óbvio) para decifrar o caso", f: () => irPara("consulta_mimi") });
-    if (!S.flags.sebastiao) escolhas.push({ t: "Tentar acordar o Sebastião — vão precisar de todo mundo", f: () => irPara("acordar_sebastiao") });
+    if (!S.flags.sebastiao) escolhas.push({ t: "Tentar acordar o Sebastian — vão precisar de todo mundo", f: () => irPara("acordar_sebastiao") });
     if (!S.flags.lilica) escolhas.push({ t: "Ir ao quarto da Flávia falar com a Lilica", f: () => irPara("lilica_conselho") });
     escolhas.push({
       t: S.consultas > 0 ? "Chega de conversa: a tarde já vai caindo. Preparar o plano da noite!" : "Ignorar todo mundo e partir para o plano sozinho (coragem ou teimosia?)",
@@ -647,7 +647,7 @@ const CENAS = {
 
   acordar_sebastiao: () => ({
     texto: `
-      <p>${pc("sebastiao") ? "Uma delegação vem te acordar. Você, obviamente, está dormindo — na cama da Flávia, na sua pose número 7 (a do tapete de nuvem). Você decide, por dentro do sono, dificultar por princípio." : `Missão: acordar o <em>Sebastião</em>. Ele está na cama da Flávia, esparramado na pose mais fotogênica do repertório, o pelo longo subindo e descendo num ritmo de quem não acorda nem com fogos de artifício.`}</p>
+      <p>${pc("sebastiao") ? "Uma delegação vem te acordar. Você, obviamente, está dormindo — na cama da Flávia, na sua pose número 7 (a do tapete de nuvem). Você decide, por dentro do sono, dificultar por princípio." : `Missão: acordar o <em>Sebastian</em>. Ele está na cama da Flávia, esparramado na pose mais fotogênica do repertório, o pelo longo subindo e descendo num ritmo de quem não acorda nem com fogos de artifício.`}</p>
       <p>Historicamente, existem três técnicas. Nenhuma com boa taxa de sucesso.</p>
     `,
     escolhas: [
@@ -660,7 +660,7 @@ const CENAS = {
   seb_barulho: () => ({
     texto: `
       <p><strong>TUM TUM TUM.</strong> O guarda-roupa treme. Resultado imediato: o <em>Lourinho</em>, dois cômodos de distância, dispara para debaixo do sofá (coitado). A <em>Popoia</em> aparece do nada achando que é festa.</p>
-      <p>O Sebastião? Abre <em>meio</em> olho. Avalia a situação. Conclui que não é da conta dele. Fecha o olho. Ajeita a pose para uma ainda mais fotogênica — parece impossível, mas ele consegue.</p>
+      <p>O Sebastian? Abre <em>meio</em> olho. Avalia a situação. Conclui que não é da conta dele. Fecha o olho. Ajeita a pose para uma ainda mais fotogênica — parece impossível, mas ele consegue.</p>
     `,
     escolhas: [
       { t: "Técnica do carinho: massagear a barriguinha", f: () => irPara("seb_carinho") },
@@ -671,7 +671,7 @@ const CENAS = {
 
   seb_carinho: () => ({
     texto: `
-      <p>Você afunda ${ehHumana() ? "a mão" : "a patinha"} naquele pelo de nuvem e faz a massagem. Erro clássico de principiante. O Sebastião começa a <em>ronronar</em> — um motor de barco, profundo e satisfeito — e afunda AINDA MAIS no sono, agora com um sorrisinho no focinho.</p>
+      <p>Você afunda ${ehHumana() ? "a mão" : "a patinha"} naquele pelo de nuvem e faz a massagem. Erro clássico de principiante. O Sebastian começa a <em>ronronar</em> — um motor de barco, profundo e satisfeito — e afunda AINDA MAIS no sono, agora com um sorrisinho no focinho.</p>
       <p>Você não o acordou. Você o <em>recompensou</em>. Ele está tecnicamente mais dormindo do que antes. A Marrie, da porta, balança a cabeça diante do amadorismo.</p>
     `,
     escolhas: [
@@ -683,9 +683,9 @@ const CENAS = {
 
   seb_sache: () => ({
     texto: `
-      <p>${ehHumana() ? "Você abre um sachê" : "Você convence a Ana a abrir um sachê"} a dois metros do focinho do Sebastião. O barulhinho do plástico corta o ar do quarto.</p>
-      <p>Uma orelha gira feito antena. O nariz rosado treme. Um olho abre. O outro. E então, num movimento que desafia tudo que se sabe sobre o Sebastião, ele se levanta, se espreguiça num arco perfeito de comercial de ração, e caminha até vocês como se a ideia de acordar tivesse sido dele.</p>
-      <p><span class="fala">"Estava mesmo pensando em me juntar à causa"</span>, diz a cara dele. Ninguém acredita. Todos aceitam. <em>O Sebastião está oficialmente na equipe.</em></p>
+      <p>${ehHumana() ? "Você abre um sachê" : "Você convence a Ana a abrir um sachê"} a dois metros do focinho do Sebastian. O barulhinho do plástico corta o ar do quarto.</p>
+      <p>Uma orelha gira feito antena. O nariz rosado treme. Um olho abre. O outro. E então, num movimento que desafia tudo que se sabe sobre o Sebastian, ele se levanta, se espreguiça num arco perfeito de comercial de ração, e caminha até vocês como se a ideia de acordar tivesse sido dele.</p>
+      <p><span class="fala">"Estava mesmo pensando em me juntar à causa"</span>, diz a cara dele. Ninguém acredita. Todos aceitam. <em>O Sebastian está oficialmente na equipe.</em></p>
     `,
     aoEntrar: () => { S.flags.sebastiao = true; S.consultas++; },
     escolhas: [
@@ -841,7 +841,7 @@ const CENAS = {
   plano_comida: () => ({
     texto: `
       <p>${S.flags.sache_doado ? "O meio sachê do Tiqueno entra em ação" : "Um sachê é sacrificado em nome da causa (o Tiqueno acompanha cada gota com os olhos, sofrendo)"}: uma trilha de petiscos da beirada da prateleira, descendo pela pilha de caixas, até um cantinho seco e protegido no chão.</p>
-      <p>Depois, a parte mais difícil do plano — e a Tiquena avisou que seria: <em>todo mundo parado e longe</em>. Onze gatos e ${S.flags.humanas_sabem ? "duas humanas" : "meia casa"} fingindo que não existem. A Popoia precisa ser contida ${pc("popoia") ? "(você trava suas próprias pernas com força de vontade sobre-humana… sobre-gatuna)" : "pelo Sebastião, que deita EM CIMA do rabo dela, tecnicamente ajudando"}.</p>
+      <p>Depois, a parte mais difícil do plano — e a Tiquena avisou que seria: <em>todo mundo parado e longe</em>. Onze gatos e ${S.flags.humanas_sabem ? "duas humanas" : "meia casa"} fingindo que não existem. A Popoia precisa ser contida ${pc("popoia") ? "(você trava suas próprias pernas com força de vontade sobre-humana… sobre-gatuna)" : "pelo Sebastian, que deita EM CIMA do rabo dela, tecnicamente ajudando"}.</p>
       <p>O filhote olha a trilha. Olha o silêncio. O nariz minúsculo treme, faminto. Uma patinha desce para a primeira caixa… a pisada torta escorrega no papelão molhado — o coração de todo mundo para — mas ele se firma. Segunda caixa. Terceira. Petisco por petisco, tremendo, descendo…</p>
       <p>…até o chão. <em>Conseguiu.</em> Ele se joga na comida com uma fome de partir o coração, e a casa inteira solta o ar ao mesmo tempo, bem devagarinho, para não fazer barulho.</p>
     `,
@@ -901,7 +901,7 @@ const CENAS = {
       <p>A casa INTEIRA está olhando. Você encara todo mundo, um por um, com a sua melhor cara de mau: <span class="fala">"Ninguém viu nada. NINGUÉM. VIU. NADA."</span></p>
       <p>Todos viram tudo. Ninguém vai esquecer nunca. A Tiquena, no canto, faz aquela cara de quem sempre soube.</p>
     ` : `
-      <p>O filhote come, mas treme de frio, encharcado até os ossos. Todo mundo hesita a uma distância respeitosa, seguindo o protocolo do "não assustar". E aí acontece a coisa mais impossível do dia — mais impossível que o Sebastião acordado, mais impossível que o Lourinho firme na tempestade:</p>
+      <p>O filhote come, mas treme de frio, encharcado até os ossos. Todo mundo hesita a uma distância respeitosa, seguindo o protocolo do "não assustar". E aí acontece a coisa mais impossível do dia — mais impossível que o Sebastian acordado, mais impossível que o Lourinho firme na tempestade:</p>
       <p>O <strong>Zé</strong> atravessa a garagem.</p>
       <p>O valentão. O rei da janela. O terror do Jaime. Ele pega o filhote pelo cangote com uma delicadeza que NINGUÉM sabia que existia naquelas mandíbulas, carrega o pequeno até o canto mais seco e quente da garagem, deita do lado dele e enrosca o rabo em volta, feito cerca.</p>
       <p>A casa inteira congela. O Zé levanta a cabeça, encara todo mundo, um por um: <span class="fala">"Ninguém viu nada. NINGUÉM. VIU. NADA."</span></p>
@@ -963,7 +963,7 @@ const CENAS = {
     texto: `
       <p>A noite chega lavada e limpa sobre o bairro. Nos paralelepípedos molhados, as poças refletem os postes acesos. Na casa da esquina, a Paçoca dorme no meio das caixas de mudança, de barriga cheia, sonhando com o quintal novo que ganhou de presente.</p>
       <p>E na casa dos onze…</p>
-      <p>O <em>Tiqueno</em> recebe um sachê INTEIRO extra (pagamento de dívida histórica) e acorda as humanas só duas vezes de madrugada, em sinal de gratidão. A <em>Tiquena</em> dorme com a cara de quem resolveu tudo — porque resolveu. O <em>Sebastião</em> voltou a dormir há muitas horas e vai saber do final da história por resumo. A <em>Marrie</em> celebrou a ocasião fazendo cocô fora da caixa, mas hoje ninguém brigou (era um dia especial). A <em>Popoia</em> correu em círculos de alegria até apagar no colo da Flávia.</p>
+      <p>O <em>Tiqueno</em> recebe um sachê INTEIRO extra (pagamento de dívida histórica) e acorda as humanas só duas vezes de madrugada, em sinal de gratidão. A <em>Tiquena</em> dorme com a cara de quem resolveu tudo — porque resolveu. O <em>Sebastian</em> voltou a dormir há muitas horas e vai saber do final da história por resumo. A <em>Marrie</em> celebrou a ocasião fazendo cocô fora da caixa, mas hoje ninguém brigou (era um dia especial). A <em>Popoia</em> correu em círculos de alegria até apagar no colo da Flávia.</p>
       <p>O <em>Mimi</em> dorme em cima da Ana, pesado e satisfeito, e o <em>Branquinho</em> lambe a testa da humana até nos sonhos. O <em>Jaime</em> dorme na sala, herói distraído, perto da sua brecha. O <em>Lourinho</em>${S.flags.lourinho_heroi ? ", herói assumido de hoje," : ""} dorme esparramado, e o <em>Zé</em>… o Zé está na janela, cabeça pra fora, bunda balançando, vigiando a rua. Alguém tem que proteger este bairro. Principalmente agora, que tem uma filhotinha nova na esquina.</p>
       <p>No quarto da Flávia, a <em>Lilica</em> ronrona baixinho, quentinha, cuidada, com a casa inteira em paz sob o reinado dela.</p>
       <p><strong>Os 11 do bairro. Todos em casa. Todos juntos. Como sempre. Como tem que ser.</strong></p>
@@ -981,7 +981,7 @@ const CENAS = {
   vet_manha: () => ({
     texto: `
       <p>A manhã seguia normal até <em>o som</em>. O rangido da porta do armário do corredor, seguido do <strong>toc</strong> oco de plástico duro batendo no chão. A casa inteira reconhece na primeira nota: <em>A CAIXA DE TRANSPORTE.</em></p>
-      <p>Protocolo de pânico, executado com precisão militar: o <em>Lourinho</em> evapora para debaixo do sofá. O <em>Jaime</em> — <em>plop</em> — já atravessou a brecha para a garagem. A <em>Popoia</em> corre em formato de oito, sem destino, por princípio. O <em>Tiqueno</em> para de gritar por sachê no meio de um grito (situação gravíssima, portanto). A <em>Marrie</em> se posiciona atrás da cortina sem pressa nenhuma — uma lady não corre, uma lady <em>se realoca</em>. O <em>Sebastião</em> continua dormindo. Claro.</p>
+      <p>Protocolo de pânico, executado com precisão militar: o <em>Lourinho</em> evapora para debaixo do sofá. O <em>Jaime</em> — <em>plop</em> — já atravessou a brecha para a garagem. A <em>Popoia</em> corre em formato de oito, sem destino, por princípio. O <em>Tiqueno</em> para de gritar por sachê no meio de um grito (situação gravíssima, portanto). A <em>Marrie</em> se posiciona atrás da cortina sem pressa nenhuma — uma lady não corre, uma lady <em>se realoca</em>. O <em>Sebastian</em> continua dormindo. Claro.</p>
       <p>A <em>Flávia</em> ergue a caixa e anuncia para a sala aparentemente vazia (ela sabe que tem doze olhos ouvindo): <span class="fala">"Calma, gente. Hoje é dia da <strong>Lilica</strong>. Consulta de rotina, coisa rápida, é do tratamento dela."</span></p>
     `,
     escolhas: [
@@ -1000,14 +1000,14 @@ const CENAS = {
     escolhas: [
       { t: "Ir ver a Lilica também", f: () => irPara("vet_lilica_quarto") },
       { t: "Conferir a caixa antes da viagem", f: () => irPara("vet_caixa") },
-      { t: "Acordar o Sebastião só para ele participar da preocupação (boa sorte)", f: () => irPara("vet_seb") },
+      { t: "Acordar o Sebastian só para ele participar da preocupação (boa sorte)", f: () => irPara("vet_seb") },
     ],
   }),
 
   vet_seb: () => ({
     texto: `
-      <p>Você tenta explicar a situação ao <em>Sebastião</em>. Ele abre meio olho na palavra "veterinário", processa por dois segundos inteiros… e conclui que não é com ele. O olho fecha.</p>
-      <p>Mas na hora que você desiste e sai, acontece uma coisa: ele se levanta, se espreguiça, e vai deitar <em>na porta do quarto da Flávia</em>, do lado da Popoia. Sem explicação, sem abrir os olhos direito. O Sebastião tem o próprio jeito de se importar: ele leva a soneca dele para perto de quem precisa.</p>
+      <p>Você tenta explicar a situação ao <em>Sebastian</em>. Ele abre meio olho na palavra "veterinário", processa por dois segundos inteiros… e conclui que não é com ele. O olho fecha.</p>
+      <p>Mas na hora que você desiste e sai, acontece uma coisa: ele se levanta, se espreguiça, e vai deitar <em>na porta do quarto da Flávia</em>, do lado da Popoia. Sem explicação, sem abrir os olhos direito. O Sebastian tem o próprio jeito de se importar: ele leva a soneca dele para perto de quem precisa.</p>
     `,
     escolhas: [
       { t: "Deixar os dois de guarda e ir ver a Lilica", f: () => irPara("vet_lilica_quarto") },
@@ -1114,7 +1114,7 @@ const CENAS = {
   vet_volta: () => ({
     texto: `
       <p>Na volta, o carro sacode nos paralelepípedos e a caixa vai leve — leve do jeito que boas notícias pesam. A <em>Lilica</em> dorme a viagem inteira, enrolada na mantinha lilás${S.flags.penetra && !ehHumana() ? ", encostada em você, o acompanhante oficial" : ", com a Popoia de sentinela pendurada no banco"}.</p>
-      <p>E aí o carro dobra a esquina de casa e… a janela da sala está <em>lotada</em>. Todos. Enfileirados no parapeito e no encosto do sofá: o Zé no posto oficial, o Lourinho espremido (e tremendo, mas presente), a Marrie atrás da cortina fingindo que passava por ali, o Mimi e o Branquinho colados, a Tiquena no parapeito baixo, o Tiqueno gritando notícias em tempo real — e o <strong>Sebastião</strong>. Acordado. <em>Acordado por conta própria</em>, esperando na janela.</p>
+      <p>E aí o carro dobra a esquina de casa e… a janela da sala está <em>lotada</em>. Todos. Enfileirados no parapeito e no encosto do sofá: o Zé no posto oficial, o Lourinho espremido (e tremendo, mas presente), a Marrie atrás da cortina fingindo que passava por ali, o Mimi e o Branquinho colados, a Tiquena no parapeito baixo, o Tiqueno gritando notícias em tempo real — e o <strong>Sebastian</strong>. Acordado. <em>Acordado por conta própria</em>, esperando na janela.</p>
       <p>Ninguém comenta. Alguns milagres é melhor não assustar.</p>
     `,
     escolhas: [
@@ -1128,7 +1128,7 @@ const CENAS = {
     fim: true,
     texto: `
       <p>A notícia atravessa a casa mais rápido que a Popoia em dia elétrico: <em>a Lilica está melhorando</em>. O tratamento funciona. A rainha ganhou peso, ganhou tempo, ganhou mais histórias pra mandar.</p>
-      <p>A Flávia abre sachês em quantidade escandalosa — o <em>Tiqueno</em> chora de emoção na terceira lambida. A <em>Marrie</em> aceita o dela com um aceno de cabeça, como quem recebe homenagem justa. O <em>Sebastião</em> come e dorme em cima do pires, estabelecendo novo recorde pessoal de eficiência.</p>
+      <p>A Flávia abre sachês em quantidade escandalosa — o <em>Tiqueno</em> chora de emoção na terceira lambida. A <em>Marrie</em> aceita o dela com um aceno de cabeça, como quem recebe homenagem justa. O <em>Sebastian</em> come e dorme em cima do pires, estabelecendo novo recorde pessoal de eficiência.</p>
       <p>E de noite, no quarto da Flávia, acontece a melhor parte: a <em>Lilica</em>, quentinha na mantinha lilás recém-saída da aventura, conta histórias antigas para quem quiser ouvir — e hoje a porta ficou aberta e meia casa se espremeu pelo chão do quarto para ouvir. Histórias do bairro de antes, dos telhados de antes, de quando ela era a braba que ninguém chegava perto. <span class="fala">"E olha no que deu"</span>, ela diz, olhando o quarto entupido de gato. <span class="fala">"Não chega perto quem quer. Chega quem eu deixo. E eu deixei todos vocês."</span></p>
       <p>O <em>Mimi</em> pisca devagar. O <em>Branquinho</em> lambe o mais próximo. O <em>Zé</em>, do corredor, ouve tudo fingindo que faz ronda.</p>
       <p><strong>Os 11 do bairro. Todos em casa. Todos juntos. E a rainha, cada dia mais rainha.</strong></p>
@@ -1218,7 +1218,7 @@ const CENAS = {
 
   muro_lilica: () => ({
     texto: `
-      <p>A casa inteira se ajeita pelo chão da sala. Até o Sebastião acorda (parcialmente). História da Lilica é evento raro.</p>
+      <p>A casa inteira se ajeita pelo chão da sala. Até o Sebastian acorda (parcialmente). História da Lilica é evento raro.</p>
       <p><span class="fala">"Anos atrás — vocês nem eram nascidos, quase nenhum — aquela casa em frente tinha quintal cheio de vida, e o rei daquele muro era ele. <em>Barão</em>. O único gato deste bairro que me enfrentou de igual para igual. Guerra de encarada que durava tarde inteira. Nem ele descia, nem eu. Empate. Sempre empate. Ele era… um adversário à altura."</span> Ela faz uma pausa, e a voz amolece meio tom: <span class="fala">"O único que valia a briga."</span></p>
       <p><span class="fala">"Aí a família dele se mudou. Levaram ele. E o muro de lá nunca mais teve rei."</span></p>
       <p>Ela olha de novo para o vulto cinzento, imóvel sobre o quintal vazio: <span class="fala">"Se o Barão voltou depois de todos esses anos, velho desse jeito… ele veio se despedir de alguma coisa. E gato velho não devia se despedir sozinho."</span></p>
@@ -1323,7 +1323,7 @@ const CENAS = {
       <p>Domingo seguinte, fim de tarde. O fusca azul chega, dona Ivone abre a portinha, e o <em>Barão</em> sobe no muro da dona Cida com uma escadinha de caixotes que ela montou "por acaso" no canto do quintal. De lá, ele vê tudo: o quintal antigo, a rua, o bairro inteiro dele.</p>
       <p>E na janela da casa dos 11, o <em>Zé</em> assume o posto: cabeça pra fora, bunda balançando. Os dois se encaram por cima da rua — o rei velho no muro, o rei novo na janela. Ninguém rosna. Ninguém pisca primeiro. Até que piscam: <em>os dois ao mesmo tempo, devagar</em>. O pacto dos reis: cada um no seu posto, vigiando o mesmo bairro. Quem viu, viu. Ninguém viu nada.</p>
       <p>Lá dentro, a <em>Lilica</em> ouve o relatório completo da Tiquena e ronrona baixinho, no quentinho do quarto da Flávia. O adversário à altura está bem. Tem gente que cuida dele. E agora tem domingo.</p>
-      <p>O <em>Tiqueno</em> grita por sachê. A <em>Popoia</em> corre sem motivo. A <em>Marrie</em> ignora a caixa de areia com elegância renovada. O <em>Sebastião</em> dorme a soneca 14 das 14 previstas. O <em>Mimi</em> e o <em>Branquinho</em> dividem a mesma almofada, como sempre, e o <em>Jaime</em>… o Jaime está na garagem, pela brecha, olhando a rua pela grade. Alguém tem que aprender com os mais velhos o ofício de ter um muro no coração.</p>
+      <p>O <em>Tiqueno</em> grita por sachê. A <em>Popoia</em> corre sem motivo. A <em>Marrie</em> ignora a caixa de areia com elegância renovada. O <em>Sebastian</em> dorme a soneca 14 das 14 previstas. O <em>Mimi</em> e o <em>Branquinho</em> dividem a mesma almofada, como sempre, e o <em>Jaime</em>… o Jaime está na garagem, pela brecha, olhando a rua pela grade. Alguém tem que aprender com os mais velhos o ofício de ter um muro no coração.</p>
       <p><strong>Os 11 do bairro. Todos em casa. Todos juntos. E o bairro um pouquinho maior, de novo.</strong></p>
       ${epilogoCurto()}
       <p style="text-align:center; font-size:1.4rem; margin-top:18px;">🐾 FIM 🐾</p>
@@ -1341,13 +1341,13 @@ function epilogoDoPersonagem() {
     popoia: "Você, Popoia, sonha com o dia de hoje todo fora de ordem, e mesmo assim faz mais sentido que a sua vida acordada. Perfeito.",
     jaime: "Você, Jaime, herói do dia, já esqueceu metade da própria façanha. Mas a brecha da janela agora tem cheiro de história pra contar. Se você lembrar.",
     ze: "Você, Zé, reassume a janela. Ninguém viu nada. Todos viram tudo. E amanhã, quando a Paçoca aparecer no quintal, você vai rosnar para ela… e depois vigiar o muro para ninguém mexer com ela. Ninguém precisa saber disso também.",
-    sebastiao: "Você, Sebastião, participou de uma aventura inteira e voltou a dormir antes do final. A pose de hoje à noite está particularmente fotogênica. Prioridades.",
+    sebastiao: "Você, Sebastian, participou de uma aventura inteira e voltou a dormir antes do final. A pose de hoje à noite está particularmente fotogênica. Prioridades.",
     marrie: "Você, Marrie, encerra o dia com a elegância de sempre e o mistério de sempre, a dez centímetros da caixa. Uma dama não dá explicações.",
     mimi: "Você, Mimi, resolveu mais um enigma do bairro sem precisar de um miado sequer. Amanhã tem frente de casa. Hoje tem Ana quentinha embaixo de você.",
     branquinho: "Você, Branquinho, lambeu todo mundo que precisava ser lambido hoje. Missão cumprida. A Ana está devidamente amada. O Mimi também. O mundo está em ordem.",
     tiqueno: "Você, Tiqueno, doou meio sachê e recebeu um inteiro. Lucro de 100%. Além de sapeca, empresário. Amanhã tem mais gritaria no pé da cama.",
     tiquena: "Você, Tiquena, se arrasta para o seu canto com a satisfação silenciosa de quem montou o plano inteiro. Ninguém esperava. Você sempre espera. É por isso que sempre acontece.",
-    flavia: "Você, Flávia, confere a Lilica uma última vez antes de dormir, com a Popoia no colo e o Sebastião ocupando a cama. Onze gatos, um resgate e uma vizinha nova. Dia comum, no fim das contas.",
+    flavia: "Você, Flávia, confere a Lilica uma última vez antes de dormir, com a Popoia no colo e o Sebastian ocupando a cama. Onze gatos, um resgate e uma vizinha nova. Dia comum, no fim das contas.",
     ana: "Você, Ana, adormece esmagada pelo Mimi e lambida pelo Branquinho, exatamente como todas as noites — só que hoje com a sensação boa de um bairro um pouquinho maior. Amanhã: café. Muito café.",
   };
   return `<p style="margin-top:14px;"><em>${ep[S.pc] || ""}</em></p>`;
@@ -1360,7 +1360,7 @@ function epilogoCurto() {
     popoia: "Você, Popoia, não entendeu tudo o que aconteceu hoje, mas participou intensamente de cada parte, inclusive das que não existiram. Dia perfeito.",
     jaime: "Você, Jaime, esteve lá. Provavelmente. Você lembra de quase tudo, o que para os seus padrões é um recorde. A brecha da janela te espera para a soneca.",
     ze: "Você, Zé, reassume a janela. A casa está segura, o bairro está vigiado, e se alguém te viu sendo menos valentão hoje… ninguém viu nada.",
-    sebastiao: "Você, Sebastião, participou da aventura nos intervalos das sonecas — e ainda assim, de algum jeito, esteve presente na hora que importava. Talento.",
+    sebastiao: "Você, Sebastian, participou da aventura nos intervalos das sonecas — e ainda assim, de algum jeito, esteve presente na hora que importava. Talento.",
     marrie: "Você, Marrie, atravessou o dia inteiro com a pose impecável e encerra a noite a dez centímetros da caixa de areia. Uma dama não muda seus princípios.",
     mimi: "Você, Mimi, mais uma vez resolveu o que precisava ser resolvido sem gastar um único miado. A Ana te espera para ser esmagada com amor.",
     branquinho: "Você, Branquinho, distribuiu lambidas em todos os momentos emocionantes do dia, que foram muitos. A Ana está devidamente amada. Missão de sempre: cumprida.",
