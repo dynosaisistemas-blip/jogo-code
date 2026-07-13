@@ -1,0 +1,14 @@
+# Ferramentas de vídeo (instaladas por scripts/setup-video-tools.sh)
+tools/
+
+# Dependências
+node_modules/
+.venv/
+
+# Segredos
+.env
+
+# Vídeos e saídas de edição (arquivos grandes, não versionar)
+videos/*
+!videos/.gitkeep
+!videos/README.md
