@@ -29,7 +29,17 @@ if not exist package.json (
   goto fim
 )
 
-if not exist node_modules (
+rem Atualiza o sync.js para a versao mais recente publicada (se houver internet).
+where curl >nul 2>nul
+if not errorlevel 1 (
+  curl -fsSL -o sync.js.novo "https://raw.githubusercontent.com/dynosaisistemas-blip/jogo-code/main/sync/sync.js" >nul 2>nul
+  if exist sync.js.novo (
+    for %%A in (sync.js.novo) do if %%~zA GTR 1000 ( move /y sync.js.novo sync.js >nul & echo  sync.js atualizado para a versao mais recente. ) else ( del sync.js.novo )
+  )
+)
+echo.
+
+if not exist node_modules (
   echo.
   echo  [1/3] Instalando dependencias - so na primeira vez, pode levar alguns minutos...
   echo.
