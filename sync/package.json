@@ -1,0 +1,15 @@
+{
+  "name": "rumo-a-receita-sync",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Baixa os PDFs da sua conta do Estratégia Concursos e organiza por disciplina para o sistema Rumo à Receita.",
+  "scripts": {
+    "postinstall": "playwright install chromium",
+    "login": "node sync.js login",
+    "sync": "node sync.js sync",
+    "inspecionar": "node sync.js inspecionar"
+  },
+  "dependencies": {
+    "playwright": "1.56.1"
+  }
+}
