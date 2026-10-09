@@ -89,12 +89,23 @@ async function esperarPagina(page) {
   await page.waitForTimeout(1500);
 }
 
-async function logado(page) {
-  await page.goto(URL_CURSOS, { waitUntil: 'domcontentloaded' });
+const URL_PERFIL = 'https://perfil.estrategia.com/';
+
+// Área do aluno (perfil.estrategia.com) → "Estratégia Concursos Novo" → Acessar. Devolve a aba da plataforma nova.
+async function entrarPlataformaNova(ctx, page) {
+  await page.goto(URL_PERFIL, { waitUntil: 'domcontentloaded' });
   await esperarPagina(page);
-  if (/login|entrar|auth|perfil\.estrategia/i.test(page.url())) return false;
-  const temFormLogin = await page.$('input[type="password"]');
-  return !temFormLogin;
+  if (/login/i.test(page.url()) || await page.$('input[type="password"]')) return null;   // não logado
+  const card = page.locator('text=/Estrat[ée]gia Concursos\\s*Novo/i').first();
+  if (!(await card.count())) { console.log('   (não achei o cartão "Estratégia Concursos Novo" na Área do aluno)'); await salvarInspecao(page, 'perfil'); return page; }
+  // o botão "Acessar" fica no mesmo cartão: sobe até o contêiner que tem um link/botão "Acessar"
+  const botao = card.locator('xpath=ancestor::*[.//a[contains(.,"Acessar")] or .//button[contains(.,"Acessar")]][1]').locator('a:has-text("Acessar"), button:has-text("Acessar")').first();
+  const [nova] = await Promise.all([ctx.waitForEvent('page', { timeout: 6000 }).catch(() => null), botao.click({ timeout: 5000 }).catch(() => null)]);
+  const alvo = nova || page;
+  try { await alvo.waitForLoadState('domcontentloaded', { timeout: 20000 }); } catch {}
+  await esperarPagina(alvo);
+  console.log('Plataforma nova aberta em:', alvo.url());
+  return alvo;
 }
 
 async function salvarInspecao(page, nome) {
@@ -105,8 +116,8 @@ async function salvarInspecao(page, nome) {
 async function login() {
   const ctx = await abrir(false);
   const page = ctx.pages()[0] || await ctx.newPage();
-  console.log('➡  Faça o login na janela do navegador (pode usar "Entrar com Google"). Quando a lista de cursos aparecer, feche a janela.');
-  await page.goto(URL_CURSOS);
+  console.log('➡  Faça o login na janela do navegador (pode usar "Entrar com Google"). Quando aparecer a Área do aluno, feche a janela.');
+  await page.goto(URL_PERFIL);
   await new Promise(res => ctx.on('close', res));
   console.log('✔ Sessão salva em', PERFIL);
 }
@@ -211,11 +222,13 @@ async function baixar(page, url, destino) {
 
 async function sync(inspecionar) {
   const ctx = await abrir(!inspecionar);
-  const page = ctx.pages()[0] || await ctx.newPage();
-  if (!(await logado(page))) { console.error('✖ Não está logado. Rode: npm run login'); await ctx.close(); process.exit(1); }
+  let page = ctx.pages()[0] || await ctx.newPage();
+  page = await entrarPlataformaNova(ctx, page);
+  if (!page) { console.error('✖ Não está logado. Rode: npm run login (ou apague a pasta .perfil-navegador e rode de novo)'); await ctx.close(); process.exit(1); }
 
   let todos = [], cursos = [];
-  for (const u of [...new Set(URLS_CANDIDATAS)]) {
+  const urlsBusca = [page.url(), ...URLS_CANDIDATAS.filter(u => u !== URL_CURSOS || process.env.ESTRATEGIA_URL_CURSOS)];
+  for (const u of [...new Set(urlsBusca)]) {
     if (page.url() !== u) { try { await page.goto(u, { waitUntil: 'domcontentloaded' }); await esperarPagina(page); } catch { continue; } }
     todos = await listarCursos(page);
     cursos = todos.filter(c => bateFiltro(c.nome));
