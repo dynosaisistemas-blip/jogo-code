@@ -347,6 +347,21 @@ async function sync(inspecionar) {
     console.log(`\n🎓 Pacote: ${curso.nome}`);
     await explorar(curso.url, 0, curso.nome, null, null);
   }
+
+  // Passada extra: cursos avulsos da plataforma antiga (ex.: "Direto ao Ponto") que batem com o filtro.
+  if (process.env.SEM_BONUS !== '1') {
+    const vistosBonus = new Set();
+    for (const u of ['https://www.estrategiaconcursos.com.br/app/dashboard/cursos-exclusivos', 'https://www.estrategiaconcursos.com.br/app/dashboard/cursos']) {
+      try { await page.goto(u, { waitUntil: 'domcontentloaded' }); await esperarPagina(page); } catch { continue; }
+      const lista = (await listarCursos(page)).filter(c => bateFiltro(c.nome) && /\/cursos\/\d+\/aulas\/?$/.test(c.url));
+      for (const c of lista) {
+        if (vistosBonus.has(c.url)) continue; vistosBonus.add(c.url);
+        const nome = c.nome.replace(/^Cursos Exclusivos\s*/i, '').replace(/\s*Dispon[ií]vel em.*$/i, '').trim();
+        console.log(`\n🎁 Curso avulso: ${nome}  →  ${disciplinaDe(nome)}`);
+        await explorar(c.url, 1, nome, disciplinaDe(nome), null);
+      }
+    }
+  }
   if (!inspecionar) console.log(`\n✔ Concluído. Novos: ${JSON.stringify(cont)}\n   Pasta: ${SAIDA}\n→ No sistema: Importar / Backup → "Importar pasta sincronizada" → escolha a pasta material.`);
   await ctx.close();
 }
