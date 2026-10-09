@@ -12,111 +12,186 @@
 <title>Rumo à Receita</title>
 <meta name="description" content="Sistema de estudos para Auditor Fiscal da Receita Federal (AFRFB): ciclo de estudos, materiais, flashcards com repetição espaçada, questões e revisões.">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#f6f7f9;--surface:#ffffff;--surface-2:#eef1f5;--text:#16202e;--muted:#5b6778;
-  --line:#dbe0e7;--accent:#0b5cad;--accent-2:#e8f1fb;--ok:#1f7a45;--ok-bg:#e6f4ec;
-  --warn:#a35b00;--warn-bg:#fdf1e1;--bad:#b42318;--bad-bg:#fbe9e7;--shadow:0 1px 2px rgba(16,24,40,.06);
+  --bg:#f3f5f8;--surface:#ffffff;--surface-2:#f0f3f7;--surface-3:#e4e9f0;--text:#0f1a2a;--muted:#5f6b7c;--faint:#8b95a5;
+  --line:#e2e7ee;--accent:#0f4c9c;--accent-strong:#0a3b7a;--accent-2:#e6effb;--accent-ink:#ffffff;
+  --ok:#157347;--ok-bg:#e3f5ea;--warn:#9a5b00;--warn-bg:#fff2dc;--bad:#b3261e;--bad-bg:#fce8e6;
+  --gold:#c99a2e;--shadow:0 1px 2px rgba(15,26,42,.05),0 4px 14px -6px rgba(15,26,42,.08);
+  --side:#0b2447;--side-2:#133a6b;--side-text:#dbe6f6;--side-muted:#8fa6c8;--r:14px;
 }
-@media (prefers-color-scheme: dark){
-  :root:not([data-theme="light"]){
-    --bg:#0f141b;--surface:#171e27;--surface-2:#1f2833;--text:#e6ebf2;--muted:#9aa6b6;
-    --line:#2b3644;--accent:#6aa9ec;--accent-2:#1a2c42;--ok:#5cc28a;--ok-bg:#16301f;
-    --warn:#f0a548;--warn-bg:#36260f;--bad:#f2806f;--bad-bg:#3a1a16;--shadow:none;
-  }
-}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0c1118;--surface:#141b25;--surface-2:#1b2431;--surface-3:#243041;--text:#e8edf4;--muted:#9aa7b8;--faint:#6f7c8e;
+  --line:#243041;--accent:#6ea8f0;--accent-strong:#8fbcf5;--accent-2:#182a44;--accent-ink:#0c1118;
+  --ok:#5fcf93;--ok-bg:#15301f;--warn:#f1b35a;--warn-bg:#34260e;--bad:#f28b7d;--bad-bg:#3b1a16;--gold:#e0b24c;--shadow:none;
+  --side:#0a1420;--side-2:#132235;--side-text:#dbe6f6;--side-muted:#7f93b0}}
 :root[data-theme="dark"]{
-  --bg:#0f141b;--surface:#171e27;--surface-2:#1f2833;--text:#e6ebf2;--muted:#9aa6b6;
-  --line:#2b3644;--accent:#6aa9ec;--accent-2:#1a2c42;--ok:#5cc28a;--ok-bg:#16301f;
-  --warn:#f0a548;--warn-bg:#36260f;--bad:#f2806f;--bad-bg:#3a1a16;--shadow:none;
-}
+  --bg:#0c1118;--surface:#141b25;--surface-2:#1b2431;--surface-3:#243041;--text:#e8edf4;--muted:#9aa7b8;--faint:#6f7c8e;
+  --line:#243041;--accent:#6ea8f0;--accent-strong:#8fbcf5;--accent-2:#182a44;--accent-ink:#0c1118;
+  --ok:#5fcf93;--ok-bg:#15301f;--warn:#f1b35a;--warn-bg:#34260e;--bad:#f28b7d;--bad-bg:#3b1a16;--gold:#e0b24c;--shadow:none;
+  --side:#0a1420;--side-2:#132235;--side-text:#dbe6f6;--side-muted:#7f93b0}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--text);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
-header{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--line)}
-.bar{max-width:1100px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.brand{font-weight:700;font-size:17px;margin-right:auto}
-.brand small{display:block;font-weight:400;color:var(--muted);font-size:12px}
-nav{max-width:1100px;margin:0 auto;padding:0 16px;display:flex;gap:2px;overflow-x:auto}
-nav button{background:none;border:0;border-bottom:2px solid transparent;color:var(--muted);padding:10px 12px;font:inherit;cursor:pointer;white-space:nowrap}
-nav button.on{color:var(--accent);border-color:var(--accent);font-weight:600}
-main{max-width:1100px;margin:0 auto;padding:20px 16px 60px}
-h2{font-size:20px;margin:0 0 14px}h3{font-size:16px;margin:0 0 10px}
-.grid{display:grid;gap:14px}
-.g4{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
-.g2{grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;box-shadow:var(--shadow);min-width:0}
-.stat b{display:block;font-size:26px;font-variant-numeric:tabular-nums}
-.stat span{color:var(--muted);font-size:13px}
-.muted{color:var(--muted)}.small{font-size:13px}
-button.btn,label.btn{display:inline-flex;align-items:center;gap:6px;background:var(--accent);color:#fff;border:0;border-radius:8px;padding:8px 14px;font:inherit;font-weight:600;cursor:pointer}
-:root[data-theme="dark"] button.btn,:root[data-theme="dark"] label.btn{color:#0f141b}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) button.btn,:root:not([data-theme="light"]) label.btn{color:#0f141b}}
-.btn.ghost{background:var(--surface-2);color:var(--text)!important}
-.btn.sm{padding:5px 10px;font-size:13px}
-.btn.ok{background:var(--ok)}.btn.bad{background:var(--bad)}.btn.warn{background:var(--warn)}
-input,select,textarea{font:inherit;color:var(--text);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:8px 10px;width:100%}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.55 Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased}
+a{color:var(--accent)}
+/* ---- layout ---- */
+.shell{display:grid;grid-template-columns:248px 1fr;min-height:100vh}
+aside{background:var(--side);color:var(--side-text);padding:22px 14px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;gap:6px}
+.logo{display:flex;align-items:center;gap:12px;padding:4px 10px 18px}
+.logo .mark{width:40px;height:40px;border-radius:11px;background:linear-gradient(135deg,#1f6fd1,#0b2447 120%);display:grid;place-items:center;font-size:21px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.12)}
+.logo b{display:block;font-size:15px;letter-spacing:-.01em}.logo small{display:block;color:var(--side-muted);font-size:11.5px;font-weight:500}
+.navlbl{font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--side-muted);padding:12px 12px 4px}
+aside nav button{display:flex;align-items:center;gap:11px;width:100%;background:none;border:0;color:var(--side-text);padding:9px 12px;border-radius:9px;font:inherit;font-weight:500;cursor:pointer;text-align:left;opacity:.85}
+aside nav button:hover{background:var(--side-2);opacity:1}
+aside nav button.on{background:var(--side-2);opacity:1;font-weight:600;box-shadow:inset 3px 0 0 #5fa0f0}
+aside nav button .ic{width:20px;text-align:center;font-size:16px}
+aside nav button .cnt{margin-left:auto;background:#5fa0f0;color:#061329;font-size:11px;font-weight:700;padding:1px 7px;border-radius:99px}
+.side-foot{margin-top:auto;padding:10px 12px;color:var(--side-muted);font-size:12px;display:flex;align-items:center;gap:8px}
+.side-foot button{background:var(--side-2);border:0;color:var(--side-text);border-radius:8px;padding:6px 9px;cursor:pointer;font:inherit;font-size:12px}
+.content{min-width:0}
+.topbar{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--bg) 85%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);padding:14px 28px;display:flex;align-items:center;gap:14px}
+.topbar h1{font-size:19px;margin:0;font-weight:700;letter-spacing:-.01em}
+.topbar .sub{color:var(--muted);font-size:13px}
+.topbar .sp{flex:1}
+main{padding:24px 28px 80px;max-width:1240px}
+.bottomnav{display:none}
+@media (max-width:900px){
+  .shell{grid-template-columns:1fr}aside{display:none}
+  .topbar{padding:12px 16px}.topbar h1{font-size:17px}
+  main{padding:16px 16px 92px}
+  .bottomnav{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:10;background:var(--surface);border-top:1px solid var(--line);padding:6px 4px calc(6px + env(safe-area-inset-bottom));justify-content:space-around}
+  .bottomnav button{background:none;border:0;color:var(--muted);font:inherit;font-size:10.5px;font-weight:600;display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 6px;border-radius:10px;flex:1;cursor:pointer;position:relative}
+  .bottomnav button .ic{font-size:20px;line-height:1}
+  .bottomnav button.on{color:var(--accent)}
+  .bottomnav button .cnt{position:absolute;top:0;right:12%;background:var(--bad);color:#fff;font-size:10px;padding:0 5px;border-radius:99px;font-weight:700}
+  .more-menu{position:fixed;left:0;right:0;bottom:62px;z-index:11;background:var(--surface);border-top:1px solid var(--line);box-shadow:0 -8px 24px rgba(0,0,0,.12);padding:10px;display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .more-menu button{background:var(--surface-2);border:0;border-radius:10px;padding:12px 6px;font:inherit;font-size:12px;font-weight:600;color:var(--text);cursor:pointer;display:flex;flex-direction:column;gap:4px;align-items:center}
+  .more-menu button .ic{font-size:20px}
+}
+/* ---- components ---- */
+h2{font-size:21px;margin:0 0 6px;letter-spacing:-.015em;font-weight:700}
+h3{font-size:15px;margin:0 0 12px;font-weight:700;letter-spacing:-.005em}
+.lead{color:var(--muted);margin:0 0 18px;font-size:14px;max-width:70ch}
+.grid{display:grid;gap:16px}
+.g4{grid-template-columns:repeat(4,1fr)}.g3{grid-template-columns:repeat(3,1fr)}.g2{grid-template-columns:repeat(2,1fr)}
+@media (max-width:1100px){.g4{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:640px){.g4,.g3,.g2{grid-template-columns:1fr}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:20px;box-shadow:var(--shadow);min-width:0}
+.card.pad-sm{padding:14px 16px}
+.card.hero{background:linear-gradient(135deg,var(--side) 0%,#143f78 60%,#1f6fd1 130%);color:#fff;border:0}
+.card.hero .muted,.card.hero .lead{color:#b9cdea}
+.card.hero h2{color:#fff}
+.stat{display:flex;flex-direction:column;gap:6px}
+.stat .lbl{font-size:12.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.stat b{font-size:30px;font-weight:800;letter-spacing:-.03em;line-height:1;font-variant-numeric:tabular-nums}
+.stat .d{font-size:13px;color:var(--muted)}
+.stat .ico{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;background:var(--accent-2);color:var(--accent);font-size:18px;margin-bottom:4px}
+.muted{color:var(--muted)}.small{font-size:13px}.faint{color:var(--faint)}
+button.btn,label.btn,a.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;background:var(--accent);color:var(--accent-ink);border:0;border-radius:10px;padding:9px 16px;font:inherit;font-size:14px;font-weight:600;cursor:pointer;text-decoration:none;transition:filter .15s,transform .05s;white-space:nowrap}
+.btn:hover{filter:brightness(1.08)}.btn:active{transform:translateY(1px)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn.ghost{background:var(--surface-2);color:var(--text)}
+.btn.outline{background:transparent;color:var(--accent);box-shadow:inset 0 0 0 1.5px var(--accent)}
+.btn.sm{padding:6px 11px;font-size:13px;border-radius:8px}
+.btn.ok{background:var(--ok);color:#fff}.btn.bad{background:var(--bad);color:#fff}.btn.warn{background:var(--warn);color:#fff}
+.btn.light{background:rgba(255,255,255,.14);color:#fff}
+input,select,textarea{font:inherit;color:var(--text);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:9px 12px;width:100%;transition:border-color .15s,box-shadow .15s}
+input:focus,select:focus,textarea:focus{outline:0;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-2)}
 textarea{min-height:90px;resize:vertical}
+label.small.muted{display:block}
 .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-.row>*{flex:1 1 160px}
-.row>.btn,.row>button{flex:0 0 auto}
-.prog{height:8px;background:var(--surface-2);border-radius:99px;overflow:hidden}
-.prog i{display:block;height:100%;background:var(--accent)}
-.disc{border-bottom:1px solid var(--line);padding:10px 0}
-.disc:last-child{border:0}
-.disc summary{cursor:pointer;display:flex;gap:10px;align-items:center;list-style:none}
+.row>*{flex:1 1 160px}.row>.btn,.row>button{flex:0 0 auto}
+.prog{height:8px;background:var(--surface-3);border-radius:99px;overflow:hidden}
+.prog i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),#3f8ae6);border-radius:99px;transition:width .4s}
+.disc{border-bottom:1px solid var(--line);padding:12px 0}
+.disc:last-of-type{border:0}
+.disc summary{cursor:pointer;display:flex;gap:12px;align-items:center;list-style:none}
 .disc summary::-webkit-details-marker{display:none}
 .disc summary .nm{flex:1;font-weight:600;min-width:0}
-.tag{display:inline-block;font-size:12px;padding:1px 8px;border-radius:99px;background:var(--surface-2);color:var(--muted)}
+.tag{display:inline-flex;align-items:center;font-size:11.5px;font-weight:600;padding:2px 9px;border-radius:99px;background:var(--surface-3);color:var(--muted);letter-spacing:.01em}
 .tag.ok{background:var(--ok-bg);color:var(--ok)}.tag.warn{background:var(--warn-bg);color:var(--warn)}.tag.bad{background:var(--bad-bg);color:var(--bad)}.tag.ac{background:var(--accent-2);color:var(--accent)}
-.topic{display:flex;gap:8px;align-items:center;padding:5px 0 5px 4px;font-size:14px}
+.topic{display:flex;gap:8px;align-items:center;padding:6px 0 6px 6px;font-size:14px}
 .topic .t{flex:1;min-width:0}
-.topic select{width:auto;padding:3px 6px;font-size:13px}
+.topic select{width:auto;padding:4px 8px;font-size:13px;border-radius:8px}
 table{width:100%;border-collapse:collapse;font-size:14px}
-th,td{text-align:left;padding:7px 6px;border-bottom:1px solid var(--line);vertical-align:top}
-th{color:var(--muted);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.03em}
+th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
+tr:last-child td{border:0}
+th{color:var(--muted);font-weight:600;font-size:11.5px;text-transform:uppercase;letter-spacing:.06em}
 td.n{text-align:right;font-variant-numeric:tabular-nums}
-.timer{font-size:52px;font-weight:700;font-variant-numeric:tabular-nums;text-align:center;letter-spacing:.02em}
-.flash{min-height:200px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:18px;white-space:pre-wrap;padding:24px}
-.alt{display:block;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin:6px 0;font:inherit;color:var(--text);cursor:pointer}
-.alt:hover{border-color:var(--accent)}
+.timer{font-size:64px;font-weight:800;font-variant-numeric:tabular-nums;text-align:center;letter-spacing:-.03em;margin:8px 0;color:var(--accent-strong)}
+.flash{min-height:220px;display:flex;align-items:center;justify-content:center;text-align:center;font-size:19px;line-height:1.5;white-space:pre-wrap;padding:28px;background:var(--surface-2);border-radius:12px;margin:10px 0 14px}
+.alt{display:block;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin:8px 0;font:inherit;color:var(--text);cursor:pointer;transition:border-color .12s,background .12s}
+.alt:hover{border-color:var(--accent);background:var(--accent-2)}
 .alt.right{background:var(--ok-bg);border-color:var(--ok)}.alt.wrong{background:var(--bad-bg);border-color:var(--bad)}
-.reader{max-height:75vh;overflow:auto;background:var(--surface-2);border-radius:8px;padding:10px}
-.reader canvas{display:block;max-width:100%;margin:0 auto 10px;box-shadow:0 1px 4px rgba(0,0,0,.2)}
-.reader pre{white-space:pre-wrap;font:inherit;margin:0;background:var(--surface);padding:16px;border-radius:8px}
-.list-item{display:flex;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line)}
+.reader{max-height:75vh;overflow:auto;background:var(--surface-2);border-radius:12px;padding:12px}
+.reader canvas{display:block;max-width:100%;margin:0 auto 12px;box-shadow:0 2px 8px rgba(0,0,0,.18);border-radius:4px}
+.reader pre{white-space:pre-wrap;font:inherit;margin:0;background:var(--surface);padding:18px;border-radius:10px;line-height:1.7}
+.list-item{display:flex;gap:12px;align-items:center;padding:11px 0;border-bottom:1px solid var(--line)}
 .list-item:last-child{border:0}
 .list-item .grow{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis}
-.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--text);color:var(--bg);padding:10px 16px;border-radius:8px;font-size:14px;z-index:20;opacity:0;transition:opacity .2s;pointer-events:none}
-.toast.show{opacity:1}
+.empty{text-align:center;padding:34px 16px;color:var(--muted)}
+.empty .big{font-size:34px;margin-bottom:6px}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(8px);background:var(--text);color:var(--bg);padding:11px 18px;border-radius:10px;font-size:14px;font-weight:500;z-index:30;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,.2)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+@media (max-width:900px){.toast{bottom:84px}}
 .hide{display:none!important}
-.bars{display:flex;align-items:flex-end;gap:4px;height:110px}
-.bars div{flex:1;background:var(--accent);border-radius:3px 3px 0 0;min-height:2px;position:relative}
-.bars-lbl{display:flex;gap:4px;font-size:11px;color:var(--muted)}.bars-lbl span{flex:1;text-align:center}
-code{background:var(--surface-2);padding:1px 5px;border-radius:4px;font-size:13px}
-pre.code{background:var(--surface-2);padding:12px;border-radius:8px;overflow:auto;font-size:12.5px}
-@media (max-width:560px){.timer{font-size:40px}.g2{grid-template-columns:1fr}}
+.bars{display:flex;align-items:flex-end;gap:5px;height:120px}
+.bars div{flex:1;background:var(--accent-2);border-radius:4px 4px 0 0;min-height:3px;position:relative;overflow:hidden}
+.bars div i{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(180deg,#3f8ae6,var(--accent));border-radius:4px 4px 0 0}
+.bars-lbl{display:flex;gap:5px;font-size:10.5px;color:var(--faint);margin-top:6px}.bars-lbl span{flex:1;text-align:center}
+.ring{--p:0;width:92px;height:92px;border-radius:50%;background:conic-gradient(var(--accent) calc(var(--p)*1%),var(--surface-3) 0);display:grid;place-items:center;flex:0 0 auto}
+.ring span{width:72px;height:72px;border-radius:50%;background:var(--surface);display:grid;place-items:center;font-weight:800;font-size:17px;letter-spacing:-.02em}
+.todo{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;background:var(--surface-2);margin-bottom:8px}
+.todo .ic{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;background:var(--surface);font-size:17px;flex:0 0 auto}
+.todo .tx{flex:1;min-width:0}.todo .tx b{display:block;font-size:14px}.todo .tx span{font-size:12.5px;color:var(--muted)}
+code{background:var(--surface-3);padding:1px 6px;border-radius:5px;font-size:13px}
+pre.code{background:var(--surface-2);padding:14px;border-radius:10px;overflow:auto;font-size:12.5px;line-height:1.6}
+.kbd{font-size:11px;border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;padding:0 5px;color:var(--muted);background:var(--surface)}
+@media (max-width:560px){.timer{font-size:48px}}
 </style>
 </head>
 <body>
-<header>
-  <div class="bar">
-    <div class="brand">🏛️ Rumo à Receita<small>Auditor Fiscal da Receita Federal do Brasil</small></div>
-    <span class="tag ac" id="hdrCount"></span>
-    <button class="btn ghost sm" id="themeBtn" title="Alternar tema">◐</button>
-  </div>
+<div class="shell">
+<aside>
+  <div class="logo"><div class="mark">🏛️</div><div><b>Rumo à Receita</b><small>Auditor Fiscal · RFB</small></div></div>
+  <div class="navlbl">Estudo</div>
   <nav id="nav">
-    <button data-v="painel" class="on">Painel</button>
-    <button data-v="edital">Edital</button>
-    <button data-v="estudar">Estudar</button>
-    <button data-v="materiais">Materiais</button>
-    <button data-v="flash">Flashcards</button>
-    <button data-v="questoes">Questões</button>
-    <button data-v="revisoes">Revisões</button>
-    <button data-v="leis">Lei seca</button>
-    <button data-v="dados">Importar / Backup</button>
+    <button data-v="painel" class="on"><span class="ic">▦</span>Painel</button>
+    <button data-v="estudar"><span class="ic">⏱</span>Estudar</button>
+    <button data-v="edital"><span class="ic">☰</span>Edital</button>
+    <button data-v="revisoes"><span class="ic">↻</span>Revisões<span class="cnt hide" id="cRev"></span></button>
+    <div class="navlbl">Conteúdo</div>
+    <button data-v="materiais"><span class="ic">▤</span>Materiais</button>
+    <button data-v="flash"><span class="ic">▭</span>Flashcards<span class="cnt hide" id="cFc"></span></button>
+    <button data-v="questoes"><span class="ic">?</span>Questões</button>
+    <button data-v="leis"><span class="ic">§</span>Lei seca</button>
+    <div class="navlbl">Sistema</div>
+    <button data-v="dados"><span class="ic">⇅</span>Importar / Backup</button>
   </nav>
-</header>
-<main id="app"></main>
+  <div class="side-foot"><span id="sideFoot"></span><span style="flex:1"></span><button id="themeBtn" title="Alternar tema">◐ Tema</button></div>
+</aside>
+<div class="content">
+  <div class="topbar"><div><h1 id="tbTitle">Painel</h1><div class="sub" id="tbSub"></div></div><span class="sp"></span><span class="tag ac" id="hdrCount"></span></div>
+  <main id="app"></main>
+</div>
+</div>
+<div class="bottomnav" id="bnav">
+  <button data-v="painel" class="on"><span class="ic">▦</span>Painel</button>
+  <button data-v="estudar"><span class="ic">⏱</span>Estudar</button>
+  <button data-v="flash"><span class="ic">▭</span>Cards<span class="cnt hide" id="cFc2"></span></button>
+  <button data-v="materiais"><span class="ic">▤</span>Materiais</button>
+  <button id="bnMore"><span class="ic">⋯</span>Mais</button>
+</div>
+<div class="more-menu hide" id="moreMenu">
+  <button data-v="edital"><span class="ic">☰</span>Edital</button>
+  <button data-v="revisoes"><span class="ic">↻</span>Revisões</button>
+  <button data-v="questoes"><span class="ic">?</span>Questões</button>
+  <button data-v="leis"><span class="ic">§</span>Lei seca</button>
+  <button data-v="dados"><span class="ic">⇅</span>Importar</button>
+  <button id="themeBtn2"><span class="ic">◐</span>Tema</button>
+</div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -210,10 +285,17 @@ function acertos(discId){let a=0,t=0;S.questoes.forEach(q=>{if(discId&&q.disc!==
 
 /* ============ Navegação ============ */
 let VIEW='painel';
-$('#nav').onclick=e=>{const b=e.target.closest('button');if(!b)return;VIEW=b.dataset.v;document.querySelectorAll('#nav button').forEach(x=>x.classList.toggle('on',x===b));render();window.scrollTo(0,0)};
-function ir(v){VIEW=v;document.querySelectorAll('#nav button').forEach(x=>x.classList.toggle('on',x.dataset.v===v));render()}
+const TITULOS={painel:['Painel','Visão geral da sua preparação'],edital:['Edital verticalizado','Marque o que já estudou; as revisões são agendadas sozinhas'],estudar:['Sessão de estudo','Ciclo de estudos e cronômetro'],materiais:['Materiais','PDFs, resumos, áudios, vídeos e textos por disciplina'],flash:['Flashcards','Repetição espaçada'],questoes:['Questões','Banco próprio com histórico de acertos'],revisoes:['Revisões','Programadas em 1, 7 e 30 dias'],leis:['Lei seca','Artigos que mais caem, com suas anotações'],dados:['Importar / Backup','Material do Estratégia, pacotes e cópia de segurança']};
+function ir(v){VIEW=v;document.querySelectorAll('[data-v]').forEach(x=>x.classList.toggle('on',x.dataset.v===v));$('#moreMenu').classList.add('hide');render();window.scrollTo(0,0)}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-v]');if(b&&(b.closest('#nav')||b.closest('#bnav')||b.closest('#moreMenu')))ir(b.dataset.v)});
+$('#bnMore').onclick=()=>$('#moreMenu').classList.toggle('hide');
 function render(){
-  $('#hdrCount').textContent=`${cardsDue().length} cards · ${revisoesPendentes().length} revisões hoje`;
+  const fc=cardsDue().length,rv=revisoesPendentes().length;
+  $('#hdrCount').textContent=`${fc} cards · ${rv} revisões hoje`;
+  for(const [id,n] of [['#cFc',fc],['#cFc2',fc],['#cRev',rv]]){const el=$(id);el.textContent=n;el.classList.toggle('hide',!n)}
+  const [t,sub]=TITULOS[VIEW]||['',''];$('#tbTitle').textContent=t;$('#tbSub').textContent=sub;
+  const prova=S.config.dataProva;const f=prova?Math.ceil((new Date(prova+'T12:00:00')-new Date(hoje()+'T12:00:00'))/864e5):null;
+  $('#sideFoot').textContent=f===null?'Defina a data da prova':f>=0?`${f} dias para a prova`:'Prova realizada';
   ({painel,edital,estudar,materiais,flash,questoes,revisoes,leis,dados})[VIEW]();
 }
 
@@ -225,52 +307,60 @@ function painel(){
   const prova=S.config.dataProva;const faltam=prova?Math.ceil((new Date(prova+'T12:00:00')-new Date(hoje()+'T12:00:00'))/864e5):null;
   const prox=proximaDoCiclo();
   const dias=[...Array(14)].map((_,i)=>addDias(hoje(),i-13));
-  const mins=dias.map(d=>S.sessoes.filter(s=>s.data===d).reduce((a,s)=>a+s.min,0));const mx=Math.max(60,...mins);
+  const mins=dias.map(d=>S.sessoes.filter(s=>s.data===d).reduce((a,s)=>a+s.min,0));const mx=Math.max(S.config.horasDia*60,...mins);
+  const sem=minutosPor(null,7),meta=S.config.horasDia*7*60;
+  const h=new Date().getHours();const sauda=h<12?'Bom dia':h<18?'Boa tarde':'Boa noite';
+  const fc=cardsDue().length,rv=revisoesPendentes().length;
   $('#app').innerHTML=`
+  <div class="card hero" style="display:flex;gap:20px;align-items:center;flex-wrap:wrap;margin-bottom:16px">
+    <div style="flex:1 1 320px"><h2 style="font-size:24px">${sauda}. ${faltam===null?'Vamos começar?':faltam>0?`Faltam <b>${faltam} dias</b> para a prova.`:'Dia de prova. Boa sorte!'}</h2>
+      <p class="lead" style="margin:4px 0 14px">Próxima disciplina do ciclo: <b style="color:#fff">${esc(prox.nome)}</b>${fc?` · ${fc} flashcards aguardam revisão`:''}${rv?` · ${rv} revisões vencem hoje`:''}.</p>
+      <div class="row"><button class="btn light" onclick="ir('estudar')">▶ Iniciar sessão</button>${fc?`<button class="btn light" onclick="ir('flash')">Revisar flashcards</button>`:''}</div></div>
+    <div class="ring" style="--p:${Math.round(sem/meta*100)}"><span>${Math.min(999,Math.round(sem/meta*100))}%</span></div>
+    <div style="flex:0 0 auto;font-size:13px;color:#b9cdea;max-width:150px">da meta semanal<br><b style="color:#fff">${fmtH(sem)}</b> de ${S.config.horasDia*7}h</div>
+  </div>
   <div class="grid g4">
-    <div class="card stat"><b>${faltam===null?'—':faltam}</b><span>${faltam===null?'defina a data da prova':'dias para a prova'}</span></div>
-    <div class="card stat"><b>${fmtH(minutosPor(null,7))}</b><span>estudadas nos últimos 7 dias (meta ${S.config.horasDia*7}h)</span></div>
-    <div class="card stat"><b>${feitos}/${tot}</b><span>tópicos do edital concluídos</span></div>
-    <div class="card stat"><b>${ac.t?Math.round(ac.p*100)+'%':'—'}</b><span>acertos em ${ac.t} questões resolvidas</span></div>
+    <div class="card stat"><div class="ico">📅</div><span class="lbl">Prova</span><b>${faltam===null?'—':faltam}</b><span class="d">${faltam===null?'defina a data abaixo':'dias restantes'}</span></div>
+    <div class="card stat"><div class="ico">⏱</div><span class="lbl">Semana</span><b>${fmtH(sem)}</b><span class="d">meta ${S.config.horasDia*7}h · sequência de ${streak()} dia(s)</span></div>
+    <div class="card stat"><div class="ico">☰</div><span class="lbl">Edital</span><b>${tot?Math.round(feitos/tot*100):0}%</b><span class="d">${feitos} de ${tot} tópicos concluídos</span></div>
+    <div class="card stat"><div class="ico">✓</div><span class="lbl">Questões</span><b>${ac.t?Math.round(ac.p*100)+'%':'—'}</b><span class="d">${ac.t?`acertos em ${ac.t} resolvidas`:'nenhuma resolvida ainda'}</span></div>
   </div>
-  <div class="grid g2" style="margin-top:14px">
-    <div class="card">
-      <h3>Hoje</h3>
-      <div class="list-item"><span class="grow">Próxima no ciclo: <b>${esc(prox.nome)}</b></span><button class="btn sm" onclick="ir('estudar')">Estudar</button></div>
-      <div class="list-item"><span class="grow">Flashcards para revisar: <b>${cardsDue().length}</b></span><button class="btn sm ghost" onclick="ir('flash')">Revisar</button></div>
-      <div class="list-item"><span class="grow">Revisões de tópicos pendentes: <b>${revisoesPendentes().length}</b></span><button class="btn sm ghost" onclick="ir('revisoes')">Ver</button></div>
-      <div class="list-item"><span class="grow">Sequência de dias estudando: <b>${streak()}</b> 🔥</span></div>
+  <div class="grid g2" style="margin-top:16px">
+    <div class="card"><h3>Para hoje</h3>
+      <div class="todo"><div class="ic">📖</div><div class="tx"><b>${esc(prox.nome)}</b><span>Disciplina da vez no ciclo de estudos</span></div><button class="btn sm" onclick="ir('estudar')">Estudar</button></div>
+      <div class="todo"><div class="ic">▭</div><div class="tx"><b>${fc} flashcards</b><span>${fc?'prontos para revisão espaçada':'nenhum pendente — bom trabalho'}</span></div><button class="btn sm ghost" onclick="ir('flash')">Abrir</button></div>
+      <div class="todo"><div class="ic">↻</div><div class="tx"><b>${rv} revisões de tópico</b><span>${rv?'vencidas ou vencendo hoje':'tudo em dia'}</span></div><button class="btn sm ghost" onclick="ir('revisoes')">Ver</button></div>
     </div>
-    <div class="card">
-      <h3>Horas por dia (últimas 2 semanas)</h3>
-      <div class="bars">${mins.map((m,i)=>`<div title="${dias[i]}: ${fmtH(m)}" style="height:${m/mx*100}%;${dias[i]===hoje()?'':'opacity:.65'}"></div>`).join('')}</div>
+    <div class="card"><h3>Horas por dia · últimas 2 semanas</h3>
+      <div class="bars">${mins.map((m,i)=>`<div title="${dias[i].split('-').reverse().join('/')}: ${fmtH(m)}"><i style="height:${m/mx*100}%;${dias[i]===hoje()?'':'opacity:.7'}"></i></div>`).join('')}</div>
       <div class="bars-lbl">${dias.map(d=>`<span>${d.slice(8)}</span>`).join('')}</div>
+      <p class="small muted" style="margin:10px 0 0">Meta diária: ${S.config.horasDia}h. Registre sessões na aba Estudar.</p>
     </div>
   </div>
-  <div class="card" style="margin-top:14px">
+  <div class="card" style="margin-top:16px">
     <h3>Progresso por disciplina</h3>
-    <table><thead><tr><th>Disciplina</th><th style="width:30%">Edital</th><th class="n">Horas</th><th class="n">Acertos</th><th class="n">Cards</th></tr></thead><tbody>
-    ${S.disciplinas.map(d=>{const p=progDisc(d),a=acertos(d.id);return `<tr><td>${esc(d.nome)} <span class="tag">${d.bloco}</span></td>
-      <td><div class="prog"><i style="width:${p*100}%"></i></div><span class="small muted">${Math.round(p*100)}%</span></td>
+    <div style="overflow:auto"><table><thead><tr><th>Disciplina</th><th style="width:32%">Edital</th><th class="n">Horas</th><th class="n">Acertos</th><th class="n">Cards</th></tr></thead><tbody>
+    ${S.disciplinas.map(d=>{const p=progDisc(d),a=acertos(d.id);return `<tr><td><b style="font-weight:600">${esc(d.nome)}</b> <span class="tag" style="margin-left:4px">${d.bloco}</span></td>
+      <td><div style="display:flex;align-items:center;gap:10px"><div class="prog" style="flex:1"><i style="width:${p*100}%"></i></div><span class="small muted" style="width:36px;text-align:right">${Math.round(p*100)}%</span></div></td>
       <td class="n">${fmtH(minutosPor(d.id))}</td><td class="n">${a.t?Math.round(a.p*100)+'%':'—'}</td><td class="n">${S.cards.filter(c=>c.disc===d.id).length}</td></tr>`}).join('')}
-    </tbody></table>
+    </tbody></table></div>
   </div>
-  <div class="card" style="margin-top:14px">
+  <div class="card" style="margin-top:16px">
     <h3>Configuração</h3>
     <div class="row">
-      <label>Data da prova<input type="date" id="cfgProva" value="${S.config.dataProva}"></label>
-      <label>Meta de horas/dia<input type="number" min="1" max="16" id="cfgHoras" value="${S.config.horasDia}"></label>
+      <label class="small muted">Data da prova<input type="date" id="cfgProva" value="${S.config.dataProva}"></label>
+      <label class="small muted">Meta de horas por dia<input type="number" min="1" max="16" id="cfgHoras" value="${S.config.horasDia}"></label>
     </div>
   </div>`;
-  $('#cfgProva').onchange=e=>{S.config.dataProva=e.target.value;salvar();painel()};
-  $('#cfgHoras').onchange=e=>{S.config.horasDia=+e.target.value||4;salvar();painel()};
+  $('#cfgProva').onchange=e=>{S.config.dataProva=e.target.value;salvar();render()};
+  $('#cfgHoras').onchange=e=>{S.config.horasDia=+e.target.value||4;salvar();render()};
 }
 
 /* ============ Edital ============ */
 const STATUS=['A estudar','Em andamento','Concluído'];
 function edital(){
-  $('#app').innerHTML=`<h2>Edital verticalizado</h2>
-  <p class="muted small">Baseado no último edital AFRFB (FGV, 2022) + Reforma Tributária. Quando sair o novo edital, ajuste disciplinas, pesos e tópicos aqui. Ao concluir um tópico, as revisões de 1, 7 e 30 dias são agendadas automaticamente.</p>
+  $('#app').innerHTML=`
+  <p class="lead">Baseado no último edital AFRFB (FGV, 2022) + Reforma Tributária. Quando sair o novo edital, ajuste disciplinas, pesos e tópicos aqui. Ao concluir um tópico, as revisões de 1, 7 e 30 dias são agendadas automaticamente.</p>
   <div class="card">${S.disciplinas.map(d=>`
     <details class="disc" ${openDisc.has(d.id)?'open':''} data-d="${d.id}">
       <summary><span class="nm">${esc(d.nome)}</span><span class="tag">${d.bloco}</span><span class="tag ac">peso ${d.peso}</span>
@@ -314,7 +404,7 @@ let timer={rodando:false,inicio:0,acumulado:0,h:null,disc:'',modo:'livre',alvo:0
 function estudar(){
   const prox=proximaDoCiclo();if(!timer.disc)timer.disc=prox.id;
   const c=cicloLista();const idx=S.config.cicloIdx%Math.max(c.length,1);
-  $('#app').innerHTML=`<h2>Sessão de estudo</h2>
+  $('#app').innerHTML=`
   <div class="grid g2">
     <div class="card">
       <label class="small muted">Disciplina<select id="tDisc">${optsDisc(timer.disc)}</select></label>
@@ -341,7 +431,7 @@ function estudar(){
     </div>
   </div>
   <div class="card" style="margin-top:14px"><h3>Últimas sessões</h3>
-    ${S.sessoes.slice(-10).reverse().map(s=>`<div class="list-item small"><span class="tag">${s.data.split('-').reverse().join('/')}</span><span class="grow">${esc(disc(s.disc)?.nome||'?')} · ${esc(s.tipo||'')}</span><b>${fmtH(s.min)}</b><button class="btn ghost sm" data-rm="${s.id}">✕</button></div>`).join('')||'<p class="muted small">Nenhuma sessão registrada ainda.</p>'}
+    ${S.sessoes.slice(-10).reverse().map(s=>`<div class="list-item small"><span class="tag">${s.data.split('-').reverse().join('/')}</span><span class="grow">${esc(disc(s.disc)?.nome||'?')} · ${esc(s.tipo||'')}</span><b>${fmtH(s.min)}</b><button class="btn ghost sm" data-rm="${s.id}">✕</button></div>`).join('')||'<div class="empty"><div class="big">⏱</div>Nenhuma sessão registrada ainda.</div>'}
   </div>`;
   const tick=()=>{const ms=timer.acumulado+(timer.rodando?Date.now()-timer.inicio:0);
     let shown=ms;if(timer.modo!=='livre'){shown=Math.max(0,+timer.modo*60000-ms);if(shown===0&&timer.rodando){pausar();beep();toast('Bloco concluído! Registre a sessão.')}}
@@ -370,8 +460,8 @@ const tipoDe=(nome,tipoArq)=>{const n=norm(nome);if(tipoArq==='audio'||tipoArq==
 function materiais(){
   const lista=S.materiais.filter(m=>(!matFiltro||m.disc===matFiltro)&&(!matTipo||(m.tipo||'pdf')===matTipo));
   const cont=S.materiais.reduce((a,m)=>(a[m.tipo||'pdf']=(a[m.tipo||'pdf']||0)+1,a),{});
-  $('#app').innerHTML=`<h2>Materiais</h2>
-  <p class="muted small">Envie PDFs, áudios (podcast), vídeos ou cole textos. Para trazer tudo da sua conta do Estratégia de uma vez, use o sincronizador (aba <a href="#" onclick="ir('dados');return false">Importar / Backup</a>). Os arquivos ficam guardados <b>só neste aparelho</b>.</p>
+  $('#app').innerHTML=`
+  <p class="lead">Envie PDFs, áudios (podcast), vídeos ou cole textos. Para trazer tudo da sua conta do Estratégia de uma vez, use o sincronizador (aba <a href="#" onclick="ir('dados');return false">Importar / Backup</a>). Os arquivos ficam guardados <b>só neste aparelho</b>.</p>
   <div class="card">
     <div class="row"><select id="upDisc">${optsDisc(matFiltro||S.disciplinas[0]?.id)}</select>
       <label class="btn">📄 Enviar arquivos<input type="file" id="upPdf" accept="application/pdf,audio/*,video/*,.mp3,.m4a,.mp4" multiple hidden></label>
@@ -385,7 +475,7 @@ function materiais(){
       <input id="busca" placeholder="Buscar dentro dos materiais…"></div>
     <div id="buscaRes"></div>
     ${lista.map(m=>`<div class="list-item"><span>${(TIPOS_MAT[m.tipo]||TIPOS_MAT.pdf)[0]}</span><span class="grow"><b>${esc(m.titulo)}</b><br><span class="small muted">${esc(disc(m.disc)?.nome||'')} · ${(TIPOS_MAT[m.tipo]||TIPOS_MAT.pdf)[1]}${m.paginas?` · ${m.paginas} págs.`:''}${m.lido?` · <span class="tag ok">concluído</span>`:''}</span></span>
-      <button class="btn sm" data-abrir="${m.id}">Abrir</button><button class="btn ghost sm" data-lido="${m.id}">${m.lido?'↺':'✔'}</button><button class="btn ghost sm" data-rm="${m.id}">✕</button></div>`).join('')||'<p class="muted small">Nenhum material ainda.</p>'}
+      <button class="btn sm" data-abrir="${m.id}">Abrir</button><button class="btn ghost sm" data-lido="${m.id}">${m.lido?'↺':'✔'}</button><button class="btn ghost sm" data-rm="${m.id}">✕</button></div>`).join('')||'<div class="empty"><div class="big">▤</div>Nenhum material ainda.<br><span class="small">Envie PDFs/áudios acima ou importe a pasta do sincronizador.</span></div>'}
   </div>
   <div id="leitor"></div>`;
   $('#upTxtBtn').onclick=()=>$('#upTxt').classList.toggle('hide');
@@ -479,7 +569,7 @@ function debounce(fn,ms){let h;return(...a)=>{clearTimeout(h);h=setTimeout(()=>f
 let fcDisc='',fcAtual=null,fcVirado=false;
 function flash(){
   const due=cardsDue(fcDisc);if(!fcAtual||!due.includes(fcAtual)){fcAtual=due[0]||null;fcVirado=false}
-  $('#app').innerHTML=`<h2>Flashcards</h2>
+  $('#app').innerHTML=`
   <div class="row" style="margin-bottom:12px"><select id="fcDisc">${optsDisc(fcDisc,true)}</select><span class="tag ac" style="flex:0 0 auto">${due.length} para hoje · ${S.cards.filter(c=>!fcDisc||c.disc===fcDisc).length} no total</span></div>
   <div class="card">${fcAtual?`
     <div class="small muted">${esc(disc(fcAtual.disc)?.nome||'')}</div>
@@ -487,7 +577,7 @@ function flash(){
     ${fcVirado?`<div class="row" style="justify-content:center">
       <button class="btn bad" data-q="0">Errei</button><button class="btn warn" data-q="3">Difícil</button><button class="btn" data-q="4">Bom</button><button class="btn ok" data-q="5">Fácil</button></div>`
      :`<div class="row" style="justify-content:center"><button class="btn" id="virar">Mostrar resposta (espaço)</button></div>`}`
-   :'<p class="muted" style="text-align:center;padding:30px">🎉 Nenhum card pendente hoje nesta seleção.</p>'}
+   :'<div class="empty"><div class="big">✓</div>Nenhum card pendente hoje nesta seleção.</div>'}
   </div>
   <div class="card" style="margin-top:14px"><div class="row"><div style="flex:1 1 auto"><h3 style="margin:0">Quiz rápido</h3><span class="small muted">10 perguntas de múltipla escolha montadas com os seus flashcards.</span></div><button class="btn ghost" id="quizBtn" ${S.cards.length<4?'disabled':''}>▶ Começar quiz</button></div><div id="quizBox"></div></div>
   <div class="card" style="margin-top:14px"><h3>Novo flashcard</h3>
@@ -530,7 +620,7 @@ function filaQuestoes(){return S.questoes.filter(q=>(!qDisc||q.disc===qDisc)&&(q
 function questoes(){
   const fila=filaQuestoes();if(!qAtual||!fila.includes(qAtual)){qAtual=fila[Math.floor(Math.random()*fila.length)]||null;qResp=null}
   const ac=acertos(qDisc);
-  $('#app').innerHTML=`<h2>Questões</h2>
+  $('#app').innerHTML=`
   <div class="row" style="margin-bottom:12px"><select id="qDisc">${optsDisc(qDisc,true)}</select>
     <select id="qModo"><option value="todas">Todas</option><option value="ineditas" ${qModo==='ineditas'?'selected':''}>Não resolvidas</option><option value="erradas" ${qModo==='erradas'?'selected':''}>Que errei por último</option></select>
     <span class="tag ac" style="flex:0 0 auto">${fila.length} na fila · ${ac.t?Math.round(ac.p*100)+'% de acerto':'sem histórico'}</span></div>
@@ -540,7 +630,7 @@ function questoes(){
     ${qAtual.alternativas.map((a,i)=>`<button class="alt ${qResp!==null?(i===qAtual.correta?'right':i===qResp?'wrong':''):''}" data-a="${i}">${'ABCDE'[i]||i+1}) ${esc(a)}</button>`).join('')}
     ${qResp!==null?`<div class="card" style="background:var(--surface-2);margin-top:10px"><b>${qResp===qAtual.correta?'✅ Acertou!':'❌ Errou.'}</b> Gabarito: ${'ABCDE'[qAtual.correta]}<br>${esc(qAtual.comentario||'')}</div>
       <div class="row" style="margin-top:10px"><button class="btn" id="qProx">Próxima →</button><button class="btn ghost" id="qCard">Virar flashcard</button></div>`:''}`
-   :'<p class="muted" style="text-align:center;padding:30px">Nenhuma questão nesta seleção. Adicione abaixo ou importe um arquivo.</p>'}
+   :'<div class="empty"><div class="big">?</div>Nenhuma questão nesta seleção.<br><span class="small">Cadastre abaixo ou importe um pacote.</span></div>'}
   </div>
   <div class="card" style="margin-top:14px"><details><summary style="cursor:pointer"><b>Cadastrar questão</b></summary>
     <div style="margin-top:10px"><div class="row"><select id="cqDisc">${optsDisc(qDisc||S.disciplinas[0]?.id)}</select><input id="cqFonte" placeholder="Fonte (ex.: FGV 2022 AFRFB)"></div>
@@ -565,10 +655,10 @@ function revisoes(){
   const pend=revisoesPendentes();const futuras=[];const h=hoje();
   S.disciplinas.forEach(d=>d.topicos.forEach(t=>t.revisoes.forEach(r=>{if(!r.feita&&r.data>h)futuras.push({d,t,r})})));futuras.sort((a,b)=>a.r.data.localeCompare(b.r.data));
   const item=(x,btn)=>`<div class="list-item small"><span class="tag ${x.r.data<h?'bad':x.r.data===h?'warn':''}">${x.r.data.split('-').reverse().join('/')}</span><span class="grow"><b>${esc(x.t.nome)}</b> · ${esc(x.d.nome)} <span class="tag">${x.r.dias}d</span></span>${btn?`<button class="btn ok sm" data-ok="${x.t.id}|${x.r.dias}">Revisado</button>`:''}</div>`;
-  $('#app').innerHTML=`<h2>Revisões programadas</h2>
-  <p class="muted small">Quando você marca um tópico como <b>Concluído</b> no Edital, o sistema agenda revisões em 1, 7 e 30 dias.</p>
-  <div class="card"><h3>Para hoje / atrasadas (${pend.length})</h3>${pend.map(x=>item(x,true)).join('')||'<p class="muted small">Tudo em dia ✅</p>'}</div>
-  <div class="card" style="margin-top:14px"><h3>Próximas</h3>${futuras.slice(0,30).map(x=>item(x,false)).join('')||'<p class="muted small">Nada agendado.</p>'}</div>`;
+  $('#app').innerHTML=`
+  <p class="lead">Quando você marca um tópico como <b>Concluído</b> no Edital, o sistema agenda revisões em 1, 7 e 30 dias.</p>
+  <div class="card"><h3>Para hoje / atrasadas (${pend.length})</h3>${pend.map(x=>item(x,true)).join('')||'<p class="lead">Tudo em dia ✅</p>'}</div>
+  <div class="card" style="margin-top:14px"><h3>Próximas</h3>${futuras.slice(0,30).map(x=>item(x,false)).join('')||'<p class="lead">Nada agendado.</p>'}</div>`;
   $('#app').onclick=e=>{const b=e.target.closest('[data-ok]');if(!b)return;const [tid,dias]=b.dataset.ok.split('|');const t=acharTopico(tid);const r=t.revisoes.find(r=>r.dias==dias);r.feita=true;salvar();render()};
 }
 
@@ -577,8 +667,8 @@ const LEIS_LINKS=[['Constituição Federal (arts. 145-169: Sistema Tributário e
 let leiDisc='';
 function leis(){
   const lista=S.leis.filter(l=>!leiDisc||l.disc===leiDisc);
-  $('#app').innerHTML=`<h2>Lei seca</h2>
-  <p class="muted small">Guarde os artigos que mais caem, com seus grifos. Cada artigo pode virar flashcard com um clique. Os links abrem o texto oficial no Planalto.</p>
+  $('#app').innerHTML=`
+  <p class="lead">Guarde os artigos que mais caem, com seus grifos. Cada artigo pode virar flashcard com um clique. Os links abrem o texto oficial no Planalto.</p>
   <div class="grid g2">
     <div class="card"><h3>Novo artigo</h3>
       <div class="row"><select id="lDisc">${optsDisc(leiDisc||S.disciplinas[0]?.id)}</select><input id="lRef" placeholder="Referência (ex.: CTN, art. 150, §4º)"></div>
@@ -589,7 +679,7 @@ function leis(){
   </div>
   <div class="card" style="margin-top:14px"><div class="row" style="margin-bottom:6px"><h3 style="margin:0;flex:1 1 auto">Meus artigos (${lista.length})</h3><select id="leiFiltro" style="flex:0 1 260px">${optsDisc(leiDisc,true)}</select></div>
     ${lista.map(l=>`<div class="list-item" style="align-items:flex-start"><span>⚖️</span><span class="grow" style="white-space:normal"><b>${esc(l.ref)}</b> <span class="tag">${esc(disc(l.disc)?.nome||'')}</span><br><span style="white-space:pre-wrap">${esc(l.texto)}</span>${l.nota?`<br><span class="small" style="color:var(--warn)">✎ ${esc(l.nota)}</span>`:''}</span>
-      <span style="display:flex;flex-direction:column;gap:4px"><button class="btn ghost sm" data-card="${l.id}" title="Virar flashcard">🃏</button><button class="btn ghost sm" data-rm="${l.id}">✕</button></span></div>`).join('')||'<p class="muted small">Nenhum artigo salvo ainda.</p>'}</div>`;
+      <span style="display:flex;flex-direction:column;gap:4px"><button class="btn ghost sm" data-card="${l.id}" title="Virar flashcard">🃏</button><button class="btn ghost sm" data-rm="${l.id}">✕</button></span></div>`).join('')||'<p class="lead">Nenhum artigo salvo ainda.</p>'}</div>`;
   $('#leiFiltro').onchange=e=>{leiDisc=e.target.value;leis()};
   $('#lAdd').onclick=()=>{const ref=$('#lRef').value.trim(),t=$('#lTxt').value.trim();if(!ref||!t)return toast('Preencha referência e texto');S.leis.push({id:uid(),disc:$('#lDisc').value,ref,texto:t,nota:$('#lNota').value.trim()});salvar();leis();toast('Artigo salvo')};
   $('#app').onclick=e=>{const b=e.target.closest('button');if(!b)return;
@@ -604,7 +694,7 @@ const EXEMPLO_IMPORT={fonte:'Estratégia Concursos — e-mails',materiais:[{disc
   topicos:[{disciplina:'Direito Tributário',nome:'Novo tópico'}]};
 function dados(){
   const isMobile=/Android|iPhone|iPad/i.test(navigator.userAgent);
-  $('#app').innerHTML=`<h2>Importar conteúdo e backup</h2>
+  $('#app').innerHTML=`
   <div class="card" style="margin-bottom:14px"><h3>🔄 Material da sua conta do Estratégia</h3>
     <p class="small">O <b>sincronizador</b> (pasta <code>sync</code> do repositório) entra na área do aluno pelo seu computador, baixa PDFs, resumos, mapas mentais, áudios e os links dos vídeos, e organiza por disciplina. Depois importe a pasta <code>material</code> aqui.</p>
     <pre class="code">cd sync
@@ -644,6 +734,7 @@ async function importarPacote(p){
   for(const c of p.flashcards||[]){const d=resolve(c.disciplina);if(!d||!c.frente||!c.verso){ignor++;continue}if(S.cards.some(x=>x.frente===c.frente))continue;S.cards.push(novoCard(d.id,c.frente,c.verso));n.f++}
   for(const q of p.questoes||[]){const d=resolve(q.disciplina);if(!d||!q.enunciado||!Array.isArray(q.alternativas)||!(q.correta in q.alternativas)){ignor++;continue}
     if(S.questoes.some(x=>x.enunciado===q.enunciado))continue;S.questoes.push({id:uid(),disc:d.id,enunciado:q.enunciado,alternativas:q.alternativas,correta:q.correta,comentario:q.comentario||'',fonte:q.fonte||p.fonte||'',hist:[]});n.q++}
+  for(const l of p.leis||[]){const d=resolve(l.disciplina);if(!d||!l.ref||!l.texto)continue;if(S.leis.some(x=>x.ref===l.ref))continue;S.leis.push({id:uid(),disc:d.id,ref:l.ref,texto:l.texto,nota:l.nota||''});n.t++}
   for(const t of p.topicos||[]){const d=resolve(t.disciplina);if(!d||!t.nome)continue;if(!d.topicos.some(x=>norm(x.nome)===norm(t.nome))){d.topicos.push({id:uid(),nome:t.nome,status:0,estudadoEm:'',revisoes:[]});n.t++}}
   salvar();render();
   return `Importado: ${n.m} materiais, ${n.f} flashcards, ${n.q} questões, ${n.t} tópicos${ignor?` (${ignor} itens inválidos ignorados)`:''}`;
@@ -652,11 +743,15 @@ async function importarPacote(p){
 /* ============ Tema ============ */
 const temaSalvo=(()=>{try{return localStorage.getItem('rumoReceita:tema')}catch(e){return null}})();
 if(temaSalvo)document.documentElement.dataset.theme=temaSalvo;
-$('#themeBtn').onclick=()=>{const dark=document.documentElement.dataset.theme?document.documentElement.dataset.theme==='dark':matchMedia('(prefers-color-scheme: dark)').matches;
+const alternarTema=()=>{const dark=document.documentElement.dataset.theme?document.documentElement.dataset.theme==='dark':matchMedia('(prefers-color-scheme: dark)').matches;
   const t=dark?'light':'dark';document.documentElement.dataset.theme=t;try{localStorage.setItem('rumoReceita:tema',t)}catch(e){}};
+$('#themeBtn').onclick=alternarTema;$('#themeBtn2').onclick=alternarTema;
 
 if(window.pdfjsLib)pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 salvar();render();
+// Conteúdo publicado no repositório (conteudo/pacote.json): carregado automaticamente quando há versão nova.
+(async()=>{try{const r=await fetch('conteudo/pacote.json?v='+Date.now(),{cache:'no-store'});if(!r.ok)return;const p=await r.json();
+  if(!p.versao||p.versao===S.config.conteudoVersao)return;const msg=await importarPacote(p);S.config.conteudoVersao=p.versao;salvar();render();toast('Conteúdo atualizado: '+msg)}catch(e){}})();
 if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script>
 </body>
