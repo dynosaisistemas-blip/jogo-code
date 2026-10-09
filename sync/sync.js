@@ -30,6 +30,9 @@ const PERFIL = path.join(RAIZ, '.perfil-navegador');
 const SAIDA = path.join(RAIZ, 'material');
 const MANIFEST = path.join(SAIDA, 'manifest.json');
 const URL_CURSOS = process.env.ESTRATEGIA_URL_CURSOS || 'https://www.estrategiaconcursos.com.br/app/dashboard/cursos';
+// Página do pacote na plataforma nova (concursos.estrategia.com). Pode ser trocada por ESTRATEGIA_URL_PACOTE.
+const URL_PACOTE = process.env.ESTRATEGIA_URL_PACOTE || 'https://concursos.estrategia.com/todos-os-cursos?view=goal&goalId=cab00bd8-6b1b-4eff-bf0e-4911783b6dde';
+const NOME_PACOTE = process.env.NOME_PACOTE || 'Auditor Fiscal da Receita Federal do Brasil (RFB)';
 const FILTRO = (process.env.FILTRO_CURSO ?? 'receita federal|rfb|auditor').toLowerCase();
 const bateFiltro = nome => !FILTRO || FILTRO.split('|').some(f => f.trim() && norm(nome).includes(norm(f.trim())));
 const TIPOS = new Set((process.env.TIPOS || 'pdf,resumo,mapa,slides,audio,questoes,video').split(',').map(s => s.trim()));
@@ -43,7 +46,8 @@ const DISCIPLINAS = [
   ['administracao geral', 'Administração Geral e Pública'], ['administracao publica', 'Administração Geral e Pública'],
   ['constitucional', 'Direito Constitucional'], ['administrativo', 'Direito Administrativo'],
   ['legislacao tributaria', 'Legislação Tributária'], ['tributario', 'Direito Tributário'],
-  ['contabilidade', 'Contabilidade Geral e Avançada'], ['auditoria', 'Auditoria'],
+  ['contabilidade publica', 'Contabilidade Pública'], ['contabilidade', 'Contabilidade Geral e Avançada'], ['auditoria', 'Auditoria'],
+  ['legislacao previdenciaria', 'Legislação Previdenciária'], ['discursiva', 'Discursiva'], ['fluencia', 'Fluência em Dados'], ['politica', 'Políticas Públicas'], ['etica', 'Ética'],
   ['aduaneir', 'Legislação Aduaneira'], ['comercio internacional', 'Comércio Internacional'],
 ];
 const norm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
@@ -89,7 +93,7 @@ async function esperarPagina(page) {
   await page.waitForTimeout(1500);
 }
 
-const URL_PERFIL = 'https://perfil.estrategia.com/';
+const URL_PERFIL = process.env.ESTRATEGIA_URL_PERFIL || 'https://perfil.estrategia.com/';
 
 // Área do aluno (perfil.estrategia.com) → "Estratégia Concursos Novo" → Acessar. Devolve a aba da plataforma nova.
 async function entrarPlataformaNova(ctx, page) {
@@ -180,6 +184,34 @@ async function descobrirClicando(page) {
   return achados;
 }
 
+const NAV_IGNORAR = /organiza[çc][aã]o de estudos|passo estrat|bizu estrat|cursos b[oô]nus|^\d*\s*disciplinas$|^\d*\s*discursivas$|pr[eé]-edital|p[oó]s-edital|favoritos|conclu[ií]dos|^todos$|visualizar|^t[ií]tulo$|precisa de ajuda|pedir ao|baixar notalink|cat[aá]logo|trilha|simulado|sala vip|comunidade|monitoria|alerta|perfil|meus dados|prefer[eê]ncia|sair|logout|ajuda|suporte|assinatura|compra|pagamento|caderno de quest|monitor de perf|estude em grupo|cursos exclusivos|minhas matr[ií]culas|in[ií]cio|home|voltar|pr[oó]xim|anterior|ver todos|mais informa/i;
+
+// Cartões/itens clicáveis da página (disciplinas, aulas): devolve [{nome, url|null, idx}] — url null = precisa clicar.
+async function listarCartoes(page) {
+  return page.evaluate(() => {
+    const limpa = t => (t || '').replace(/\s+/g, ' ').trim();
+    const out = [], seen = new Set(); let k = 0;
+    const cands = document.querySelectorAll('a[href], button, [role="button"], [role="link"], [class*="card" i], [class*="item" i], li');
+    cands.forEach(el => {
+      if (el.closest('nav, header, footer, aside, [role="navigation"], [class*="menu" i], [class*="sidebar" i], [class*="navbar" i]')) return;
+      const t = limpa(el.innerText); if (t.length < 4 || t.length > 160) return;
+      if (el.querySelector('a[href], button, [role="button"]') && el.tagName !== 'A' && el.tagName !== 'BUTTON') return; // prefere o filho clicável
+      const key = t.toLowerCase(); if (seen.has(key)) return; seen.add(key);
+      const url = el.tagName === 'A' ? el.href : (el.closest('a[href]') || {}).href || null;
+      el.setAttribute('data-rr-card', String(k)); out.push({ nome: t, url, idx: k++ });
+    });
+    return out;
+  });
+}
+
+// Abre um cartão (por link ou clique) e devolve a URL resultante; volta para `base` depois se `voltar`.
+async function abrirCartao(page, card, base) {
+  if (card.url && card.url !== base && !/^javascript:|#$/.test(card.url)) { await page.goto(card.url, { waitUntil: 'domcontentloaded' }); await esperarPagina(page); return page.url(); }
+  const el = await page.$(`[data-rr-card="${card.idx}"]`); if (!el) return null;
+  try { await el.scrollIntoViewIfNeeded(); await el.click({ timeout: 3000 }); await page.waitForURL(u => u.toString() !== base, { timeout: 8000 }); await esperarPagina(page); return page.url(); }
+  catch { return null; }
+}
+
 // Dentro de um curso: todos os links de material, com o nome da aula a que pertencem.
 async function listarMateriais(page) {
   return page.evaluate(() => {
@@ -227,61 +259,88 @@ async function sync(inspecionar) {
   if (!page) { console.error('✖ Não está logado. Rode: npm run login (ou apague a pasta .perfil-navegador e rode de novo)'); await ctx.close(); process.exit(1); }
 
   let todos = [], cursos = [];
-  const urlsBusca = [page.url(), ...URLS_CANDIDATAS.filter(u => u !== URL_CURSOS || process.env.ESTRATEGIA_URL_CURSOS)];
-  for (const u of [...new Set(urlsBusca)]) {
-    if (page.url() !== u) { try { await page.goto(u, { waitUntil: 'domcontentloaded' }); await esperarPagina(page); } catch { continue; } }
-    todos = await listarCursos(page);
-    cursos = todos.filter(c => bateFiltro(c.nome));
-    console.log(`Página ${page.url()} → ${todos.length} link(s), ${cursos.length} curso(s) com o filtro "${FILTRO}"`);
-    if (!cursos.length) { cursos = await descobrirClicando(page); if (cursos.length) console.log(`   (encontrados clicando nos cartões: ${cursos.length})`); }
-    if (cursos.length) break;
-  }
-  cursos.forEach(c => console.log('  •', c.nome, inspecionar ? '→ ' + c.url : ''));
+  // 1) Tenta o pacote pelo endereço conhecido
+  try {
+    await page.goto(URL_PACOTE, { waitUntil: 'domcontentloaded' }); await esperarPagina(page);
+    const titulo = (await page.title()) + ' ' + (await page.evaluate(() => (document.querySelector('h1,h2') || {}).innerText || ''));
+    if (!/login/i.test(page.url()) && /auditor|receita|rfb/i.test(titulo)) cursos = [{ nome: NOME_PACOTE, url: URL_PACOTE }];
+    else console.log('   Pacote não confirmado nesse endereço (título: ' + titulo.trim().slice(0, 80) + '); procurando na lista de cursos…');
+  } catch (e) { console.log('   Não consegui abrir a página do pacote:', e.message); }
+  // 2) Senão, procura o pacote na lista de cursos
   if (!cursos.length) {
-    console.log('\nNenhum curso bateu com o filtro. Links que a página mostra (primeiros 40):');
+    const urlsBusca = ['https://concursos.estrategia.com/todos-os-cursos', 'https://concursos.estrategia.com/', ...URLS_CANDIDATAS.filter(u => u !== URL_CURSOS || process.env.ESTRATEGIA_URL_CURSOS)];
+    for (const u of [...new Set(urlsBusca)]) {
+      try { await page.goto(u, { waitUntil: 'domcontentloaded' }); await esperarPagina(page); } catch { continue; }
+      todos = await listarCursos(page);
+      cursos = todos.filter(c => bateFiltro(c.nome));
+      console.log(`Página ${page.url()} → ${todos.length} link(s), ${cursos.length} curso(s) com o filtro "${FILTRO}"`);
+      if (!cursos.length) { cursos = await descobrirClicando(page); if (cursos.length) console.log(`   (encontrados clicando nos cartões: ${cursos.length})`); }
+      if (cursos.length) break;
+    }
+  }
+  cursos.forEach(c => console.log('  •', c.nome, '→', c.url));
+  if (!cursos.length) {
+    console.log('\nNenhum pacote encontrado. Links que a página mostra (primeiros 40):');
     todos.slice(0, 40).forEach(c => console.log('   -', c.nome.slice(0, 90), '|', c.url));
     await salvarInspecao(page, 'cursos');
     console.log(`\n→ Salvei uma foto da página em: ${path.join(RAIZ, 'inspecao-cursos.png')}`);
-    console.log('   Envie essa imagem (e a lista acima) para ajustar o script. Para outro filtro: FILTRO_CURSO="texto" npm run sync');
   }
 
   fs.mkdirSync(SAIDA, { recursive: true });
   const manifest = fs.existsSync(MANIFEST) ? JSON.parse(fs.readFileSync(MANIFEST, 'utf8')) : { fonte: 'Estratégia Concursos', materiais: [] };
   const cont = {};
 
-  for (const curso of cursos) {
-    const disciplina = disciplinaDe(curso.nome);
-    console.log(`\n📚 ${curso.nome}  →  ${disciplina}`);
-    await page.goto(curso.url, { waitUntil: 'domcontentloaded' });
-    await esperarPagina(page);
-    for (const b of await page.$$('button:has-text("Ver aulas"), button:has-text("Expandir"), button:has-text("Aulas"), [aria-expanded="false"]')) { try { await b.click({ timeout: 500 }); } catch {} }
-    await page.waitForTimeout(1000);
-
-    const itens = (await listarMateriais(page)).map(m => ({ ...m, c: classificar(m.url, m.rotulo, m.classe) })).filter(m => m.c && TIPOS.has(m.c.tipo));
-    console.log(`   ${itens.length} item(ns): ` + Object.entries(itens.reduce((a, m) => (a[m.c.tipo] = (a[m.c.tipo] || 0) + 1, a), {})).map(([k, v]) => `${k} ${v}`).join(', '));
-    if (!itens.length) await salvarInspecao(page, 'curso-' + limpaNome(curso.nome).slice(0, 40));
-    if (inspecionar) { itens.forEach(m => console.log(`     - [${m.c.tipo}] ${m.aula} | ${m.rotulo} | ${m.url}`)); continue; }
-
-    const pasta = path.join(SAIDA, limpaNome(disciplina));
-    fs.mkdirSync(pasta, { recursive: true });
+  const baixarItens = async (itens, disciplina, aula, cursoNome) => {
+    const pasta = path.join(SAIDA, limpaNome(disciplina)); fs.mkdirSync(pasta, { recursive: true });
     for (const [i, m] of itens.entries()) {
-      const aula = limpaNome(m.aula || `Aula ${String(i + 1).padStart(2, '0')}`);
-      const titulo = m.c.tipo === 'pdf' ? aula : `${aula} (${m.c.tipo})`;
+      const nomeAula = limpaNome(aula || m.aula || `Aula ${String(i + 1).padStart(2, '0')}`);
+      const titulo = m.c.tipo === 'pdf' ? nomeAula : `${nomeAula} (${m.c.tipo})`;
       const chave = `${disciplina}/${titulo}`;
       if (manifest.materiais.some(x => x.chave === chave)) continue;
-      const entrada = { chave, disciplina, curso: curso.nome, titulo, tipo: m.c.tipo };
+      const entrada = { chave, disciplina, curso: cursoNome, titulo, tipo: m.c.tipo };
       try {
-        if (m.c.ext === 'url') { entrada.url = m.url; }                              // vídeo em streaming: só o link
-        else {
-          const arq = path.join(pasta, `${titulo}.${m.c.ext}`);
-          await baixar(page, m.url, arq);
-          entrada.arquivo = path.relative(SAIDA, arq).split(path.sep).join('/');
-        }
-        manifest.materiais.push(entrada); cont[m.c.tipo] = (cont[m.c.tipo] || 0) + 1;
-        console.log('   ✔', titulo);
-      } catch (e) { console.log('   ✖', titulo, '-', e.message); }
+        if (m.c.ext === 'url') entrada.url = m.url;
+        else { const arq = path.join(pasta, `${titulo}.${m.c.ext}`); await baixar(page, m.url, arq); entrada.arquivo = path.relative(SAIDA, arq).split(path.sep).join('/'); }
+        manifest.materiais.push(entrada); cont[m.c.tipo] = (cont[m.c.tipo] || 0) + 1; console.log('      ✔', titulo);
+      } catch (e) { console.log('      ✖', titulo, '-', e.message); }
       fs.writeFileSync(MANIFEST, JSON.stringify(manifest, null, 2));
     }
+  };
+  const materiaisDaPagina = async () => (await listarMateriais(page)).map(m => ({ ...m, c: classificar(m.url, m.rotulo, m.classe) })).filter(m => m.c && TIPOS.has(m.c.tipo));
+  const visitadas = new Set();
+
+  // Pacote → disciplinas → aulas → materiais (até 3 níveis). `rotulo` = nome do nível acima.
+  async function explorar(url, nivel, cursoNome, disciplina, aula) {
+    if (visitadas.has(url) || nivel > 3) return; visitadas.add(url);
+    if (page.url() !== url) { try { await page.goto(url, { waitUntil: 'domcontentloaded' }); await esperarPagina(page); } catch { return; } }
+    for (const b of await page.$$('button:has-text("Ver aulas"), button:has-text("Expandir"), button:has-text("Aulas"), [aria-expanded="false"]')) { try { await b.click({ timeout: 500 }); } catch {} }
+    const itens = await materiaisDaPagina();
+    const ind = '   '.repeat(nivel);
+    if (itens.length) {
+      console.log(`${ind}${itens.length} item(ns) em "${aula || disciplina || cursoNome}"`);
+      if (inspecionar) itens.forEach(m => console.log(`${ind}   - [${m.c.tipo}] ${m.aula} | ${m.rotulo} | ${m.url}`));
+      else await baixarItens(itens, disciplina || disciplinaDe(cursoNome), aula, cursoNome);
+    }
+    if (nivel >= 3 || (itens.length && nivel >= 2)) return;   // página de aula com material: não desce mais
+    const ehMaterial = c => c.url && (classificar(c.url, c.nome, '') || /\.(pdf|mp3|m4a|mp4|zip)(\?|$)/i.test(c.url));
+    const cartoes = (await listarCartoes(page)).filter(c => !NAV_IGNORAR.test(c.nome) && !(c.url && visitadas.has(c.url)) && !ehMaterial(c));
+    if (!itens.length && !cartoes.length) { await salvarInspecao(page, `nivel${nivel}-${limpaNome(aula || disciplina || cursoNome).slice(0, 30)}`); return; }
+    if (!itens.length) console.log(`${ind}${cartoes.length} subitem(ns) em "${aula || disciplina || cursoNome}"`);
+    const base = page.url();
+    for (const c of cartoes) {
+      if (page.url() !== base) { try { await page.goto(base, { waitUntil: 'domcontentloaded' }); await esperarPagina(page); await listarCartoes(page); } catch { continue; } }
+      let dest = null; try { dest = await abrirCartao(page, c, base); } catch (e) { continue; }
+      if (!dest || dest === base || visitadas.has(dest)) continue;
+      const nomeNivel = c.nome.replace(/\s+/g, ' ').trim();
+      if (nivel === 0) { console.log(`\n📚 ${nomeNivel}  →  ${disciplinaDe(nomeNivel)}`); await explorar(dest, 1, cursoNome, disciplinaDe(nomeNivel), null); }
+      else if (nivel === 1) { console.log(`${ind}   📖 ${nomeNivel}`); await explorar(dest, 2, cursoNome, disciplina, nomeNivel); }
+      else await explorar(dest, 3, cursoNome, disciplina, aula || nomeNivel);
+    }
+  }
+
+  for (const curso of cursos) {
+    console.log(`\n🎓 Pacote: ${curso.nome}`);
+    await explorar(curso.url, 0, curso.nome, null, null);
   }
   if (!inspecionar) console.log(`\n✔ Concluído. Novos: ${JSON.stringify(cont)}\n   Pasta: ${SAIDA}\n→ No sistema: Importar / Backup → "Importar pasta sincronizada" → escolha a pasta material.`);
   await ctx.close();
