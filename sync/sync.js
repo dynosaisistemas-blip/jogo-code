@@ -51,6 +51,11 @@ const DISCIPLINAS = [
   ['aduaneir', 'Legislação Aduaneira'], ['comercio internacional', 'Comércio Internacional'],
 ];
 const norm = s => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+// Só navegamos dentro do Estratégia; mídia só de players/CDNs conhecidos.
+const HOST_OK = /(^|\.)(estrategia\.com|estrategiaconcursos\.com\.br|estrategiaeducacional\.com\.br)$|^localhost$/i;
+const HOST_MIDIA = /vimeo\.com|youtube\.com|youtu\.be|pandavideo|cloudfront\.net|amazonaws\.com|estrategia|^localhost$/i;
+const hostDe = u => { try { return new URL(u).hostname; } catch { return ''; } };
+const FORMATO_MANIFEST = 2;
 function disciplinaDe(curso) {
   const n = norm(curso);
   for (const [chave, disc] of DISCIPLINAS) if (n.includes(chave)) return disc;
@@ -60,19 +65,24 @@ const limpaNome = s => String(s).replace(/[\\/:*?"<>|]+/g, '-').replace(/\s+/g, 
 
 // Classifica um link pelo rótulo/URL. Retorna {tipo, ext} ou null se não interessa.
 function classificar(url, rotulo, classe) {
-  const r = norm(rotulo + ' ' + classe), u = norm(url);
-  if (/\.(mp3|m4a|ogg)(\?|$)/.test(u) || /audio|podcast|ouvir/.test(r)) return { tipo: 'audio', ext: u.match(/\.(m4a|ogg)(\?|$)/)?.[1] || 'mp3' };
-  if (/\.(mp4|webm)(\?|$)/.test(u)) return { tipo: 'video', ext: u.match(/\.(mp4|webm)/)[1] };
-  if (/vimeo|youtube|youtu\.be|pandavideo|player|assistir|video/.test(u + ' ' + r)) return { tipo: 'video', ext: 'url' };
+  const r = norm(rotulo + ' ' + classe), u = norm(url), h = hostDe(url);
+  if (!u || /^(javascript|mailto|tel):/.test(u)) return null;
+  if (/skip to|cookie|politica|termos|privacidade|ajuda|suporte|whatsapp|facebook|instagram|linkedin|twitter|t\.me/.test(r + ' ' + u)) return null;
+  const arqPdf = /\.pdf(\?|$)/.test(u), arqAudio = /\.(mp3|m4a|ogg)(\?|$)/.test(u), arqVideo = /\.(mp4|webm|m3u8)(\?|$)/.test(u);
+  if (arqAudio) return { tipo: 'audio', ext: u.match(/\.(mp3|m4a|ogg)/)[1] };
+  if (arqVideo && HOST_MIDIA.test(h)) return { tipo: 'video', ext: u.match(/\.(mp4|webm)/)?.[1] || 'url' };
+  if (/vimeo\.com\/(video\/)?\d+|youtube\.com\/(watch|embed)|youtu\.be\/|pandavideo/.test(u)) return { tipo: 'video', ext: 'url' };
+  if (!HOST_OK.test(h) && !HOST_MIDIA.test(h)) return null;            // fora do Estratégia: ignora
+  if (/audio|podcast|ouvir/.test(r) && HOST_OK.test(h) && /download|baixar|audio/.test(u + ' ' + r)) return { tipo: 'audio', ext: 'mp3' };
+  const pareceDoc = arqPdf || /\b(pdf|livro eletr|baixar|download)\b/.test(r) || /download|\/pdf/.test(u);
+  if (!pareceDoc) return null;
   if (/mapa mental|mapa-mental/.test(r + u)) return { tipo: 'mapa', ext: 'pdf' };
   if (/slide/.test(r + u)) return { tipo: 'slides', ext: 'pdf' };
   if (/resum|simplificad|grifad|esquematizad/.test(r + u)) return { tipo: 'resumo', ext: 'pdf' };
   if (/quest|caderno|exerc/.test(r + u)) return { tipo: 'questoes', ext: 'pdf' };
-  if (/\.pdf(\?|$)/.test(u) || /pdf|livro eletr|baixar|download/.test(r)) return { tipo: 'pdf', ext: 'pdf' };
-  return null;
+  return { tipo: 'pdf', ext: 'pdf' };
 }
 
-// Prefere o Chrome/Edge instalado no computador: o login com Google funciona melhor neles.
 async function abrir(headless) {
   fs.mkdirSync(PERFIL, { recursive: true });
   const opts = {
@@ -88,9 +98,9 @@ async function abrir(headless) {
 const URLS_CANDIDATAS = [URL_CURSOS, 'https://www.estrategiaconcursos.com.br/app/dashboard/cursos', 'https://www.estrategiaconcursos.com.br/app/dashboard/cursos-exclusivos', 'https://www.estrategiaconcursos.com.br/app/dashboard/meus-cursos', 'https://www.estrategiaconcursos.com.br/app/dashboard', 'https://www.estrategiaconcursos.com.br/app'];
 
 async function esperarPagina(page) {
-  try { await page.waitForLoadState('networkidle', { timeout: 15000 }); } catch {}
-  for (let i = 0; i < 6; i++) { await page.mouse.wheel(0, 1500); await page.waitForTimeout(400); }   // carrega listas "infinitas"
-  await page.waitForTimeout(1500);
+  try { await page.waitForLoadState('networkidle', { timeout: 5000 }); } catch {}
+  for (let i = 0; i < 4; i++) { try { await page.mouse.wheel(0, 2000); } catch {} await page.waitForTimeout(250); }   // carrega listas "infinitas"
+  await page.waitForTimeout(700);
 }
 
 const URL_PERFIL = process.env.ESTRATEGIA_URL_PERFIL || 'https://perfil.estrategia.com/';
@@ -198,6 +208,8 @@ async function listarCartoes(page) {
       if (el.querySelector('a[href], button, [role="button"]') && el.tagName !== 'A' && el.tagName !== 'BUTTON') return; // prefere o filho clicável
       const key = t.toLowerCase(); if (seen.has(key)) return; seen.add(key);
       const url = el.tagName === 'A' ? el.href : (el.closest('a[href]') || {}).href || null;
+      if (url && !/^https?:/.test(url)) return;
+      if (url && !/(^|\.)(estrategia\.com|estrategiaconcursos\.com\.br|estrategiaeducacional\.com\.br)$|^localhost$/i.test(new URL(url).hostname)) return;
       el.setAttribute('data-rr-card', String(k)); out.push({ nome: t, url, idx: k++ });
     });
     return out;
@@ -208,8 +220,10 @@ async function listarCartoes(page) {
 async function abrirCartao(page, card, base) {
   if (card.url && card.url !== base && !/^javascript:|#$/.test(card.url)) { await page.goto(card.url, { waitUntil: 'domcontentloaded' }); await esperarPagina(page); return page.url(); }
   const el = await page.$(`[data-rr-card="${card.idx}"]`); if (!el) return null;
-  try { await el.scrollIntoViewIfNeeded(); await el.click({ timeout: 3000 }); await page.waitForURL(u => u.toString() !== base, { timeout: 8000 }); await esperarPagina(page); return page.url(); }
+  try { await el.scrollIntoViewIfNeeded(); await el.click({ timeout: 3000 }); await page.waitForURL(u => u.toString() !== base, { timeout: 8000 }); }
   catch { return null; }
+  if (!HOST_OK.test(hostDe(page.url()))) { try { await page.goto(base, { waitUntil: 'domcontentloaded' }); } catch {} return null; }   // saiu do Estratégia: volta
+  await esperarPagina(page); return page.url();
 }
 
 // Dentro de um curso: todos os links de material, com o nome da aula a que pertencem.
@@ -291,7 +305,13 @@ async function sync(inspecionar) {
   }
 
   fs.mkdirSync(SAIDA, { recursive: true });
-  const manifest = fs.existsSync(MANIFEST) ? JSON.parse(fs.readFileSync(MANIFEST, 'utf8')) : { fonte: 'Estratégia Concursos', materiais: [] };
+  let manifest = fs.existsSync(MANIFEST) ? JSON.parse(fs.readFileSync(MANIFEST, 'utf8')) : null;
+  if (manifest && manifest.formato !== FORMATO_MANIFEST) {   // pasta de uma versão antiga (com itens errados): arquiva e recomeça
+    const antigo = SAIDA + '-antigo-' + new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-');
+    fs.renameSync(SAIDA, antigo); fs.mkdirSync(SAIDA, { recursive: true }); manifest = null;
+    console.log(`(pasta anterior movida para ${path.basename(antigo)} — pode apagar depois)`);
+  }
+  manifest = manifest || { fonte: 'Estratégia Concursos', formato: FORMATO_MANIFEST, materiais: [] };
   const cont = {};
 
   const baixarItens = async (itens, disciplina, aula, cursoNome) => {
@@ -315,9 +335,9 @@ async function sync(inspecionar) {
 
   // Pacote → disciplinas → aulas → materiais (até 3 níveis). `rotulo` = nome do nível acima.
   async function explorar(url, nivel, cursoNome, disciplina, aula) {
-    if (visitadas.has(url) || nivel > 3) return; visitadas.add(url);
+    if (visitadas.has(url) || nivel > 3 || !HOST_OK.test(hostDe(url))) return; visitadas.add(url);
     if (page.url() !== url) { try { await page.goto(url, { waitUntil: 'domcontentloaded' }); await esperarPagina(page); } catch { return; } }
-    try { await page.waitForFunction(() => document.body.innerText.trim().length > 200, { timeout: 15000 }); } catch {}
+    try { await page.waitForFunction(() => document.body.innerText.trim().length > 200, null, { timeout: 6000 }); } catch {}
     for (const b of await page.$$('button:has-text("Ver aulas"), button:has-text("Expandir"), button:has-text("Aulas"), [aria-expanded="false"]')) { try { await b.click({ timeout: 500 }); } catch {} }
     const itens = await materiaisDaPagina();
     const ind = '   '.repeat(nivel);
