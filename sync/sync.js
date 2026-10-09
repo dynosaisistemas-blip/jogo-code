@@ -261,10 +261,14 @@ async function sync(inspecionar) {
   let todos = [], cursos = [];
   // 1) Tenta o pacote pelo endereço conhecido
   try {
-    await page.goto(URL_PACOTE, { waitUntil: 'domcontentloaded' }); await esperarPagina(page);
-    const titulo = (await page.title()) + ' ' + (await page.evaluate(() => (document.querySelector('h1,h2') || {}).innerText || ''));
-    if (!/login/i.test(page.url()) && /auditor|receita|rfb/i.test(titulo)) cursos = [{ nome: NOME_PACOTE, url: URL_PACOTE }];
-    else console.log('   Pacote não confirmado nesse endereço (título: ' + titulo.trim().slice(0, 80) + '); procurando na lista de cursos…');
+    await page.goto(URL_PACOTE, { waitUntil: 'domcontentloaded' });
+    // a página é montada por JavaScript: espera o nome do pacote ou a aba "Disciplinas" aparecer
+    try { await page.waitForSelector('text=/Disciplinas|Auditor Fiscal|Receita Federal/i', { timeout: 25000 }); } catch {}
+    await esperarPagina(page);
+    const corpo = await page.evaluate(() => document.body.innerText.slice(0, 4000));
+    if (/login/i.test(page.url())) console.log('   Redirecionado para login — rode npm run login de novo.');
+    else if (/auditor|receita|rfb|disciplinas/i.test(corpo)) { cursos = [{ nome: NOME_PACOTE, url: URL_PACOTE }]; }
+    else { console.log('   Pacote não confirmado nesse endereço; procurando na lista de cursos…'); await salvarInspecao(page, 'pacote'); }
   } catch (e) { console.log('   Não consegui abrir a página do pacote:', e.message); }
   // 2) Senão, procura o pacote na lista de cursos
   if (!cursos.length) {
@@ -313,6 +317,7 @@ async function sync(inspecionar) {
   async function explorar(url, nivel, cursoNome, disciplina, aula) {
     if (visitadas.has(url) || nivel > 3) return; visitadas.add(url);
     if (page.url() !== url) { try { await page.goto(url, { waitUntil: 'domcontentloaded' }); await esperarPagina(page); } catch { return; } }
+    try { await page.waitForFunction(() => document.body.innerText.trim().length > 200, { timeout: 15000 }); } catch {}
     for (const b of await page.$$('button:has-text("Ver aulas"), button:has-text("Expandir"), button:has-text("Aulas"), [aria-expanded="false"]')) { try { await b.click({ timeout: 500 }); } catch {} }
     const itens = await materiaisDaPagina();
     const ind = '   '.repeat(nivel);
