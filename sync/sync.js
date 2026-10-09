@@ -30,7 +30,8 @@ const PERFIL = path.join(RAIZ, '.perfil-navegador');
 const SAIDA = path.join(RAIZ, 'material');
 const MANIFEST = path.join(SAIDA, 'manifest.json');
 const URL_CURSOS = process.env.ESTRATEGIA_URL_CURSOS || 'https://www.estrategiaconcursos.com.br/app/dashboard/cursos';
-const FILTRO = (process.env.FILTRO_CURSO ?? 'receita federal').toLowerCase();
+const FILTRO = (process.env.FILTRO_CURSO ?? 'receita federal|rfb|auditor').toLowerCase();
+const bateFiltro = nome => !FILTRO || FILTRO.split('|').some(f => f.trim() && norm(nome).includes(norm(f.trim())));
 const TIPOS = new Set((process.env.TIPOS || 'pdf,resumo,mapa,slides,audio,questoes,video').split(',').map(s => s.trim()));
 const modo = process.argv[2] || 'sync';
 
@@ -80,10 +81,25 @@ async function abrir(headless) {
   }
 }
 
+const URLS_CANDIDATAS = [URL_CURSOS, 'https://www.estrategiaconcursos.com.br/app/dashboard/cursos', 'https://www.estrategiaconcursos.com.br/app/dashboard/meus-cursos', 'https://www.estrategiaconcursos.com.br/app/dashboard', 'https://www.estrategiaconcursos.com.br/app'];
+
+async function esperarPagina(page) {
+  try { await page.waitForLoadState('networkidle', { timeout: 15000 }); } catch {}
+  for (let i = 0; i < 6; i++) { await page.mouse.wheel(0, 1500); await page.waitForTimeout(400); }   // carrega listas "infinitas"
+  await page.waitForTimeout(1500);
+}
+
 async function logado(page) {
   await page.goto(URL_CURSOS, { waitUntil: 'domcontentloaded' });
-  await page.waitForTimeout(2500);
-  return !/login|entrar|auth|perfil\.estrategia/i.test(page.url());
+  await esperarPagina(page);
+  if (/login|entrar|auth|perfil\.estrategia/i.test(page.url())) return false;
+  const temFormLogin = await page.$('input[type="password"]');
+  return !temFormLogin;
+}
+
+async function salvarInspecao(page, nome) {
+  try { await page.screenshot({ path: path.join(RAIZ, `inspecao-${nome}.png`), fullPage: true }); } catch {}
+  try { fs.writeFileSync(path.join(RAIZ, `inspecao-${nome}.html`), await page.content()); } catch {}
 }
 
 async function login() {
@@ -95,16 +111,22 @@ async function login() {
   console.log('✔ Sessão salva em', PERFIL);
 }
 
-// Coleta cursos da página "Meus cursos": qualquer link cujo texto pareça nome de curso.
+// Coleta cursos da página "Meus cursos": links e cartões clicáveis com texto que pareça nome de curso.
 async function listarCursos(page) {
   return page.evaluate(() => {
     const vistos = new Map();
+    const limpa = t => (t || '').replace(/\s+/g, ' ').trim();
     document.querySelectorAll('a[href]').forEach(a => {
-      const t = (a.innerText || a.textContent || '').replace(/\s+/g, ' ').trim();
-      const h = a.href;
-      if (t.length < 8 || t.length > 160) return;
-      if (!/curso|aula|\/app\//i.test(h) || /login|sair|logout|ajuda|suporte/i.test(h)) return;
+      const t = limpa(a.innerText || a.textContent), h = a.href;
+      if (t.length < 8 || t.length > 200) return;
+      if (!/estrategia/i.test(h) || /login|logout|sair|ajuda|suporte|termos|privacidade|facebook|instagram|youtube|whatsapp|t\.me|mailto/i.test(h)) return;
       if (!vistos.has(h)) vistos.set(h, t);
+    });
+    // cartões que navegam via JavaScript (sem <a>): guardam a URL em data-* ou onclick
+    document.querySelectorAll('[data-href],[data-url],[data-link],[onclick*="location"]').forEach(el => {
+      const h = el.dataset.href || el.dataset.url || el.dataset.link || ((el.getAttribute('onclick') || '').match(/['"](https?:[^'"]+|\/[^'"]+)['"]/) || [])[1];
+      const t = limpa(el.innerText); if (!h || t.length < 8 || t.length > 200) return;
+      const abs = h.startsWith('http') ? h : location.origin + h; if (!vistos.has(abs)) vistos.set(abs, t);
     });
     return [...vistos].map(([url, nome]) => ({ url, nome }));
   });
@@ -155,12 +177,21 @@ async function sync(inspecionar) {
   const page = ctx.pages()[0] || await ctx.newPage();
   if (!(await logado(page))) { console.error('✖ Não está logado. Rode: npm run login'); await ctx.close(); process.exit(1); }
 
-  const cursos = (await listarCursos(page)).filter(c => !FILTRO || norm(c.nome).includes(norm(FILTRO)));
-  console.log(`Cursos encontrados (filtro "${FILTRO}"): ${cursos.length}`);
+  let todos = [], cursos = [];
+  for (const u of [...new Set(URLS_CANDIDATAS)]) {
+    if (page.url() !== u) { try { await page.goto(u, { waitUntil: 'domcontentloaded' }); await esperarPagina(page); } catch { continue; } }
+    todos = await listarCursos(page);
+    cursos = todos.filter(c => bateFiltro(c.nome));
+    console.log(`Página ${page.url()} → ${todos.length} link(s), ${cursos.length} curso(s) com o filtro "${FILTRO}"`);
+    if (cursos.length) break;
+  }
   cursos.forEach(c => console.log('  •', c.nome, inspecionar ? '→ ' + c.url : ''));
   if (!cursos.length) {
-    console.log('\nNenhum curso bateu. Rode "npm run inspecionar" e, se preciso, defina ESTRATEGIA_URL_CURSOS ou FILTRO_CURSO.');
-    if (inspecionar) fs.writeFileSync(path.join(RAIZ, 'inspecao-cursos.html'), await page.content());
+    console.log('\nNenhum curso bateu com o filtro. Links que a página mostra (primeiros 40):');
+    todos.slice(0, 40).forEach(c => console.log('   -', c.nome.slice(0, 90), '|', c.url));
+    await salvarInspecao(page, 'cursos');
+    console.log(`\n→ Salvei uma foto da página em: ${path.join(RAIZ, 'inspecao-cursos.png')}`);
+    console.log('   Envie essa imagem (e a lista acima) para ajustar o script. Para outro filtro: FILTRO_CURSO="texto" npm run sync');
   }
 
   fs.mkdirSync(SAIDA, { recursive: true });
@@ -171,12 +202,13 @@ async function sync(inspecionar) {
     const disciplina = disciplinaDe(curso.nome);
     console.log(`\n📚 ${curso.nome}  →  ${disciplina}`);
     await page.goto(curso.url, { waitUntil: 'domcontentloaded' });
-    await page.waitForTimeout(2500);
-    for (const b of await page.$$('button:has-text("Ver aulas"), button:has-text("Expandir"), [aria-expanded="false"]')) { try { await b.click({ timeout: 500 }); } catch {} }
-    await page.waitForTimeout(800);
+    await esperarPagina(page);
+    for (const b of await page.$$('button:has-text("Ver aulas"), button:has-text("Expandir"), button:has-text("Aulas"), [aria-expanded="false"]')) { try { await b.click({ timeout: 500 }); } catch {} }
+    await page.waitForTimeout(1000);
 
     const itens = (await listarMateriais(page)).map(m => ({ ...m, c: classificar(m.url, m.rotulo, m.classe) })).filter(m => m.c && TIPOS.has(m.c.tipo));
     console.log(`   ${itens.length} item(ns): ` + Object.entries(itens.reduce((a, m) => (a[m.c.tipo] = (a[m.c.tipo] || 0) + 1, a), {})).map(([k, v]) => `${k} ${v}`).join(', '));
+    if (!itens.length) await salvarInspecao(page, 'curso-' + limpaNome(curso.nome).slice(0, 40));
     if (inspecionar) { itens.forEach(m => console.log(`     - [${m.c.tipo}] ${m.aula} | ${m.rotulo} | ${m.url}`)); continue; }
 
     const pasta = path.join(SAIDA, limpaNome(disciplina));
