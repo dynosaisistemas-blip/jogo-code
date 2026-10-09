@@ -6,21 +6,21 @@ Ruas de paralelepípedo, quintais com pé de manga, cheiro de café passado, o T
 
 ## 🎮 Como jogar
 
-**Jogue online:** https://dynosaisistemas-blip.github.io/jogo-code/
+**Jogue online:** https://rumoareceitafederal.cloud/jogo/
 
 Ou localmente — tudo em HTML puro, sem dependências. Basta abrir no navegador:
 
 ```bash
 # abra diretamente
-open index.html        # macOS
-xdg-open index.html    # Linux
+open jogo/index.html        # macOS
+xdg-open jogo/index.html    # Linux
 
 # ou sirva localmente
 python3 -m http.server 8000
 # e acesse http://localhost:8000
 ```
 
-### 🕹️ Modo aventura (`index.html`)
+### 🕹️ Modo aventura (`jogo/index.html`)
 
 Você **controla um dos 11 gatos** e explora a casa toda: garagem, sala, cozinha, os dois quartos, a área de serviço e o quintal — agora com cenário todo ilustrado (pisos, móveis, pé de manga, varal, janela do Zé…), efeitos sonoros, tempestade com raio e uma **setinha dourada** que sempre aponta o próximo objetivo.
 
@@ -54,9 +54,27 @@ Ao terminar uma fase, aperte o botão **▶** na tela de vitória — ou fale co
 
 O jogo tem música de fundo suave e efeitos sonoros, tudo sintetizado no navegador (botão 🔊 para silenciar). Os avisos de conquista aparecem como faixas rápidas no topo da tela, sem interromper a ação.
 
-### 📖 Modo história (`historia.html`)
+### 📖 Modo história (`jogo/historia.html`)
 
 Aventura de texto com escolhas: você escolhe um dos 11 gatos (ou a Flávia/Ana), escolhe a aventura do dia — 🗑️ O Mistério do Lixo Derrubado, 🧺 O Dia do Veterinário ou 🐈‍⬛ O Gato Desconhecido do Muro — e vive a história por 3 opções numeradas + ações livres digitadas.
+
+## 🏛️ Rumo à Receita — sistema de estudos para Auditor Fiscal (`index.html`)
+
+Além do jogo, o repositório hospeda um sistema de estudos para o concurso de **Auditor Fiscal da Receita Federal**:
+**https://rumoareceitafederal.cloud** (domínio próprio; também em https://dynosaisistemas-blip.github.io/jogo-code/)
+
+- **Edital verticalizado** com as 14 disciplinas e pesos (ajustável quando sair o edital novo)
+- **Ciclo de estudos** ponderado + cronômetro/pomodoro com registro de horas
+- **Materiais**: envie os PDFs das aulas (Estratégia) ou cole textos; busca dentro dos arquivos e leitor integrado
+- **Flashcards** com repetição espaçada (SM-2) e **questões** com histórico de acertos
+- **Revisões automáticas** em 1, 7 e 30 dias ao concluir um tópico
+- **Materiais de todo tipo**: PDF, resumo, mapa mental, slides, áudio/podcast (player com velocidade), vídeo e lei seca
+- **Sincronizador** (`sync/`): baixa o material da sua conta do Estratégia e organiza por disciplina — veja `sync/README.md`
+- **Quiz** automático a partir dos flashcards e aba de **Lei seca** com links para os textos oficiais
+- Funciona no celular e no computador; pode ser instalado como app (PWA) e funciona offline
+- **Importar / Backup**: importa a pasta sincronizada ou pacotes `.json`, e exporta o progresso
+
+Todo o progresso e os PDFs ficam apenas no navegador (localStorage/IndexedDB) — nada é enviado ao GitHub.
 
 **Regra de ouro (nos dois modos):** nenhum gato morre nem se machuca gravemente. Todos os 11 sempre voltam para casa, juntos. ❤️
 
@@ -84,5 +102,6 @@ Prefere uma aventura infinita e improvisada? O arquivo [`PROMPT.md`](PROMPT.md) 
 
 ## 📁 Estrutura
 
-- `index.html` — o jogo completo (HTML + CSS + JavaScript, autocontido)
+- `jogo/index.html` — o jogo completo (HTML + CSS + JavaScript, autocontido)
+- `index.html` — sistema de estudos Rumo à Receita (autocontido)
 - `PROMPT.md` — o prompt original do jogo, para jogar com um mestre de IA
