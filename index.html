@@ -697,10 +697,7 @@ function dados(){
   $('#app').innerHTML=`
   <div class="card" style="margin-bottom:14px"><h3>🔄 Material da sua conta do Estratégia</h3>
     <p class="small">O <b>sincronizador</b> (pasta <code>sync</code> do repositório) entra na área do aluno pelo seu computador, baixa PDFs, resumos, mapas mentais, áudios e os links dos vídeos, e organiza por disciplina. Depois importe a pasta <code>material</code> aqui.</p>
-    <pre class="code">cd sync
-npm install
-npm run login     # faça login na janela que abre
-npm run sync      # baixa tudo para a pasta material/</pre>
+    <div class="row" style="margin:10px 0 14px"><a class="btn" href="sincronizador.zip" download>⬇ Baixar sincronizador (ZIP)</a><span class="small muted" style="flex:1 1 240px">Extraia o ZIP, instale o <a href="https://nodejs.org" target="_blank" rel="noopener">Node.js</a> e dê dois cliques em <code>sincronizar.bat</code> (Windows) ou <code>sincronizar.command</code> (Mac). O LEIA-ME dentro do ZIP explica o passo a passo.</span></div>
     <div class="row">
       ${isMobile?'':'<label class="btn">📂 Importar pasta sincronizada<input type="file" id="impPasta" webkitdirectory multiple hidden></label>'}
       <label class="btn ghost">📑 Importar arquivos (vários)<input type="file" id="impArqs" accept="application/pdf,audio/*,video/*,.json,.mp3,.m4a,.mp4" multiple hidden></label>
