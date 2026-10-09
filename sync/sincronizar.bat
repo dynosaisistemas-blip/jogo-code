@@ -1,7 +1,13 @@
 @echo off
 rem Reabre a si mesmo em uma janela que NAO fecha sozinha (cmd /k), para dar para ler qualquer erro.
 if not "%~1"=="run" (
-  start "Rumo a Receita - Sincronizador" cmd /k ""%~f0" run"
+  rem Windows Terminal (wt) abre como aba numa janela existente; forcamos uma janela NOVA.
+  where wt >nul 2>nul
+  if not errorlevel 1 (
+    start "" wt -w new cmd /k ""%~f0" run"
+  ) else (
+    start "Rumo a Receita - Sincronizador" cmd /k ""%~f0" run"
+  )
   exit /b
 )
 title Rumo a Receita - Sincronizador Estrategia
