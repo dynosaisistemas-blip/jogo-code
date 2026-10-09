@@ -81,7 +81,7 @@ async function abrir(headless) {
   }
 }
 
-const URLS_CANDIDATAS = [URL_CURSOS, 'https://www.estrategiaconcursos.com.br/app/dashboard/cursos', 'https://www.estrategiaconcursos.com.br/app/dashboard/meus-cursos', 'https://www.estrategiaconcursos.com.br/app/dashboard', 'https://www.estrategiaconcursos.com.br/app'];
+const URLS_CANDIDATAS = [URL_CURSOS, 'https://www.estrategiaconcursos.com.br/app/dashboard/cursos', 'https://www.estrategiaconcursos.com.br/app/dashboard/cursos-exclusivos', 'https://www.estrategiaconcursos.com.br/app/dashboard/meus-cursos', 'https://www.estrategiaconcursos.com.br/app/dashboard', 'https://www.estrategiaconcursos.com.br/app'];
 
 async function esperarPagina(page) {
   try { await page.waitForLoadState('networkidle', { timeout: 15000 }); } catch {}
@@ -130,6 +130,43 @@ async function listarCursos(page) {
     });
     return [...vistos].map(([url, nome]) => ({ url, nome }));
   });
+}
+
+// Fallback para páginas em que os cursos são cartões sem <a>: acha o TEXTO do curso, clica e anota a URL aberta.
+async function descobrirClicando(page) {
+  const achados = [], vistos = new Set();
+  const padrao = new RegExp(FILTRO.split('|').map(f => f.trim()).filter(Boolean).join('|'), 'i');
+  const base = page.url();
+  const alvos = await page.evaluate(re => {
+    const r = new RegExp(re, 'i'), out = [], seen = new Set();
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    let n; while ((n = walker.nextNode())) {
+      const t = n.textContent.replace(/\s+/g, ' ').trim(); if (t.length < 8 || !r.test(t)) continue;
+      let el = n.parentElement; for (let i = 0; i < 6 && el && el !== document.body; i++, el = el.parentElement)
+        if (el.matches('a,button,[role="button"],[class*="card" i],[class*="curso" i],[class*="item" i],li')) break;
+      el = el || n.parentElement; const key = (el.innerText || t).slice(0, 120); if (seen.has(key)) continue; seen.add(key);
+      el.setAttribute('data-rr-alvo', String(out.length)); out.push(key);
+    }
+    return out;
+  }, padrao.source);
+  for (let i = 0; i < alvos.length; i++) {
+    const nome = alvos[i].replace(/\s+/g, ' ').trim(); if (vistos.has(nome)) continue; vistos.add(nome);
+    try {
+      const el = await page.$(`[data-rr-alvo="${i}"]`); if (!el) continue;
+      await el.scrollIntoViewIfNeeded(); await el.click({ timeout: 3000 });
+      await page.waitForURL(u => u.toString() !== base, { timeout: 8000 });
+      achados.push({ nome, url: page.url() });
+      await page.goto(base, { waitUntil: 'domcontentloaded' }); await esperarPagina(page);
+      await page.evaluate(() => {}); // re-marca os alvos após recarregar
+      await page.evaluate(re => { const r = new RegExp(re, 'i'); let k = 0; const seen = new Set();
+        const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT); let n;
+        while ((n = walker.nextNode())) { const t = n.textContent.replace(/\s+/g, ' ').trim(); if (t.length < 8 || !r.test(t)) continue;
+          let el = n.parentElement; for (let i = 0; i < 6 && el && el !== document.body; i++, el = el.parentElement)
+            if (el.matches('a,button,[role="button"],[class*="card" i],[class*="curso" i],[class*="item" i],li')) break;
+          el = el || n.parentElement; const key = (el.innerText || t).slice(0, 120); if (seen.has(key)) continue; seen.add(key); el.setAttribute('data-rr-alvo', String(k++)); } }, padrao.source);
+    } catch (e) { /* alvo não navegou: segue para o próximo */ try { await page.goto(base, { waitUntil: 'domcontentloaded' }); await esperarPagina(page); } catch {} }
+  }
+  return achados;
 }
 
 // Dentro de um curso: todos os links de material, com o nome da aula a que pertencem.
@@ -183,6 +220,7 @@ async function sync(inspecionar) {
     todos = await listarCursos(page);
     cursos = todos.filter(c => bateFiltro(c.nome));
     console.log(`Página ${page.url()} → ${todos.length} link(s), ${cursos.length} curso(s) com o filtro "${FILTRO}"`);
+    if (!cursos.length) { cursos = await descobrirClicando(page); if (cursos.length) console.log(`   (encontrados clicando nos cartões: ${cursos.length})`); }
     if (cursos.length) break;
   }
   cursos.forEach(c => console.log('  •', c.nome, inspecionar ? '→ ' + c.url : ''));
