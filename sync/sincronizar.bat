@@ -39,7 +39,7 @@ if not errorlevel 1 (
 )
 echo.
 
-if not exist node_modules (
+if not exist node_modules (
   echo.
   echo  [1/3] Instalando dependencias - so na primeira vez, pode levar alguns minutos...
   echo.
