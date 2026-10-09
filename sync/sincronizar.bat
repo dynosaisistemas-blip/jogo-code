@@ -1,43 +1,68 @@
 @echo off
-chcp 65001 >nul
-title Rumo à Receita — Sincronizador Estratégia
+rem Reabre a si mesmo em uma janela que NAO fecha sozinha (cmd /k), para dar para ler qualquer erro.
+if not "%~1"=="run" (
+  start "Rumo a Receita - Sincronizador" cmd /k ""%~f0" run"
+  exit /b
+)
+title Rumo a Receita - Sincronizador Estrategia
 cd /d "%~dp0"
 echo.
 echo  ============================================
 echo   Rumo a Receita - Sincronizador Estrategia
 echo  ============================================
+echo   Pasta: %cd%
 echo.
+
 where node >nul 2>nul
 if errorlevel 1 (
-  echo  [!] Node.js nao encontrado.
-  echo      Baixe e instale a versao LTS em: https://nodejs.org
-  echo      Depois rode este arquivo de novo.
+  echo  [ERRO] Node.js nao encontrado neste computador.
+  echo         Instale a versao LTS em https://nodejs.org , feche esta janela e rode de novo.
   echo.
-  pause
-  exit /b 1
+  goto fim
 )
+for /f "delims=" %%v in ('node -v') do echo  Node.js %%v encontrado.
+
+if not exist package.json (
+  echo  [ERRO] Nao achei o arquivo package.json nesta pasta.
+  echo         Este arquivo precisa ficar dentro da pasta "sync" do repositorio baixado.
+  echo.
+  goto fim
+)
+
 if not exist node_modules (
-  echo  [1/3] Instalando (so na primeira vez, pode levar alguns minutos)...
+  echo.
+  echo  [1/3] Instalando dependencias - so na primeira vez, pode levar alguns minutos...
+  echo.
   call npm install
-  if errorlevel 1 ( echo  [!] Falha na instalacao. & pause & exit /b 1 )
+  if errorlevel 1 (
+    echo.
+    echo  [ERRO] A instalacao falhou. Veja as mensagens acima.
+    goto fim
+  )
 )
+
 if not exist ".perfil-navegador" (
   echo.
   echo  [2/3] Vai abrir uma janela do navegador no site do Estrategia.
-  echo        Faca o LOGIN com seu e-mail e senha, espere aparecer a lista de cursos
-  echo        e FECHE a janela para continuar.
+  echo        Faca o LOGIN - pode usar "Entrar com Google" - espere aparecer a lista
+  echo        de cursos e FECHE a janela do navegador para continuar.
   echo.
   pause
   call npm run login
 )
+
 echo.
-echo  [3/3] Baixando o material dos cursos (so o que ainda nao foi baixado)...
+echo  [3/3] Baixando o material dos cursos - so o que ainda nao foi baixado...
 echo.
 call npm run sync
+
 echo.
-echo  Pronto. Os arquivos estao na pasta:  %~dp0material
-echo  No site (rumoareceitafederal.cloud) va em "Importar / Backup" e escolha essa pasta.
+echo  ------------------------------------------------------------
+echo  Terminou. Os arquivos ficam em:  %cd%\material
+echo  No site rumoareceitafederal.cloud: Importar / Backup ^> Importar pasta sincronizada.
+echo  Se apareceu "Nenhum curso" ou 0 itens, tire uma foto desta janela e envie.
+echo  ------------------------------------------------------------
+
+:fim
 echo.
-echo  Se nao encontrou cursos, rode:  npm run inspecionar   e me envie o que aparecer.
-echo.
-pause
+echo  (Esta janela fica aberta. Pode fechar quando quiser.)
