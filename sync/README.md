@@ -7,7 +7,15 @@ Baixa automaticamente o material das aulas (PDF completo, resumo, mapa mental, s
 ## Requisitos
 - [Node.js](https://nodejs.org) 18 ou superior
 
-## Passo a passo
+## Jeito fácil (clique duplo)
+
+1. Instale o [Node.js](https://nodejs.org) (versão LTS).
+2. Baixe o repositório (GitHub → **Code → Download ZIP**) e extraia.
+3. Entre na pasta `sync` e dê **dois cliques** em `sincronizar.bat` (Windows) ou `sincronizar.command` (Mac).
+   Na primeira vez ele instala tudo, abre o navegador para você fazer login no Estratégia e baixa o material. Nas próximas, só baixa o que for novo.
+4. No site, **Importar / Backup → Importar pasta sincronizada** → escolha a pasta `sync/material`.
+
+## Passo a passo (linha de comando)
 
 ```bash
 cd sync
