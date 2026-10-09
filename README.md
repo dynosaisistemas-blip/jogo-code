@@ -58,6 +58,20 @@ O jogo tem música de fundo suave e efeitos sonoros, tudo sintetizado no navegad
 
 Aventura de texto com escolhas: você escolhe um dos 11 gatos (ou a Flávia/Ana), escolhe a aventura do dia — 🗑️ O Mistério do Lixo Derrubado, 🧺 O Dia do Veterinário ou 🐈‍⬛ O Gato Desconhecido do Muro — e vive a história por 3 opções numeradas + ações livres digitadas.
 
+## 🏛️ Rumo à Receita — sistema de estudos para Auditor Fiscal (`auditor/`)
+
+Além do jogo, o repositório hospeda um sistema de estudos para o concurso de **Auditor Fiscal da Receita Federal**:
+https://dynosaisistemas-blip.github.io/jogo-code/auditor/
+
+- **Edital verticalizado** com as 14 disciplinas e pesos (ajustável quando sair o edital novo)
+- **Ciclo de estudos** ponderado + cronômetro/pomodoro com registro de horas
+- **Materiais**: envie os PDFs das aulas (Estratégia) ou cole textos; busca dentro dos arquivos e leitor integrado
+- **Flashcards** com repetição espaçada (SM-2) e **questões** com histórico de acertos
+- **Revisões automáticas** em 1, 7 e 30 dias ao concluir um tópico
+- **Importar / Backup**: importa pacotes `.json` com resumos, flashcards e questões gerados a partir dos e-mails, e exporta o progresso
+
+Todo o progresso e os PDFs ficam apenas no navegador (localStorage/IndexedDB) — nada é enviado ao GitHub.
+
 **Regra de ouro (nos dois modos):** nenhum gato morre nem se machuca gravemente. Todos os 11 sempre voltam para casa, juntos. ❤️
 
 ## 🐈 O elenco
