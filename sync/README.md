@@ -41,6 +41,9 @@ Exemplo: `FILTRO_CURSO="Auditor Fiscal" npm run sync`
 ### Se não encontrar cursos ou PDFs
 O site do Estratégia muda de tempos em tempos. Rode `npm run inspecionar`: o navegador abre visível e o script lista os cursos e links que está enxergando (e salva `inspecao-cursos.html` se não achar nada). Com isso dá para ajustar as funções `listarCursos` / `listarMateriais` no `sync.js` — ou me mandar a saída que eu ajusto.
 
+## Login com Google
+Se você entra no Estratégia com a conta do Google, na janela que abre clique em **Entrar com Google** e escolha a conta. O sincronizador usa o seu Chrome ou Edge instalado (o Google aceita o login neles); se nenhum existir, usa o Chromium do Playwright.
+
 ## Boas práticas
 - O script baixa **apenas o material que a sua conta já tem acesso**, para seu uso pessoal de estudo. Não compartilhe os PDFs: o conteúdo é do Estratégia.
 - Nunca coloque sua senha no script ou em arquivos do repositório. O login é feito por você, na janela do navegador.

@@ -67,12 +67,17 @@ function classificar(url, rotulo, classe) {
   return null;
 }
 
+// Prefere o Chrome/Edge instalado no computador: o login com Google funciona melhor neles.
 async function abrir(headless) {
   fs.mkdirSync(PERFIL, { recursive: true });
-  return chromium.launchPersistentContext(PERFIL, {
+  const opts = {
     headless, acceptDownloads: true, viewport: { width: 1280, height: 900 },
-    args: ['--disable-blink-features=AutomationControlled'],
-  });
+    args: ['--disable-blink-features=AutomationControlled'], ignoreDefaultArgs: ['--enable-automation'],
+  };
+  for (const channel of ['chrome', 'msedge', undefined]) {
+    try { return await chromium.launchPersistentContext(PERFIL, channel ? { ...opts, channel } : opts); }
+    catch (e) { if (channel === undefined) throw e; }
+  }
 }
 
 async function logado(page) {
@@ -84,7 +89,7 @@ async function logado(page) {
 async function login() {
   const ctx = await abrir(false);
   const page = ctx.pages()[0] || await ctx.newPage();
-  console.log('➡  Faça o login na janela do navegador. Quando a lista de cursos aparecer, pode fechar a janela.');
+  console.log('➡  Faça o login na janela do navegador (pode usar "Entrar com Google"). Quando a lista de cursos aparecer, feche a janela.');
   await page.goto(URL_CURSOS);
   await new Promise(res => ctx.on('close', res));
   console.log('✔ Sessão salva em', PERFIL);
