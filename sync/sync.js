@@ -206,7 +206,7 @@ async function descobrirClicando(page) {
   return achados;
 }
 
-const NAV_IGNORAR = /organiza[çc][aã]o de estudos|passo estrat|bizu estrat|cursos b[oô]nus|^\d*\s*disciplinas$|^\d*\s*discursivas$|pr[eé]-edital|p[oó]s-edital|favoritos|conclu[ií]dos|^todos$|visualizar|^t[ií]tulo$|precisa de ajuda|pedir ao|baixar notalink|cat[aá]logo|trilha|simulado|sala vip|comunidade|monitoria|alerta|perfil|meus dados|prefer[eê]ncia|sair|logout|ajuda|suporte|assinatura|compra|pagamento|caderno de quest|monitor de perf|estude em grupo|cursos exclusivos|minhas matr[ií]culas|in[ií]cio|home|voltar|pr[oó]xim|anterior|ver todos|mais informa/i;
+const NAV_IGNORAR = /^todos os cursos$|^meus cursos$|^in[ií]cio$|^dashboard$|^painel$|^voltar|^ver mais$|^carregar mais$|organiza[çc][aã]o de estudos|passo estrat|bizu estrat|cursos b[oô]nus|^\d*\s*disciplinas$|^\d*\s*discursivas$|pr[eé]-edital|p[oó]s-edital|favoritos|conclu[ií]dos|^todos$|visualizar|^t[ií]tulo$|precisa de ajuda|pedir ao|baixar notalink|cat[aá]logo|trilha|simulado|sala vip|comunidade|monitoria|alerta|perfil|meus dados|prefer[eê]ncia|sair|logout|ajuda|suporte|assinatura|compra|pagamento|caderno de quest|monitor de perf|estude em grupo|cursos exclusivos|minhas matr[ií]culas|in[ií]cio|home|voltar|pr[oó]xim|anterior|ver todos|mais informa/i;
 
 // Cartões/itens clicáveis da página (disciplinas, aulas): devolve [{nome, url|null, idx}] — url null = precisa clicar.
 async function listarCartoes(page) {
@@ -232,7 +232,7 @@ async function listarCartoes(page) {
 async function abrirCartao(page, card, base) {
   if (card.url && card.url !== base && !/^javascript:|#$/.test(card.url)) { await page.goto(card.url, { waitUntil: 'domcontentloaded' }); await esperarPagina(page); return page.url(); }
   const el = await page.$(`[data-rr-card="${card.idx}"]`); if (!el) return null;
-  try { await el.scrollIntoViewIfNeeded(); await el.click({ timeout: 3000 }); await page.waitForURL(u => u.toString() !== base, { timeout: 8000 }); }
+  try { await el.scrollIntoViewIfNeeded(); await el.click({ timeout: 3000 }); await page.waitForURL(u => u.toString() !== base, { timeout: 4000 }); }
   catch { return null; }
   if (!HOST_OK.test(hostDe(page.url()))) { try { await page.goto(base, { waitUntil: 'domcontentloaded' }); } catch {} return null; }   // saiu do Estratégia: volta
   await esperarPagina(page); return page.url();
@@ -360,15 +360,22 @@ async function sync(inspecionar) {
     }
     if (nivel >= 3 || (itens.length && nivel >= 2)) return;   // página de aula com material: não desce mais
     const ehMaterial = c => c.url && (classificar(c.url, c.nome, '') || /\.(pdf|mp3|m4a|mp4|zip)(\?|$)/i.test(c.url));
-    const cartoes = (await listarCartoes(page)).filter(c => !NAV_IGNORAR.test(c.nome) && !(c.url && visitadas.has(c.url)) && !ehMaterial(c));
+    // páginas gerais da plataforma que não são do pacote: catálogo, painel, perfil…
+    const urlForaDoPacote = u => !!u && (/estudos-em-andamento|\/perfil|\/conta|\/configura|\/ajuda|\/suporte|\/notifica|\/favoritos|\/busca|\/pesquisa/i.test(u)
+      || (/\/todos-os-cursos/i.test(u) && !u.includes('goalId=')) || (nivel >= 1 && /view=goal/i.test(u)) || /^https?:\/\/[^/]+\/?$/.test(u));
+    const cartoes = (await listarCartoes(page)).filter(c => !NAV_IGNORAR.test(c.nome) && !(c.url && visitadas.has(c.url)) && !ehMaterial(c)
+      && !urlForaDoPacote(c.url) && (nivel !== 0 || bateFiltro(c.nome)));   // no pacote, só cartões de disciplina (nome com Receita Federal/RFB/Auditor)
     if (!itens.length && !cartoes.length) { await salvarInspecao(page, `nivel${nivel}-${limpaNome(aula || disciplina || cursoNome).slice(0, 30)}`); return; }
     if (!itens.length) console.log(`${ind}${cartoes.length} subitem(ns) em "${aula || disciplina || cursoNome}"`);
     const base = page.url();
+    let n = 0;
     for (const c of cartoes) {
+      n++; if (nivel <= 1) process.stdout.write(`${ind}   (${n}/${cartoes.length}) ${c.nome.slice(0, 70)}\r`);
       if (page.url() !== base) { try { await page.goto(base, { waitUntil: 'domcontentloaded' }); await esperarPagina(page); await listarCartoes(page); } catch { continue; } }
       let dest = null; try { dest = await abrirCartao(page, c, base); } catch (e) { continue; }
       if (!dest || dest === base || visitadas.has(dest)) continue;
       const nomeNivel = c.nome.replace(/\s+/g, ' ').trim();
+      process.stdout.write(' '.repeat(100) + '\r');
       if (nivel === 0) { console.log(`\n📚 ${nomeNivel}  →  ${disciplinaDe(nomeNivel)}`); await explorar(dest, 1, cursoNome, disciplinaDe(nomeNivel), null); }
       else if (nivel === 1) { console.log(`${ind}   📖 ${nomeNivel}`); await explorar(dest, 2, cursoNome, disciplina, nomeNivel); }
       else await explorar(dest, 3, cursoNome, disciplina, aula || nomeNivel);
