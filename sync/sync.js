@@ -206,7 +206,7 @@ async function descobrirClicando(page) {
   return achados;
 }
 
-const NAV_IGNORAR = /conhecer o ldi|n[aã]o mostrar novamente|^fechar$|^close|share|tweet|^todos os cursos$|^meus cursos$|^in[ií]cio$|^dashboard$|^painel$|^voltar|^ver mais$|^carregar mais$|organiza[çc][aã]o de estudos|passo estrat|bizu estrat|cursos b[oô]nus|^\d*\s*disciplinas$|^\d*\s*discursivas$|pr[eé]-edital|p[oó]s-edital|favoritos|conclu[ií]dos|^todos$|visualizar|^t[ií]tulo$|precisa de ajuda|pedir ao|baixar notalink|cat[aá]logo|trilha|simulado|sala vip|comunidade|monitoria|alerta|perfil|meus dados|prefer[eê]ncia|sair|logout|ajuda|suporte|assinatura|compra|pagamento|caderno de quest|monitor de perf|estude em grupo|cursos exclusivos|minhas matr[ií]culas|in[ií]cio|home|voltar|pr[oó]xim|anterior|ver todos|mais informa/i;
+const NAV_IGNORAR = /^completo$|^sem solu[çc][õo]es$|^resumo$|conhecer o ldi|n[aã]o mostrar novamente|^fechar$|^close|share|tweet|^todos os cursos$|^meus cursos$|^in[ií]cio$|^dashboard$|^painel$|^voltar|^ver mais$|^carregar mais$|organiza[çc][aã]o de estudos|passo estrat|bizu estrat|cursos b[oô]nus|^\d*\s*disciplinas$|^\d*\s*discursivas$|pr[eé]-edital|p[oó]s-edital|favoritos|conclu[ií]dos|^todos$|visualizar|^t[ií]tulo$|precisa de ajuda|pedir ao|baixar notalink|cat[aá]logo|trilha|simulado|sala vip|comunidade|monitoria|alerta|perfil|meus dados|prefer[eê]ncia|sair|logout|ajuda|suporte|assinatura|compra|pagamento|caderno de quest|monitor de perf|estude em grupo|cursos exclusivos|minhas matr[ií]culas|in[ií]cio|home|voltar|pr[oó]xim|anterior|ver todos|mais informa/i;
 
 // Cartões/itens clicáveis da página (disciplinas, aulas): devolve [{nome, url|null, idx}] — url null = precisa clicar.
 async function listarCartoes(page) {
@@ -420,18 +420,6 @@ async function sync(inspecionar) {
       return false;
     };
     const urlDisc = page.url();
-    // Fecha o aviso de boas-vindas do LDI ("Conheça o seu novo jeito de estudar") e pesquisas, se aparecerem.
-    const fecharAvisos = async () => {
-      for (let i = 0; i < 3; i++) {
-        const fechou = await page.evaluate(() => {
-          let agiu = false;
-          for (const l of document.querySelectorAll('label, button, [role="checkbox"]')) if (/n[aã]o mostrar novamente/i.test(l.innerText || '')) { l.click(); agiu = true; }
-          for (const b of document.querySelectorAll('button, [role="button"], div')) { const t = (b.innerText || b.getAttribute('aria-label') || '').trim(); if (/^(fechar|close|close survey|dispensar|agora n[aã]o|entendi|ok)$/i.test(t) && b.offsetParent !== null) { b.click(); agiu = true; break; } }
-          return agiu;
-        }).catch(() => false);
-        if (!fechou) break; await page.waitForTimeout(700);
-      }
-    };
     await fecharAvisos();
     const dialogosAntes = await page.evaluate(() => [...document.querySelectorAll('[role="dialog"], [class*="modal" i], [class*="dialog" i], [class*="drawer" i]')].map(m => (m.innerText || '').slice(0, 80)));
     if (!(await clicar(/baixar curso|baixar em pdf|baixar pdf|download do curso/i, 15000))) {
@@ -482,6 +470,19 @@ async function sync(inspecionar) {
     try { await page.goto(urlDisc, { waitUntil: 'domcontentloaded' }); await esperarPagina(page); } catch {}
     return n;
   }
+    // Fecha o aviso de boas-vindas do LDI ("Conheça o seu novo jeito de estudar") e pesquisas, se aparecerem.
+  async function fecharAvisos() {
+    for (let i = 0; i < 3; i++) {
+      const fechou = await page.evaluate(() => {
+        let agiu = false;
+        for (const l of document.querySelectorAll('label, button, [role="checkbox"]')) if (/n[aã]o mostrar novamente/i.test(l.innerText || '')) { l.click(); agiu = true; }
+        for (const b of document.querySelectorAll('button, [role="button"], div, input[type="button"]')) { const t = (b.innerText || b.value || b.getAttribute('aria-label') || '').trim(); if (/^(fechar|close|close survey|dispensar|agora n[aã]o|entendi|ok|n[aã]o obrigado)$/i.test(t) && b.offsetParent !== null) { b.click(); agiu = true; break; } }
+        return agiu;
+      }).catch(() => false);
+      if (!fechou) break; await page.waitForTimeout(700);
+    }
+  }
+
   // Fecha o aviso de boas-vindas pelo "X" (botão sem texto no canto do diálogo) e marca "Não mostrar novamente".
   async function fecharAvisoX() {
     for (let i = 0; i < 3; i++) {
@@ -501,30 +502,36 @@ async function sync(inspecionar) {
 
   // Lista "Baixar curso": cada linha tem o título da aula + botões COMPLETO / SEM SOLUÇÕES. Baixa o COMPLETO de cada uma.
   let diagListaFeito = 0;
-  async function baixarListaDeAulas(disciplina, cursoNome) {
-    // rola para carregar toda a lista
-    for (let i = 0; i < 8; i++) { try { await page.mouse.wheel(0, 3000); } catch {} await page.waitForTimeout(300); }
-    try { await page.evaluate(() => window.scrollTo(0, 0)); } catch {}
-    const linhas = await page.evaluate(() => {
-      const limpa = t => (t || '').replace(/\s+/g, ' ').trim();
-      const out = []; let k = 0;
-      const botoes = [...document.querySelectorAll('button, a, [role="button"]')].filter(b => /^\s*completo\s*$/i.test(limpa(b.innerText)) );
-      for (const b of botoes) {
-        let row = b; let semSol = null;
-        for (let i = 0; i < 6 && row && row !== document.body; i++, row = row.parentElement) {
-          semSol = [...row.querySelectorAll('button, a, [role="button"]')].find(x => /sem solu/i.test(limpa(x.innerText)));
-          if (semSol) break;
-        }
-        if (!semSol || !row) continue;                                   // é o botão COMPLETO do cabeçalho (alternador), não da lista
-        // título = texto da linha sem os botões e sem as legendas deles
-        const clone = row.cloneNode(true);
-        clone.querySelectorAll('button, a, [role="button"], input, small').forEach(x => x.remove());
-        let titulo = limpa(clone.textContent).replace(/(completo|sem solu[çc][õo]es|com solu[çc][aã]o e coment[aá]rio|gabarito ao final)/gi, ' ').replace(/\s+/g, ' ').trim();
-        if (!titulo) titulo = 'Aula ' + (k + 1);
-        b.setAttribute('data-rr-dlrow', String(k)); out.push({ k, titulo: titulo.slice(0, 120) }); k++;
+  // Localiza as linhas de aula (e marca os botões COMPLETO de cada uma). Ignora o alternador COMPLETO/RESUMO do cabeçalho.
+  const acharLinhas = () => page.evaluate(() => {
+    const limpa = t => (t || '').replace(/\s+/g, ' ').trim();
+    const ehBtn = 'button, a, [role="button"]';
+    const out = []; let k = 0;
+    document.querySelectorAll('[data-rr-dlrow]').forEach(e => e.removeAttribute('data-rr-dlrow'));
+    for (const b of document.querySelectorAll(ehBtn)) {
+      if (!/^\s*completo\s*$/i.test(limpa(b.innerText))) continue;
+      // sobe até o menor contêiner que tenha também um "SEM SOLUÇÕES" — e que seja uma linha (texto curto, sem "RESUMO")
+      let row = b.parentElement, achou = null;
+      for (let i = 0; i < 7 && row && row !== document.body; i++, row = row.parentElement) {
+        const bs = [...row.querySelectorAll(ehBtn)];
+        const temSem = bs.some(x => /sem solu/i.test(limpa(x.innerText)));
+        const temResumo = bs.some(x => /^\s*resumo\s*$/i.test(limpa(x.innerText)));
+        if (temResumo) break;                                             // chegou no cabeçalho: este COMPLETO é o alternador
+        if (temSem) { if (limpa(row.innerText).length < 500) achou = row; break; }
       }
-      return out;
-    });
+      if (!achou) continue;
+      const clone = achou.cloneNode(true);
+      clone.querySelectorAll('button, a, [role="button"], input, small').forEach(x => x.remove());
+      let titulo = limpa(clone.textContent).replace(/(completo|sem solu[çc][õo]es|com solu[çc][aã]o e coment[aá]rio|gabarito ao final)/gi, ' ').replace(/\s+/g, ' ').trim();
+      if (!titulo) titulo = 'Aula ' + (k + 1);
+      b.setAttribute('data-rr-dlrow', String(k)); out.push({ k, titulo: titulo.slice(0, 120) }); k++;
+    }
+    return out;
+  });
+  async function baixarListaDeAulas(disciplina, cursoNome) {
+    for (let i = 0; i < 8; i++) { try { await page.mouse.wheel(0, 3000); } catch {} await page.waitForTimeout(300); }   // carrega toda a lista
+    try { await page.evaluate(() => window.scrollTo(0, 0)); } catch {}
+    const linhas = await acharLinhas();
     if (!linhas.length) { if (diagListaFeito < 2) { diagListaFeito++; await salvarInspecao(page, `baixar-curso-${limpaNome(disciplina).slice(0, 25)}`); console.log('      (tela "Baixar curso" sem linhas COMPLETO/SEM SOLUÇÕES reconhecíveis — foto inspecao-baixar-curso-….png)'); } return 0; }
     console.log(`      ⬇ ${linhas.length} aula(s) na tela "Baixar curso"`);
     const dest = path.join(SAIDA, limpaNome(disciplina)); fs.mkdirSync(dest, { recursive: true });
@@ -533,7 +540,11 @@ async function sync(inspecionar) {
       const arq = path.join(dest, limpaNome(l.titulo) + '.pdf');
       const chave = `${disciplina}/${l.titulo}`;
       if (fs.existsSync(arq) || manifest.materiais.some(m => m.chave === chave)) continue;
-      const btn = await page.$(`[data-rr-dlrow="${l.k}"]`); if (!btn) continue;
+      await fecharAvisos(); await fecharAvisoX();
+      const agora = await acharLinhas();                                   // reencontra os botões (a página pode ter re-renderizado)
+      const alvo = agora.find(x => x.titulo === l.titulo) || agora[l.k];
+      const btn = alvo ? await page.$(`[data-rr-dlrow="${alvo.k}"]`) : null;
+      if (!btn) { console.log('      ✖', l.titulo.slice(0, 70), '- botão não encontrado de novo'); continue; }
       try {
         await btn.scrollIntoViewIfNeeded();
         const [dl, novaAba] = await Promise.all([
@@ -553,7 +564,6 @@ async function sync(inspecionar) {
         manifest.materiais.push({ chave, disciplina, curso: cursoNome, titulo: l.titulo, tipo: 'pdf', arquivo: path.relative(SAIDA, arq).split(path.sep).join('/') });
         fs.writeFileSync(MANIFEST, JSON.stringify(manifest, null, 2));
       } catch (e) { console.log('      ✖', l.titulo.slice(0, 70), '-', e.message.slice(0, 60)); }
-      await fecharAvisoX();
     }
     return n;
   }
