@@ -405,14 +405,26 @@ async function sync(inspecionar) {
   // Plataforma nova: na página da disciplina → "Conhecer o LDI" (Livro Digital) → "Baixar curso em PDF ou vídeo".
   let diagLdiFeito = 0;
   async function baixarPeloLDI(disciplina, cursoNome) {
+    // Clica por texto/aria-label mesmo que o botão esteja recolhido (barra lateral fechada): tenta clique normal, depois via JavaScript.
     const clicar = async (re, timeout = 12000) => {
-      const loc = page.locator(`button, a, [role="button"], [role="menuitem"]`).filter({ hasText: re }).first();
-      try { await loc.waitFor({ state: 'visible', timeout }); await loc.scrollIntoViewIfNeeded(); await loc.click({ timeout: 4000 }); return true; } catch { return false; }
+      const fim = Date.now() + timeout;
+      while (Date.now() < fim) {
+        const ok = await page.evaluate(src => {
+          const r = new RegExp(src, 'i');
+          const el = [...document.querySelectorAll('button, a, [role="button"], [role="menuitem"]')].find(b => r.test(((b.innerText || '') + ' ' + (b.getAttribute('aria-label') || '') + ' ' + (b.title || '')).replace(/\s+/g, ' ')));
+          if (!el) return false; el.scrollIntoView({ block: 'center' }); el.click(); return true;
+        }, re.source);
+        if (ok) return true;
+        await page.waitForTimeout(700);
+      }
+      return false;
     };
     const urlDisc = page.url();
-    if (!(await clicar(/conhecer o ldi|livro digital|abrir ldi|^ldi$/i, 8000))) return 0;
-    try { await page.waitForLoadState('domcontentloaded', { timeout: 15000 }); } catch {}
-    if (!(await clicar(/baixar curso|baixar em pdf|baixar pdf|download do curso/i, 20000))) {
+    const temBotao = async () => page.evaluate(() => [...document.querySelectorAll('button, a, [role="button"]')].some(b => /baixar curso|baixar em pdf|download do curso/i.test((b.innerText || '') + ' ' + (b.getAttribute('aria-label') || '') + ' ' + (b.title || ''))));
+    if (!(await temBotao())) {   // ainda não é a tela do Livro Digital: entra por "Conhecer o LDI"
+      if (await clicar(/conhecer o ldi|livro digital|abrir ldi|^ldi$/i, 6000)) { try { await page.waitForLoadState('domcontentloaded', { timeout: 15000 }); } catch {} await page.waitForTimeout(1500); }
+    }
+    if (!(await clicar(/baixar curso|baixar em pdf|baixar pdf|download do curso/i, 15000))) {
       if (diagLdiFeito < 2) { diagLdiFeito++; await salvarInspecao(page, `ldi-${limpaNome(disciplina).slice(0, 25)}`); console.log(`      (LDI aberto, mas não achei "Baixar curso em PDF ou vídeo" — foto inspecao-ldi-….png)`); }
       return 0;
     }
