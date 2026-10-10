@@ -61,7 +61,7 @@ function disciplinaDe(curso) {
   for (const [chave, disc] of DISCIPLINAS) if (n.includes(chave)) return disc;
   return curso.replace(/\s*(p\/|para)\s+.*$/i, '').trim() || 'Outros';
 }
-const limpaNome = s => String(s).replace(/[\\/:*?"<>|]+/g, '-').replace(/\s+/g, ' ').trim().slice(0, 120);
+const limpaNome = s => String(s).replace(/[\/:*?"<>|]+/g, '-').replace(/\s+/g, ' ').trim().replace(/[. ]+$/, '').slice(0, 120);
 
 // Classifica um link pelo rótulo/URL. Retorna {tipo, ext} ou null se não interessa.
 function classificar(url, rotulo, classe) {
@@ -439,6 +439,11 @@ async function sync(inspecionar) {
       return 0;
     }
     await page.waitForTimeout(2500);
+    await fecharAvisos();                       // o aviso de boas-vindas reaparece sobre a tela "Baixar curso"
+    await fecharAvisoX();
+    // Tela "Baixar curso": lista de aulas, cada uma com botões "COMPLETO" e "SEM SOLUÇÕES". Baixa o COMPLETO de cada aula.
+    const nLista = await baixarListaDeAulas(disciplina, cursoNome);
+    if (nLista) { try { await page.keyboard.press('Escape'); } catch {} for (const p2 of ctx.pages()) if (p2 !== page) { try { await p2.close(); } catch {} } try { await page.goto(urlDisc, { waitUntil: 'domcontentloaded' }); await esperarPagina(page); } catch {} return nLista; }
     const downloads = []; const onDl = d => downloads.push(d); page.on('download', onDl);
     // o que a janela de download mostra
     const modal = await page.evaluate(antes => {
@@ -477,6 +482,82 @@ async function sync(inspecionar) {
     try { await page.goto(urlDisc, { waitUntil: 'domcontentloaded' }); await esperarPagina(page); } catch {}
     return n;
   }
+  // Fecha o aviso de boas-vindas pelo "X" (botão sem texto no canto do diálogo) e marca "Não mostrar novamente".
+  async function fecharAvisoX() {
+    for (let i = 0; i < 3; i++) {
+      const fechou = await page.evaluate(() => {
+        const dlg = [...document.querySelectorAll('[role="dialog"], [class*="modal" i], [class*="dialog" i]')].find(m => /conhe[çc]a o seu novo jeito|guia r[aá]pido/i.test(m.innerText || ''));
+        if (!dlg) return false;
+        const cb = [...dlg.querySelectorAll('input[type="checkbox"], [role="checkbox"], label')].find(l => /n[aã]o mostrar/i.test((l.innerText || '') + (l.parentElement?.innerText || ''))); if (cb) cb.click();
+        const x = [...dlg.querySelectorAll('button, [role="button"]')].find(b => /^(×|✕|x|fechar|close)$/i.test((b.innerText || '').trim()) || /fechar|close/i.test(b.getAttribute('aria-label') || ''));
+        if (x) { x.click(); return true; }
+        const btns = [...dlg.querySelectorAll('button')]; if (btns.length) { btns[0].click(); return true; }   // em geral o X é o primeiro botão
+        return false;
+      }).catch(() => false);
+      await page.waitForTimeout(600);
+      if (!fechou) break;
+    }
+  }
+
+  // Lista "Baixar curso": cada linha tem o título da aula + botões COMPLETO / SEM SOLUÇÕES. Baixa o COMPLETO de cada uma.
+  let diagListaFeito = 0;
+  async function baixarListaDeAulas(disciplina, cursoNome) {
+    // rola para carregar toda a lista
+    for (let i = 0; i < 8; i++) { try { await page.mouse.wheel(0, 3000); } catch {} await page.waitForTimeout(300); }
+    try { await page.evaluate(() => window.scrollTo(0, 0)); } catch {}
+    const linhas = await page.evaluate(() => {
+      const limpa = t => (t || '').replace(/\s+/g, ' ').trim();
+      const out = []; let k = 0;
+      const botoes = [...document.querySelectorAll('button, a, [role="button"]')].filter(b => /^\s*completo\s*$/i.test(limpa(b.innerText)) );
+      for (const b of botoes) {
+        let row = b; let semSol = null;
+        for (let i = 0; i < 6 && row && row !== document.body; i++, row = row.parentElement) {
+          semSol = [...row.querySelectorAll('button, a, [role="button"]')].find(x => /sem solu/i.test(limpa(x.innerText)));
+          if (semSol) break;
+        }
+        if (!semSol || !row) continue;                                   // é o botão COMPLETO do cabeçalho (alternador), não da lista
+        // título = texto da linha sem os botões e sem as legendas deles
+        const clone = row.cloneNode(true);
+        clone.querySelectorAll('button, a, [role="button"], input, small').forEach(x => x.remove());
+        let titulo = limpa(clone.textContent).replace(/(completo|sem solu[çc][õo]es|com solu[çc][aã]o e coment[aá]rio|gabarito ao final)/gi, ' ').replace(/\s+/g, ' ').trim();
+        if (!titulo) titulo = 'Aula ' + (k + 1);
+        b.setAttribute('data-rr-dlrow', String(k)); out.push({ k, titulo: titulo.slice(0, 120) }); k++;
+      }
+      return out;
+    });
+    if (!linhas.length) { if (diagListaFeito < 2) { diagListaFeito++; await salvarInspecao(page, `baixar-curso-${limpaNome(disciplina).slice(0, 25)}`); console.log('      (tela "Baixar curso" sem linhas COMPLETO/SEM SOLUÇÕES reconhecíveis — foto inspecao-baixar-curso-….png)'); } return 0; }
+    console.log(`      ⬇ ${linhas.length} aula(s) na tela "Baixar curso"`);
+    const dest = path.join(SAIDA, limpaNome(disciplina)); fs.mkdirSync(dest, { recursive: true });
+    let n = 0;
+    for (const l of linhas) {
+      const arq = path.join(dest, limpaNome(l.titulo) + '.pdf');
+      const chave = `${disciplina}/${l.titulo}`;
+      if (fs.existsSync(arq) || manifest.materiais.some(m => m.chave === chave)) continue;
+      const btn = await page.$(`[data-rr-dlrow="${l.k}"]`); if (!btn) continue;
+      try {
+        await btn.scrollIntoViewIfNeeded();
+        const [dl, novaAba] = await Promise.all([
+          page.waitForEvent('download', { timeout: 60000 }).catch(() => null),
+          ctx.waitForEvent('page', { timeout: 8000 }).catch(() => null),
+          btn.click({ timeout: 3000 }),
+        ]);
+        if (dl) { await dl.saveAs(arq); }
+        else if (novaAba) {        // abriu o PDF numa aba: baixa pela URL com os cookies da sessão
+          try { await novaAba.waitForLoadState('domcontentloaded', { timeout: 15000 }); } catch {}
+          const u = novaAba.url(); let ok = false;
+          if (/^https?:/.test(u)) { const r = await page.request.get(u).catch(() => null); if (r && r.ok() && /pdf|octet/i.test(r.headers()['content-type'] || '')) { fs.writeFileSync(arq, await r.body()); ok = true; } }
+          try { await novaAba.close(); } catch {}
+          if (!ok) { console.log('      ✖', l.titulo.slice(0, 70), '- abriu em aba mas não veio PDF:', u.slice(0, 80)); continue; }
+        } else { console.log('      ✖', l.titulo.slice(0, 70), '- nenhum download iniciou'); continue; }
+        n++; cont.pdf = (cont.pdf || 0) + 1; console.log('      ✔', l.titulo.slice(0, 80));
+        manifest.materiais.push({ chave, disciplina, curso: cursoNome, titulo: l.titulo, tipo: 'pdf', arquivo: path.relative(SAIDA, arq).split(path.sep).join('/') });
+        fs.writeFileSync(MANIFEST, JSON.stringify(manifest, null, 2));
+      } catch (e) { console.log('      ✖', l.titulo.slice(0, 70), '-', e.message.slice(0, 60)); }
+      await fecharAvisoX();
+    }
+    return n;
+  }
+
   const tipoDeNome = f => /resum|simplificad/i.test(f) ? 'resumo' : /mapa/i.test(f) ? 'mapa' : /slide/i.test(f) ? 'slides' : /quest|exerc/i.test(f) ? 'questoes' : 'pdf';
 
   // Pacote → disciplinas → aulas → materiais (até 3 níveis). `rotulo` = nome do nível acima.
