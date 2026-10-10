@@ -344,6 +344,7 @@ async function sync(inspecionar) {
   };
   const materiaisDaPagina = async () => (await listarMateriais(page)).map(m => ({ ...m, c: classificar(m.url, m.rotulo, m.classe) })).filter(m => m.c && TIPOS.has(m.c.tipo));
   const visitadas = new Set();
+  let inspecoesFeitas = 0;
 
   // Pacote → disciplinas → aulas → materiais (até 3 níveis). `rotulo` = nome do nível acima.
   async function explorar(url, nivel, cursoNome, disciplina, aula) {
@@ -379,6 +380,16 @@ async function sync(inspecionar) {
         if (nivel >= 1) {
           try { await page.waitForTimeout(600); } catch {}
           const novos = (await materiaisDaPagina()).filter(m => !urlsVistas.has(m.url));
+          if (!novos.length && nivel === 1 && n <= 2 && inspecoesFeitas < 3) {   // nada apareceu: registra o que a página mostra para diagnóstico
+            inspecoesFeitas++;
+            const nomeArq = `aula-${limpaNome(disciplina || cursoNome).slice(0, 25)}-${n}`;
+            await salvarInspecao(page, nomeArq);
+            const vistos = await page.evaluate(() => [...document.querySelectorAll('a[href], button, [role="button"]')].map(el => `${el.tagName.toLowerCase()} | ${(el.innerText || el.getAttribute('aria-label') || el.title || '').replace(/\s+/g, ' ').trim().slice(0, 60)} | ${el.href || el.getAttribute('data-href') || ''}`).filter(t => !/\|  \|/.test(t)).slice(0, 60));
+            process.stdout.write(' '.repeat(100) + '\r');
+            console.log(`${ind}   ⚠ Não achei material ao clicar em "${c.nome.slice(0, 60)}". Foto salva: inspecao-${nomeArq}.png`);
+            console.log(`${ind}     Botões/links visíveis na página (${vistos.length}):`);
+            vistos.forEach(v => console.log(`${ind}       · ${v}`));
+          }
           if (novos.length) {
             novos.forEach(m => urlsVistas.add(m.url));
             process.stdout.write(' '.repeat(100) + '\r');
