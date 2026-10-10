@@ -346,14 +346,125 @@ async function sync(inspecionar) {
   const visitadas = new Set();
   let inspecoesFeitas = 0;
 
+  // Na lista do pacote, cada disciplina tem um ícone de download (⬇). Clica nele, registra o que abre e tenta baixar.
+  let diagDownloadFeito = 0;
+  async function baixarPeloIcone(card, disciplina, cursoNome) {
+    const info = await page.evaluate(idx => {
+      const el = document.querySelector(`[data-rr-card="${idx}"]`); if (!el) return null;
+      let linha = el; for (let i = 0; i < 6 && linha && linha.parentElement; i++) { if (linha.querySelector('button[aria-label], a[download], [class*="download" i], svg')) break; linha = linha.parentElement; }
+      const cands = [...linha.querySelectorAll('button, a, [role="button"]')].filter(b => !el.contains(b) || b !== el);
+      const txt = b => ((b.getAttribute('aria-label') || '') + ' ' + (b.title || '') + ' ' + (b.innerText || '') + ' ' + (b.className || '') + ' ' + (b.querySelector('svg')?.getAttribute('aria-label') || '') + ' ' + (b.querySelector('svg')?.getAttribute('data-icon') || '')).toLowerCase();
+      let alvo = cands.find(b => /baixar|download|descarregar/.test(txt(b))) || cands.find(b => b.querySelector('svg') && !/favorit|menu|op[çc][õo]es|mais/.test(txt(b)));
+      if (!alvo) return { achou: false, botoes: cands.map(txt).map(t => t.trim().slice(0, 50)) };
+      alvo.setAttribute('data-rr-dl', '1'); return { achou: true };
+    }, card.idx);
+    if (!info || !info.achou) { if (diagDownloadFeito < 1) { diagDownloadFeito++; console.log(`   (sem ícone de download reconhecível na linha; botões da linha: ${JSON.stringify((info || {}).botoes || [])})`); } return 0; }
+    const btn = await page.$('[data-rr-dl="1"]'); if (!btn) return 0;
+    const downloads = [];
+    const onDl = d => downloads.push(d); page.on('download', onDl);
+    try { await btn.click({ timeout: 3000 }); } catch { page.off('download', onDl); return 0; }
+    await page.waitForTimeout(2000);
+    // o que abriu? (modal/menu)
+    const modal = await page.evaluate(() => {
+      const m = document.querySelector('[role="dialog"], [role="menu"], [class*="modal" i], [class*="dialog" i], [class*="drawer" i], [class*="popover" i], [class*="dropdown" i]');
+      if (!m) return null;
+      return { texto: (m.innerText || '').replace(/\s+/g, ' ').trim().slice(0, 600),
+        itens: [...m.querySelectorAll('a[href], button, [role="button"], [role="menuitem"], input[type="checkbox"], label')].map((el, i) => { el.setAttribute('data-rr-mi', String(i)); return { i, tag: el.tagName.toLowerCase(), t: (el.innerText || el.getAttribute('aria-label') || el.title || '').replace(/\s+/g, ' ').trim().slice(0, 60), href: el.href || '' }; }) };
+    });
+    if (diagDownloadFeito < 2) { diagDownloadFeito++;
+      await salvarInspecao(page, `download-${limpaNome(disciplina).slice(0, 25)}`);
+      console.log(`   ⬇ Cliquei no ícone de download. ${modal ? 'Abriu uma janela com: ' + modal.texto.slice(0, 300) : 'Nada visível abriu'}. Foto: inspecao-download-….png`);
+      if (modal) modal.itens.forEach(x => console.log(`       · ${x.tag} | ${x.t} | ${x.href}`)); }
+    let n = 0;
+    if (modal) {
+      // 1) links diretos de PDF/arquivo dentro da janela
+      for (const x of modal.itens) if (x.href && classificar(x.href, x.t, '')) { try { const arq = path.join(SAIDA, limpaNome(disciplina), limpaNome(x.t || 'arquivo') + (/\.pdf/i.test(x.href) ? '.pdf' : '')); fs.mkdirSync(path.dirname(arq), { recursive: true }); if (!fs.existsSync(arq)) { await baixar(page, x.href, arq); n++; console.log('      ✔', path.basename(arq)); } } catch (e) {} }
+      // 2) botões "selecionar todos" e depois "baixar/download"
+      for (const re of [/selecionar tod|marcar tod|todos/i, /baixar|download|confirmar|gerar/i]) {
+        const alvo = modal.itens.find(x => re.test(x.t) && x.tag !== 'a'); if (!alvo) continue;
+        try { await (await page.$(`[data-rr-mi="${alvo.i}"]`)).click({ timeout: 2000 }); await page.waitForTimeout(2500); } catch {}
+      }
+    }
+    // downloads disparados (zip/pdf) durante o processo
+    await page.waitForTimeout(3000); page.off('download', onDl);
+    for (const d of downloads) { try { const nome = d.suggestedFilename() || 'arquivo'; const arq = path.join(SAIDA, limpaNome(disciplina), limpaNome(nome)); fs.mkdirSync(path.dirname(arq), { recursive: true }); await d.saveAs(arq); n++; console.log('      ✔', nome, '(pelo ícone de download)');
+      if (/\.zip$/i.test(nome)) { // ZIP com os PDFs: extrai na pasta da disciplina (Windows: PowerShell; Mac/Linux: unzip)
+        try { const { execSync } = require('child_process'); const dest = path.dirname(arq);
+          if (process.platform === 'win32') execSync(`powershell -NoProfile -Command "Expand-Archive -LiteralPath '${arq.replace(/'/g, "''")}' -DestinationPath '${dest.replace(/'/g, "''")}' -Force"`, { stdio: 'ignore' });
+          else execSync(`unzip -o -q "${arq}" -d "${dest}"`, { stdio: 'ignore' });
+          fs.unlinkSync(arq); console.log('      ✔ ZIP extraído em', path.basename(dest));
+          for (const f of fs.readdirSync(dest)) if (/\.pdf$/i.test(f) && !manifest.materiais.some(m => m.arquivo === path.posix.join(limpaNome(disciplina), f)))
+            manifest.materiais.push({ chave: `${disciplina}/${f}`, disciplina, curso: cursoNome, titulo: f.replace(/\.pdf$/i, ''), tipo: 'pdf', arquivo: path.posix.join(limpaNome(disciplina), f) });
+          continue; } catch (e) { console.log('      (não consegui extrair o ZIP; fica salvo como está)'); } }
+      manifest.materiais.push({ chave: `${disciplina}/${nome}`, disciplina, curso: cursoNome, titulo: nome.replace(/\.(pdf|zip)$/i, ''), tipo: /\.zip$/i.test(nome) ? 'zip' : 'pdf', arquivo: path.relative(SAIDA, arq).split(path.sep).join('/') }); } catch (e) {} }
+    fs.writeFileSync(MANIFEST, JSON.stringify(manifest, null, 2));
+    try { await page.keyboard.press('Escape'); } catch {}
+    return n;
+  }
+
+  // Plataforma nova: na página da disciplina → "Conhecer o LDI" (Livro Digital) → "Baixar curso em PDF ou vídeo".
+  let diagLdiFeito = 0;
+  async function baixarPeloLDI(disciplina, cursoNome) {
+    const clicar = async (re, timeout = 12000) => {
+      const loc = page.locator(`button, a, [role="button"], [role="menuitem"]`).filter({ hasText: re }).first();
+      try { await loc.waitFor({ state: 'visible', timeout }); await loc.scrollIntoViewIfNeeded(); await loc.click({ timeout: 4000 }); return true; } catch { return false; }
+    };
+    const urlDisc = page.url();
+    if (!(await clicar(/conhecer o ldi|livro digital|abrir ldi|^ldi$/i, 8000))) return 0;
+    try { await page.waitForLoadState('domcontentloaded', { timeout: 15000 }); } catch {}
+    if (!(await clicar(/baixar curso|baixar em pdf|baixar pdf|download do curso/i, 20000))) {
+      if (diagLdiFeito < 2) { diagLdiFeito++; await salvarInspecao(page, `ldi-${limpaNome(disciplina).slice(0, 25)}`); console.log(`      (LDI aberto, mas não achei "Baixar curso em PDF ou vídeo" — foto inspecao-ldi-….png)`); }
+      return 0;
+    }
+    await page.waitForTimeout(2500);
+    const downloads = []; const onDl = d => downloads.push(d); page.on('download', onDl);
+    // o que a janela de download mostra
+    const modal = await page.evaluate(() => {
+      const cands = [...document.querySelectorAll('[role="dialog"], [class*="modal" i], [class*="dialog" i], [class*="drawer" i], [class*="sheet" i]')];
+      const m = cands.sort((a, b) => b.innerText.length - a.innerText.length)[0] || document.body;
+      return { texto: (m.innerText || '').replace(/\s+/g, ' ').trim().slice(0, 800),
+        itens: [...m.querySelectorAll('a[href], button, [role="button"], [role="menuitem"], [role="tab"], [role="radio"], [role="checkbox"], input, label')].map((el, i) => { el.setAttribute('data-rr-mi', String(i)); return { i, tag: el.tagName.toLowerCase(), type: el.type || '', t: (el.innerText || el.getAttribute('aria-label') || el.title || el.value || '').replace(/\s+/g, ' ').trim().slice(0, 70), href: el.href || '' }; }).filter(x => x.t || x.href) };
+    });
+    if (diagLdiFeito < 2) { diagLdiFeito++; await salvarInspecao(page, `download-${limpaNome(disciplina).slice(0, 25)}`);
+      console.log(`      ⬇ Janela "Baixar curso": ${modal.texto.slice(0, 400)}`); modal.itens.slice(0, 60).forEach(x => console.log(`         · ${x.tag}${x.type ? '[' + x.type + ']' : ''} | ${x.t} | ${x.href}`)); }
+    let n = 0;
+    const clicarItem = async re => { const x = modal.itens.find(x => re.test(x.t)); if (!x) return false; try { await (await page.$(`[data-rr-mi="${x.i}"]`)).click({ timeout: 2500 }); await page.waitForTimeout(1200); return true; } catch { return false; } };
+    // 1) links diretos para PDF dentro da janela
+    for (const x of modal.itens) if (x.href && /\.pdf(\?|$)/i.test(x.href)) { try { const arq = path.join(SAIDA, limpaNome(disciplina), limpaNome(x.t || 'arquivo') + '.pdf'); fs.mkdirSync(path.dirname(arq), { recursive: true }); if (!fs.existsSync(arq)) { const r = await page.request.get(x.href); if (r.ok()) { fs.writeFileSync(arq, await r.body()); n++; console.log('      ✔', path.basename(arq)); } } } catch {} }
+    // 2) fluxo com seleção: PDF → selecionar todos → baixar
+    await clicarItem(/^pdf$|em pdf|\bpdf\b/i);
+    await clicarItem(/selecionar tod|marcar tod|^todos$|todas as aulas/i);
+    await clicarItem(/^baixar$|^download$|baixar selecionad|baixar agora|confirmar|gerar/i);
+    // espera os downloads (ZIP ou vários PDFs): enquanto chegarem novos, continua esperando
+    let ultimo = downloads.length, quieto = 0;
+    for (let t = 0; t < 120 && quieto < 4; t++) { await page.waitForTimeout(1000); if (downloads.length !== ultimo) { ultimo = downloads.length; quieto = 0; } else if (downloads.length) quieto++; else if (t > 20) break; }
+    page.off('download', onDl);
+    for (const d of downloads) { try { const nome = d.suggestedFilename() || 'arquivo'; const dest = path.join(SAIDA, limpaNome(disciplina)); const arq = path.join(dest, limpaNome(nome)); fs.mkdirSync(dest, { recursive: true }); await d.saveAs(arq); n++; console.log('      ✔', nome);
+      if (/\.zip$/i.test(nome)) { try { const { execSync } = require('child_process');
+          if (process.platform === 'win32') execSync(`powershell -NoProfile -Command "Expand-Archive -LiteralPath '${arq.replace(/'/g, "''")}' -DestinationPath '${dest.replace(/'/g, "''")}' -Force"`, { stdio: 'ignore' }); else execSync(`unzip -o -q "${arq}" -d "${dest}"`, { stdio: 'ignore' });
+          fs.unlinkSync(arq); console.log('      ✔ ZIP extraído'); } catch { console.log('      (não consegui extrair o ZIP; fica salvo como está)'); } }
+      for (const f of fs.readdirSync(dest)) if (/\.(pdf|mp4|mp3)$/i.test(f) && !manifest.materiais.some(m => m.arquivo === path.posix.join(limpaNome(disciplina), f)))
+        manifest.materiais.push({ chave: `${disciplina}/${f}`, disciplina, curso: cursoNome, titulo: f.replace(/\.(pdf|mp4|mp3)$/i, ''), tipo: /\.mp4$/i.test(f) ? 'video' : /\.mp3$/i.test(f) ? 'audio' : tipoDeNome(f), arquivo: path.posix.join(limpaNome(disciplina), f) });
+    } catch (e) {} }
+    fs.writeFileSync(MANIFEST, JSON.stringify(manifest, null, 2));
+    try { await page.keyboard.press('Escape'); } catch {}
+    try { await page.goto(urlDisc, { waitUntil: 'domcontentloaded' }); await esperarPagina(page); } catch {}
+    return n;
+  }
+  const tipoDeNome = f => /resum|simplificad/i.test(f) ? 'resumo' : /mapa/i.test(f) ? 'mapa' : /slide/i.test(f) ? 'slides' : /quest|exerc/i.test(f) ? 'questoes' : 'pdf';
+
   // Pacote → disciplinas → aulas → materiais (até 3 níveis). `rotulo` = nome do nível acima.
   async function explorar(url, nivel, cursoNome, disciplina, aula) {
     if (visitadas.has(url) || nivel > 3 || !HOST_OK.test(hostDe(url))) return; visitadas.add(url);
     if (page.url() !== url) { try { await page.goto(url, { waitUntil: 'domcontentloaded' }); await esperarPagina(page); } catch { return; } }
     try { await page.waitForFunction(() => document.body.innerText.trim().length > 200, null, { timeout: 6000 }); } catch {}
     for (const b of await page.$$('button:has-text("Ver aulas"), button:has-text("Expandir"), button:has-text("Aulas"), [aria-expanded="false"]')) { try { await b.click({ timeout: 500 }); } catch {} }
-    const itens = await materiaisDaPagina();
     const ind = '   '.repeat(nivel);
+    if (nivel === 1 && !inspecionar) {
+      let k = 0; try { k = await baixarPeloLDI(disciplina || disciplinaDe(cursoNome), cursoNome); } catch (e) { console.log(`${ind}   (LDI: ${e.message.slice(0, 80)})`); }
+      if (k) { cont.pdf = (cont.pdf || 0) + k; console.log(`${ind}   ${k} arquivo(s) pelo Livro Digital`); return; }
+    }
+    const itens = await materiaisDaPagina();
     if (itens.length) {
       console.log(`${ind}${itens.length} item(ns) em "${aula || disciplina || cursoNome}"`);
       if (inspecionar) itens.forEach(m => console.log(`${ind}   - [${m.c.tipo}] ${m.aula} | ${m.rotulo} | ${m.url}`));
@@ -373,6 +484,7 @@ async function sync(inspecionar) {
     let n = 0;
     for (const c of cartoes) {
       n++; if (nivel <= 1) process.stdout.write(`${ind}   (${n}/${cartoes.length}) ${c.nome.slice(0, 70)}\r`);
+      if (nivel === 0 && !inspecionar) { try { const k = await baixarPeloIcone(c, disciplinaDe(c.nome), cursoNome); if (k) { cont.pdf = (cont.pdf || 0) + k; } await listarCartoes(page); } catch (e) {} }
       if (page.url() !== base) { try { await page.goto(base, { waitUntil: 'domcontentloaded' }); await esperarPagina(page); await listarCartoes(page); } catch { continue; } }
       let dest = null; try { dest = await abrirCartao(page, c, base); } catch (e) { dest = null; }
       if (!dest || dest === base) {
@@ -384,7 +496,14 @@ async function sync(inspecionar) {
             inspecoesFeitas++;
             const nomeArq = `aula-${limpaNome(disciplina || cursoNome).slice(0, 25)}-${n}`;
             await salvarInspecao(page, nomeArq);
-            const vistos = await page.evaluate(() => [...document.querySelectorAll('a[href], button, [role="button"]')].map(el => `${el.tagName.toLowerCase()} | ${(el.innerText || el.getAttribute('aria-label') || el.title || '').replace(/\s+/g, ' ').trim().slice(0, 60)} | ${el.href || el.getAttribute('data-href') || ''}`).filter(t => !/\|  \|/.test(t)).slice(0, 60));
+            const vistos = await page.evaluate(() => { const seen = new Set(); const out = [];
+              const ctrl = /^(tocar( v[ií]deo)?|pausar|voltar \d+ segundos|avan[çc]ar \d+ segundos|mudo|legendas|picture-in-picture|configura[çc][õo]es do v[ií]deo|tela cheia|alternar modo escuro|notifica[çc][õo]es)$/i;
+              for (const el of document.querySelectorAll('a[href], button, [role="button"], [role="menuitem"]')) {
+                const t = (el.innerText || el.getAttribute('aria-label') || el.title || '').replace(/\s+/g, ' ').trim();
+                if (!t || ctrl.test(t)) continue;
+                const k = el.tagName.toLowerCase() + '|' + t.toLowerCase().slice(0, 60) + '|' + (el.href || ''); if (seen.has(k)) continue; seen.add(k);
+                out.push(`${el.tagName.toLowerCase()} | ${t.slice(0, 60)} | ${el.href || el.getAttribute('data-href') || ''}`);
+              } return out.slice(0, 80); });
             process.stdout.write(' '.repeat(100) + '\r');
             console.log(`${ind}   ⚠ Não achei material ao clicar em "${c.nome.slice(0, 60)}". Foto salva: inspecao-${nomeArq}.png`);
             console.log(`${ind}     Botões/links visíveis na página (${vistos.length}):`);
