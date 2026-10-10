@@ -232,7 +232,7 @@ async function listarCartoes(page) {
 async function abrirCartao(page, card, base) {
   if (card.url && card.url !== base && !/^javascript:|#$/.test(card.url)) { await page.goto(card.url, { waitUntil: 'domcontentloaded' }); await esperarPagina(page); return page.url(); }
   const el = await page.$(`[data-rr-card="${card.idx}"]`); if (!el) return null;
-  try { await el.scrollIntoViewIfNeeded(); await el.click({ timeout: 3000 }); await page.waitForURL(u => u.toString() !== base, { timeout: 4000 }); }
+  try { await el.scrollIntoViewIfNeeded(); await el.click({ timeout: 3000 }); await page.waitForURL(u => u.toString() !== base, { timeout: 2500 }); }
   catch { return null; }
   if (!HOST_OK.test(hostDe(page.url()))) { try { await page.goto(base, { waitUntil: 'domcontentloaded' }); } catch {} return null; }   // saiu do Estratégia: volta
   await esperarPagina(page); return page.url();
@@ -368,12 +368,28 @@ async function sync(inspecionar) {
     if (!itens.length && !cartoes.length) { await salvarInspecao(page, `nivel${nivel}-${limpaNome(aula || disciplina || cursoNome).slice(0, 30)}`); return; }
     if (!itens.length) console.log(`${ind}${cartoes.length} subitem(ns) em "${aula || disciplina || cursoNome}"`);
     const base = page.url();
+    const urlsVistas = new Set(itens.map(m => m.url));
     let n = 0;
     for (const c of cartoes) {
       n++; if (nivel <= 1) process.stdout.write(`${ind}   (${n}/${cartoes.length}) ${c.nome.slice(0, 70)}\r`);
       if (page.url() !== base) { try { await page.goto(base, { waitUntil: 'domcontentloaded' }); await esperarPagina(page); await listarCartoes(page); } catch { continue; } }
-      let dest = null; try { dest = await abrirCartao(page, c, base); } catch (e) { continue; }
-      if (!dest || dest === base || visitadas.has(dest)) continue;
+      let dest = null; try { dest = await abrirCartao(page, c, base); } catch (e) { dest = null; }
+      if (!dest || dest === base) {
+        // Não navegou: em muitas páginas o clique EXPANDE a aula ali mesmo e revela os botões de material.
+        if (nivel >= 1) {
+          try { await page.waitForTimeout(600); } catch {}
+          const novos = (await materiaisDaPagina()).filter(m => !urlsVistas.has(m.url));
+          if (novos.length) {
+            novos.forEach(m => urlsVistas.add(m.url));
+            process.stdout.write(' '.repeat(100) + '\r');
+            console.log(`${ind}   📖 ${c.nome.slice(0, 80)}  (${novos.length} item(ns))`);
+            if (inspecionar) novos.forEach(m => console.log(`${ind}      - [${m.c.tipo}] ${m.rotulo} | ${m.url}`));
+            else await baixarItens(novos, disciplina || disciplinaDe(cursoNome), c.nome, cursoNome);
+          }
+        }
+        continue;
+      }
+      if (visitadas.has(dest)) continue;
       const nomeNivel = c.nome.replace(/\s+/g, ' ').trim();
       process.stdout.write(' '.repeat(100) + '\r');
       if (nivel === 0) { console.log(`\n📚 ${nomeNivel}  →  ${disciplinaDe(nomeNivel)}`); await explorar(dest, 1, cursoNome, disciplinaDe(nomeNivel), null); }
