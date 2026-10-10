@@ -206,7 +206,7 @@ async function descobrirClicando(page) {
   return achados;
 }
 
-const NAV_IGNORAR = /^todos os cursos$|^meus cursos$|^in[ií]cio$|^dashboard$|^painel$|^voltar|^ver mais$|^carregar mais$|organiza[çc][aã]o de estudos|passo estrat|bizu estrat|cursos b[oô]nus|^\d*\s*disciplinas$|^\d*\s*discursivas$|pr[eé]-edital|p[oó]s-edital|favoritos|conclu[ií]dos|^todos$|visualizar|^t[ií]tulo$|precisa de ajuda|pedir ao|baixar notalink|cat[aá]logo|trilha|simulado|sala vip|comunidade|monitoria|alerta|perfil|meus dados|prefer[eê]ncia|sair|logout|ajuda|suporte|assinatura|compra|pagamento|caderno de quest|monitor de perf|estude em grupo|cursos exclusivos|minhas matr[ií]culas|in[ií]cio|home|voltar|pr[oó]xim|anterior|ver todos|mais informa/i;
+const NAV_IGNORAR = /conhecer o ldi|n[aã]o mostrar novamente|^fechar$|^close|share|tweet|^todos os cursos$|^meus cursos$|^in[ií]cio$|^dashboard$|^painel$|^voltar|^ver mais$|^carregar mais$|organiza[çc][aã]o de estudos|passo estrat|bizu estrat|cursos b[oô]nus|^\d*\s*disciplinas$|^\d*\s*discursivas$|pr[eé]-edital|p[oó]s-edital|favoritos|conclu[ií]dos|^todos$|visualizar|^t[ií]tulo$|precisa de ajuda|pedir ao|baixar notalink|cat[aá]logo|trilha|simulado|sala vip|comunidade|monitoria|alerta|perfil|meus dados|prefer[eê]ncia|sair|logout|ajuda|suporte|assinatura|compra|pagamento|caderno de quest|monitor de perf|estude em grupo|cursos exclusivos|minhas matr[ií]culas|in[ií]cio|home|voltar|pr[oó]xim|anterior|ver todos|mais informa/i;
 
 // Cartões/itens clicáveis da página (disciplinas, aulas): devolve [{nome, url|null, idx}] — url null = precisa clicar.
 async function listarCartoes(page) {
@@ -420,10 +420,20 @@ async function sync(inspecionar) {
       return false;
     };
     const urlDisc = page.url();
-    const temBotao = async () => page.evaluate(() => [...document.querySelectorAll('button, a, [role="button"]')].some(b => /baixar curso|baixar em pdf|download do curso/i.test((b.innerText || '') + ' ' + (b.getAttribute('aria-label') || '') + ' ' + (b.title || ''))));
-    if (!(await temBotao())) {   // ainda não é a tela do Livro Digital: entra por "Conhecer o LDI"
-      if (await clicar(/conhecer o ldi|livro digital|abrir ldi|^ldi$/i, 6000)) { try { await page.waitForLoadState('domcontentloaded', { timeout: 15000 }); } catch {} await page.waitForTimeout(1500); }
-    }
+    // Fecha o aviso de boas-vindas do LDI ("Conheça o seu novo jeito de estudar") e pesquisas, se aparecerem.
+    const fecharAvisos = async () => {
+      for (let i = 0; i < 3; i++) {
+        const fechou = await page.evaluate(() => {
+          let agiu = false;
+          for (const l of document.querySelectorAll('label, button, [role="checkbox"]')) if (/n[aã]o mostrar novamente/i.test(l.innerText || '')) { l.click(); agiu = true; }
+          for (const b of document.querySelectorAll('button, [role="button"], div')) { const t = (b.innerText || b.getAttribute('aria-label') || '').trim(); if (/^(fechar|close|close survey|dispensar|agora n[aã]o|entendi|ok)$/i.test(t) && b.offsetParent !== null) { b.click(); agiu = true; break; } }
+          return agiu;
+        }).catch(() => false);
+        if (!fechou) break; await page.waitForTimeout(700);
+      }
+    };
+    await fecharAvisos();
+    const dialogosAntes = await page.evaluate(() => [...document.querySelectorAll('[role="dialog"], [class*="modal" i], [class*="dialog" i], [class*="drawer" i]')].map(m => (m.innerText || '').slice(0, 80)));
     if (!(await clicar(/baixar curso|baixar em pdf|baixar pdf|download do curso/i, 15000))) {
       if (diagLdiFeito < 2) { diagLdiFeito++; await salvarInspecao(page, `ldi-${limpaNome(disciplina).slice(0, 25)}`); console.log(`      (LDI aberto, mas não achei "Baixar curso em PDF ou vídeo" — foto inspecao-ldi-….png)`); }
       return 0;
@@ -431,12 +441,15 @@ async function sync(inspecionar) {
     await page.waitForTimeout(2500);
     const downloads = []; const onDl = d => downloads.push(d); page.on('download', onDl);
     // o que a janela de download mostra
-    const modal = await page.evaluate(() => {
-      const cands = [...document.querySelectorAll('[role="dialog"], [class*="modal" i], [class*="dialog" i], [class*="drawer" i], [class*="sheet" i]')];
+    const modal = await page.evaluate(antes => {
+      let cands = [...document.querySelectorAll('[role="dialog"], [class*="modal" i], [class*="dialog" i], [class*="drawer" i], [class*="sheet" i]')]
+        .filter(m => (m.innerText || '').trim() && !/conhe[çc]a o seu novo jeito|guia r[aá]pido/i.test(m.innerText));
+      const novos = cands.filter(m => !antes.includes((m.innerText || '').slice(0, 80)));
+      if (novos.length) cands = novos;
       const m = cands.sort((a, b) => b.innerText.length - a.innerText.length)[0] || document.body;
       return { texto: (m.innerText || '').replace(/\s+/g, ' ').trim().slice(0, 800),
         itens: [...m.querySelectorAll('a[href], button, [role="button"], [role="menuitem"], [role="tab"], [role="radio"], [role="checkbox"], input, label')].map((el, i) => { el.setAttribute('data-rr-mi', String(i)); return { i, tag: el.tagName.toLowerCase(), type: el.type || '', t: (el.innerText || el.getAttribute('aria-label') || el.title || el.value || '').replace(/\s+/g, ' ').trim().slice(0, 70), href: el.href || '' }; }).filter(x => x.t || x.href) };
-    });
+    }, dialogosAntes);
     if (diagLdiFeito < 2) { diagLdiFeito++; await salvarInspecao(page, `download-${limpaNome(disciplina).slice(0, 25)}`);
       console.log(`      ⬇ Janela "Baixar curso": ${modal.texto.slice(0, 400)}`); modal.itens.slice(0, 60).forEach(x => console.log(`         · ${x.tag}${x.type ? '[' + x.type + ']' : ''} | ${x.t} | ${x.href}`)); }
     let n = 0;
@@ -460,6 +473,7 @@ async function sync(inspecionar) {
     } catch (e) {} }
     fs.writeFileSync(MANIFEST, JSON.stringify(manifest, null, 2));
     try { await page.keyboard.press('Escape'); } catch {}
+    for (const p2 of ctx.pages()) if (p2 !== page) { try { await p2.close(); } catch {} }   // fecha abas extras (guia do LDI etc.)
     try { await page.goto(urlDisc, { waitUntil: 'domcontentloaded' }); await esperarPagina(page); } catch {}
     return n;
   }
