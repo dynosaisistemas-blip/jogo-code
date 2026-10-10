@@ -103,11 +103,23 @@ async function esperarPagina(page) {
   await page.waitForTimeout(700);
 }
 
+// Abre uma URL tentando de novo em caso de queda de conexão (ERR_CONNECTION_RESET, timeout etc.).
+async function irCom(page, url, tentativas = 3) {
+  let erro;
+  for (let i = 1; i <= tentativas; i++) {
+    try { return await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 45000 }); }
+    catch (e) { erro = e; if (i < tentativas) { console.log(`   (sem resposta de ${hostDe(url)} — tentativa ${i}/${tentativas}; aguardando ${5 * i}s)`); await page.waitForTimeout(5000 * i); } }
+  }
+  if (/CONNECTION_RESET|CONNECTION_REFUSED|NAME_NOT_RESOLVED|INTERNET_DISCONNECTED|TIMED_OUT|Timeout/i.test(String(erro)))
+    console.error(`\n✖ Não consegui conectar em ${hostDe(url)}.\n  Verifique a internet, desligue VPN/proxy, confira se o antivírus não bloqueia o Chrome e abra ${url} no seu navegador para testar. Depois rode de novo.`);
+  throw erro;
+}
+
 const URL_PERFIL = process.env.ESTRATEGIA_URL_PERFIL || 'https://perfil.estrategia.com/';
 
 // Área do aluno (perfil.estrategia.com) → "Estratégia Concursos Novo" → Acessar. Devolve a aba da plataforma nova.
 async function entrarPlataformaNova(ctx, page) {
-  await page.goto(URL_PERFIL, { waitUntil: 'domcontentloaded' });
+  await irCom(page, URL_PERFIL);
   await esperarPagina(page);
   if (/login/i.test(page.url()) || await page.$('input[type="password"]')) return null;   // não logado
   const card = page.locator('text=/Estrat[ée]gia Concursos\\s*Novo/i').first();
@@ -131,7 +143,7 @@ async function login() {
   const ctx = await abrir(false);
   const page = ctx.pages()[0] || await ctx.newPage();
   console.log('➡  Faça o login na janela do navegador (pode usar "Entrar com Google"). Quando aparecer a Área do aluno, feche a janela.');
-  await page.goto(URL_PERFIL);
+  try { await irCom(page, URL_PERFIL); } catch { console.log('   A janela fica aberta: quando a internet voltar, digite perfil.estrategia.com na barra de endereço, faça o login e feche a janela.'); }
   await new Promise(res => ctx.on('close', res));
   console.log('✔ Sessão salva em', PERFIL);
 }
@@ -275,7 +287,7 @@ async function sync(inspecionar) {
   let todos = [], cursos = [];
   // 1) Tenta o pacote pelo endereço conhecido
   try {
-    await page.goto(URL_PACOTE, { waitUntil: 'domcontentloaded' });
+    await irCom(page, URL_PACOTE);
     // a página é montada por JavaScript: espera o nome do pacote ou a aba "Disciplinas" aparecer
     try { await page.waitForSelector('text=/Disciplinas|Auditor Fiscal|Receita Federal/i', { timeout: 25000 }); } catch {}
     await esperarPagina(page);
