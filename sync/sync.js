@@ -279,7 +279,8 @@ async function baixar(page, url, destino) {
 }
 
 async function sync(inspecionar) {
-  const ctx = await abrir(!inspecionar);
+  if (process.env.OCULTO !== '1') console.log('ℹ Uma janela do Chrome vai abrir e ficar trabalhando sozinha. NÃO feche essa janela até aparecer "Concluído" aqui.');
+  const ctx = await abrir(process.env.OCULTO === '1');   // janela visível: o Chrome invisível travava ao salvar PDFs
   let page = ctx.pages()[0] || await ctx.newPage();
   page = await entrarPlataformaNova(ctx, page);
   if (!page) { console.error('✖ Não está logado. Rode: npm run login (ou apague a pasta .perfil-navegador e rode de novo)'); await ctx.close(); process.exit(1); }
@@ -580,7 +581,14 @@ async function sync(inspecionar) {
           ctx.waitForEvent('page', { timeout: 8000 }).catch(() => null),
           btn.click({ timeout: 3000 }).catch(() => btn.evaluate(el => el.click())),
         ]);
-        if (dl) { await dl.saveAs(arq); }
+        if (dl) {
+          const urlDl = dl.url();
+          try { await dl.saveAs(arq); }
+          catch (e1) {              // salvar pelo Chrome falhou: baixa pela URL do download com os cookies da sessão
+            const r = await page.request.get(urlDl).catch(() => null);
+            if (r && r.ok()) fs.writeFileSync(arq, await r.body()); else throw e1;
+          }
+        }
         else if (novaAba) {        // abriu o PDF numa aba: baixa pela URL com os cookies da sessão
           try { await novaAba.waitForLoadState('domcontentloaded', { timeout: 15000 }); } catch {}
           const u = novaAba.url(); let ok = false;
