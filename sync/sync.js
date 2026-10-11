@@ -516,6 +516,22 @@ async function sync(inspecionar) {
     }
   }
 
+  // Captura de PDF pela rede: enquanto `captura.ativa`, qualquer resposta PDF (ou anexo) é salva por nós e o download do Chrome é cancelado.
+  // Evita a aba auxiliar que o site abre e fecha ao baixar — era ela que derrubava o navegador.
+  const captura = { ativa: false, arquivos: [] };
+  await ctx.route('**/*', async route => {
+    const req = route.request();
+    if (!captura.ativa || !['document', 'other', 'fetch', 'xhr'].includes(req.resourceType()) || req.method() !== 'GET') return route.continue();
+    let resp; try { resp = await route.fetch(); } catch { return route.continue().catch(() => {}); }
+    const h = resp.headers(); const ct = (h['content-type'] || '').toLowerCase(); const cd = h['content-disposition'] || '';
+    if (/pdf/.test(ct) || /attachment/i.test(cd) || /\.pdf(\?|$)/i.test(req.url())) {
+      try { captura.arquivos.push({ url: req.url(), corpo: await resp.body(), nome: (cd.match(/filename\*?=(?:UTF-8'')?"?([^";]+)/i) || [])[1] }); } catch {}
+      return route.fulfill({ status: 204, body: '' }).catch(() => {});
+    }
+    return route.fulfill({ response: resp }).catch(() => route.continue().catch(() => {}));
+  });
+  ctx.on('page', p2 => { if (captura.ativa) setTimeout(() => { try { if (p2 !== page) p2.close().catch(() => {}); } catch {} }, 4000); });
+
   // Lista "Baixar curso": cada linha tem o título da aula + botões COMPLETO / SEM SOLUÇÕES. Baixa o COMPLETO de cada uma.
   let diagListaFeito = 0;
   // Localiza as linhas de aula (e marca os botões COMPLETO de cada uma). Ignora o alternador COMPLETO/RESUMO do cabeçalho.
@@ -576,26 +592,23 @@ async function sync(inspecionar) {
       if (!btn) { console.log('      ✖', l.titulo.slice(0, 70), '- botão não encontrado de novo'); continue; }
       try {
         try { await btn.scrollIntoViewIfNeeded({ timeout: 3000 }); } catch {}
-        const [dl, novaAba] = await Promise.all([
-          page.waitForEvent('download', { timeout: 60000 }).catch(() => null),
-          ctx.waitForEvent('page', { timeout: 8000 }).catch(() => null),
-          btn.click({ timeout: 3000 }).catch(() => btn.evaluate(el => el.click())),
-        ]);
-        if (dl) {
-          const urlDl = dl.url();
-          try { await dl.saveAs(arq); }
-          catch (e1) {              // salvar pelo Chrome falhou: baixa pela URL do download com os cookies da sessão
-            const r = await page.request.get(urlDl).catch(() => null);
-            if (r && r.ok()) fs.writeFileSync(arq, await r.body()); else throw e1;
-          }
-        }
-        else if (novaAba) {        // abriu o PDF numa aba: baixa pela URL com os cookies da sessão
-          try { await novaAba.waitForLoadState('domcontentloaded', { timeout: 15000 }); } catch {}
-          const u = novaAba.url(); let ok = false;
-          if (/^https?:/.test(u)) { const r = await page.request.get(u).catch(() => null); if (r && r.ok() && /pdf|octet/i.test(r.headers()['content-type'] || '')) { fs.writeFileSync(arq, await r.body()); ok = true; } }
-          try { await novaAba.close(); } catch {}
-          if (!ok) { console.log('      ✖', l.titulo.slice(0, 70), '- abriu em aba mas não veio PDF:', u.slice(0, 80)); continue; }
+        captura.arquivos = []; captura.ativa = true;
+        let dlEvento = null; const onDl = d => { dlEvento = d; }; page.on('download', onDl);
+        try { await btn.click({ timeout: 3000 }); } catch { try { await btn.evaluate(el => el.click()); } catch {} }
+        // espera o PDF chegar pela rede (ou, como reserva, o evento de download), até 60 s
+        for (let t = 0; t < 120 && !captura.arquivos.length && !dlEvento; t++) await page.waitForTimeout(500);
+        await page.waitForTimeout(600);
+        page.off('download', onDl); captura.ativa = false;
+        if (captura.arquivos.length) {
+          const melhor = captura.arquivos.sort((a, b) => b.corpo.length - a.corpo.length)[0];
+          fs.writeFileSync(arq, melhor.corpo);
+        } else if (dlEvento) {
+          const urlDl = dlEvento.url();
+          const r = await ctx.request.get(urlDl).catch(() => null);
+          if (r && r.ok()) fs.writeFileSync(arq, await r.body());
+          else { try { await dlEvento.saveAs(arq); } catch (e1) { console.log('      ✖', l.titulo.slice(0, 70), '-', e1.message.slice(0, 60)); continue; } }
         } else { console.log('      ✖', l.titulo.slice(0, 70), '- nenhum download iniciou'); continue; }
+        if (!fs.existsSync(arq) || fs.statSync(arq).size < 300) { try { fs.unlinkSync(arq); } catch {} console.log('      ✖', l.titulo.slice(0, 70), '- arquivo vazio'); continue; }
         n++; cont.pdf = (cont.pdf || 0) + 1; console.log('      ✔', l.titulo.slice(0, 80)); await page.waitForTimeout(800);
         manifest.materiais.push({ chave, disciplina, curso: cursoNome, titulo: l.titulo, tipo: 'pdf', arquivo: path.relative(SAIDA, arq).split(path.sep).join('/') });
         fs.writeFileSync(MANIFEST, JSON.stringify(manifest, null, 2));
