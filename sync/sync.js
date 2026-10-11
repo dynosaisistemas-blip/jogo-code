@@ -696,4 +696,17 @@ async function sync(inspecionar) {
   await ctx.close();
 }
 
-(modo === 'login' ? login() : sync(modo === 'inspecionar')).catch(e => { console.error('Erro:', e.message); process.exit(1); });
+// Se o navegador for fechado/travar no meio (antivírus, queda, janela fechada), reabre e continua: o que já foi baixado não repete.
+async function syncComRetomada(inspecionar) {
+  for (let tentativa = 1; tentativa <= 6; tentativa++) {
+    try { await sync(inspecionar); return; }
+    catch (e) {
+      const fechou = /has been closed|Target closed|browser has been closed|Connection closed|crashed/i.test(String(e && e.message));
+      if (!fechou || tentativa === 6) throw e;
+      console.log(`\n⚠ O navegador foi fechado no meio do trabalho (${e.message.slice(0, 60)}…). Reabrindo em 8 s e continuando de onde parou (${tentativa}/5)…`);
+      console.log('   Se isso se repetir, verifique se o antivírus está bloqueando downloads do Chrome ou se alguma janela do Chrome foi fechada manualmente.');
+      await new Promise(r => setTimeout(r, 8000));
+    }
+  }
+}
+(modo === 'login' ? login() : syncComRetomada(modo === 'inspecionar')).catch(e => { console.error('Erro:', e.message); process.exit(1); });
