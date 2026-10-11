@@ -405,8 +405,8 @@ async function sync(inspecionar) {
   // Plataforma nova: na página da disciplina → "Conhecer o LDI" (Livro Digital) → "Baixar curso em PDF ou vídeo".
   let diagLdiFeito = 0;
   async function baixarPeloLDI(disciplina, cursoNome) {
-    // Clica por texto/aria-label mesmo que o botão esteja recolhido (barra lateral fechada): tenta clique normal, depois via JavaScript.
-    const clicar = async (re, timeout = 12000) => {
+    const clicar = (re, timeout = 12000) => clicarPorTexto(re, timeout);
+    const _clicarAntigo = async (re, timeout = 12000) => {
       const fim = Date.now() + timeout;
       while (Date.now() < fim) {
         const ok = await page.evaluate(src => {
@@ -483,6 +483,21 @@ async function sync(inspecionar) {
     }
   }
 
+  // Clica por texto/aria-label mesmo que o botão esteja recolhido (barra lateral fechada), via JavaScript.
+  async function clicarPorTexto(re, timeout = 12000) {
+    const fim = Date.now() + timeout;
+    while (Date.now() < fim) {
+      const ok = await page.evaluate(src => {
+        const r = new RegExp(src, 'i');
+        const el = [...document.querySelectorAll('button, a, [role="button"], [role="menuitem"]')].find(b => r.test(((b.innerText || '') + ' ' + (b.getAttribute('aria-label') || '') + ' ' + (b.title || '')).replace(/\s+/g, ' ')));
+        if (!el) return false; el.scrollIntoView({ block: 'center' }); el.click(); return true;
+      }, re.source).catch(() => false);
+      if (ok) return true;
+      await page.waitForTimeout(700);
+    }
+    return false;
+  }
+
   // Fecha o aviso de boas-vindas pelo "X" (botão sem texto no canto do diálogo) e marca "Não mostrar novamente".
   async function fecharAvisoX() {
     for (let i = 0; i < 3; i++) {
@@ -510,6 +525,7 @@ async function sync(inspecionar) {
     document.querySelectorAll('[data-rr-dlrow]').forEach(e => e.removeAttribute('data-rr-dlrow'));
     for (const b of document.querySelectorAll(ehBtn)) {
       if (!/^\s*completo\s*$/i.test(limpa(b.innerText))) continue;
+      if (!b.offsetParent && getComputedStyle(b).position !== 'fixed') continue;     // escondido (lista fechada): ignora
       // sobe até o menor contêiner que tenha também um "SEM SOLUÇÕES" — e que seja uma linha (texto curto, sem "RESUMO")
       let row = b.parentElement, achou = null;
       for (let i = 0; i < 7 && row && row !== document.body; i++, row = row.parentElement) {
@@ -520,9 +536,15 @@ async function sync(inspecionar) {
         if (temSem) { if (limpa(row.innerText).length < 500) achou = row; break; }
       }
       if (!achou) continue;
-      const clone = achou.cloneNode(true);
-      clone.querySelectorAll('button, a, [role="button"], input, small').forEach(x => x.remove());
-      let titulo = limpa(clone.textContent).replace(/(completo|sem solu[çc][õo]es|com solu[çc][aã]o e coment[aá]rio|gabarito ao final)/gi, ' ').replace(/\s+/g, ' ').trim();
+      const tituloDe = el => { const c = el.cloneNode(true); c.querySelectorAll('button, a, [role="button"], input, small, svg').forEach(x => x.remove());
+        return limpa(c.textContent).replace(/(completo|sem solu[çc][õo]es|com solu[çc][aã]o e coment[aá]rio|gabarito ao final)/gi, ' ').replace(/\s+/g, ' ').trim(); };
+      let titulo = tituloDe(achou), sobe = achou;
+      // o título costuma ficar ao lado do grupo de botões: sobe até achar texto, sem engolir a lista inteira
+      for (let i = 0; i < 4 && titulo.length < 5 && sobe.parentElement && sobe.parentElement !== document.body; i++) {
+        const pai = sobe.parentElement; const bs = [...pai.querySelectorAll(ehBtn)].filter(x => /^\s*completo\s*$/i.test(limpa(x.innerText)));
+        if (bs.length > 1 || limpa(pai.innerText).length > 600) break;   // já é a lista toda
+        sobe = pai; titulo = tituloDe(sobe);
+      }
       if (!titulo) titulo = 'Aula ' + (k + 1);
       b.setAttribute('data-rr-dlrow', String(k)); out.push({ k, titulo: titulo.slice(0, 120) }); k++;
     }
@@ -541,16 +563,22 @@ async function sync(inspecionar) {
       const chave = `${disciplina}/${l.titulo}`;
       if (fs.existsSync(arq) || manifest.materiais.some(m => m.chave === chave)) continue;
       await fecharAvisos(); await fecharAvisoX();
-      const agora = await acharLinhas();                                   // reencontra os botões (a página pode ter re-renderizado)
+      let agora = await acharLinhas();                                     // reencontra os botões (a página pode ter re-renderizado)
+      if (!agora.length) {                                                 // a tela "Baixar curso" fechou após o download: reabre
+        await clicarPorTexto(/baixar curso|baixar em pdf|download do curso/i, 10000);
+        await page.waitForTimeout(2000); await fecharAvisos(); await fecharAvisoX();
+        for (let i = 0; i < 6; i++) { try { await page.mouse.wheel(0, 3000); } catch {} await page.waitForTimeout(250); }
+        agora = await acharLinhas();
+      }
       const alvo = agora.find(x => x.titulo === l.titulo) || agora[l.k];
       const btn = alvo ? await page.$(`[data-rr-dlrow="${alvo.k}"]`) : null;
       if (!btn) { console.log('      ✖', l.titulo.slice(0, 70), '- botão não encontrado de novo'); continue; }
       try {
-        await btn.scrollIntoViewIfNeeded();
+        try { await btn.scrollIntoViewIfNeeded({ timeout: 3000 }); } catch {}
         const [dl, novaAba] = await Promise.all([
           page.waitForEvent('download', { timeout: 60000 }).catch(() => null),
           ctx.waitForEvent('page', { timeout: 8000 }).catch(() => null),
-          btn.click({ timeout: 3000 }),
+          btn.click({ timeout: 3000 }).catch(() => btn.evaluate(el => el.click())),
         ]);
         if (dl) { await dl.saveAs(arq); }
         else if (novaAba) {        // abriu o PDF numa aba: baixa pela URL com os cookies da sessão
@@ -560,7 +588,7 @@ async function sync(inspecionar) {
           try { await novaAba.close(); } catch {}
           if (!ok) { console.log('      ✖', l.titulo.slice(0, 70), '- abriu em aba mas não veio PDF:', u.slice(0, 80)); continue; }
         } else { console.log('      ✖', l.titulo.slice(0, 70), '- nenhum download iniciou'); continue; }
-        n++; cont.pdf = (cont.pdf || 0) + 1; console.log('      ✔', l.titulo.slice(0, 80));
+        n++; cont.pdf = (cont.pdf || 0) + 1; console.log('      ✔', l.titulo.slice(0, 80)); await page.waitForTimeout(800);
         manifest.materiais.push({ chave, disciplina, curso: cursoNome, titulo: l.titulo, tipo: 'pdf', arquivo: path.relative(SAIDA, arq).split(path.sep).join('/') });
         fs.writeFileSync(MANIFEST, JSON.stringify(manifest, null, 2));
       } catch (e) { console.log('      ✖', l.titulo.slice(0, 70), '-', e.message.slice(0, 60)); }
