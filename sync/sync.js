@@ -131,7 +131,12 @@ async function entrarPlataformaNova(ctx, page) {
   try { await alvo.waitForLoadState('domcontentloaded', { timeout: 20000 }); } catch {}
   await esperarPagina(alvo);
   console.log('Plataforma nova aberta em:', alvo.url());
-  return alvo;
+  // A aba aberta pelo "Acessar" é uma janela filha: o site consegue fechá-la por JavaScript (acontecia ao clicar em COMPLETO).
+  // Trabalhamos numa aba própria, que o site não pode fechar.
+  const propria = await ctx.newPage();
+  await irCom(propria, alvo.url()); await esperarPagina(propria);
+  for (const p2 of ctx.pages()) if (p2 !== propria) { try { await p2.close(); } catch {} }
+  return propria;
 }
 
 async function salvarInspecao(page, nome) {
